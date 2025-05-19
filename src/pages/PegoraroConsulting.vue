@@ -70,37 +70,37 @@
           </div>
         </div>
 
-        <!-- Clients Carousel -->
+        <!-- Clients Scrollable -->
         <q-separator spaced />
         <div id="clients" class="q-mt-xl">
           <h2 class="text-h5 text-primary text-center">Big Clients</h2>
-          <q-slide-group show-arrows class="q-mt-md" dense>
-            <div v-for="(c, i) in clientCards" :key="'cl'+i"
-            class="q-slide-item q-pa-sm" style="min-width: 250px">
+          <div class="row no-wrap scroll-x q-mt-md q-px-sm">
+            <div v-for="(c, i) in clientCards"
+            :key="'cl'+i" class="q-pr-sm" style="min-width: 250px">
               <q-card class="column items-center q-pa-md client-card">
                 <q-img :src="c.img" :alt="c.name" style="height:120px;width:100%" />
                 <div class="text-subtitle1 text-bold q-mt-sm">{{ c.name }}</div>
                 <div class="text-caption text-center">{{ c.desc }}</div>
               </q-card>
             </div>
-          </q-slide-group>
+          </div>
         </div>
 
-        <!-- Team Carousel -->
+        <!-- Team Scrollable -->
         <q-separator spaced />
         <div id="team" class="q-mt-xl">
           <h2 class="text-h5 text-primary text-center">The Team</h2>
-          <q-slide-group show-arrows class="q-mt-md" dense>
-            <div v-for="(m, i) in teamSlides" :key="'tm'+i"
-            class="q-slide-item q-pa-sm" style="min-width: 220px">
+          <div class="row no-wrap scroll-x q-mt-md q-px-sm">
+            <div v-for="(m, i) in teamSlides"
+            :key="'tm'+i" class="q-pr-sm" style="min-width: 220px">
               <q-card class="column items-center q-pa-md team-card">
                 <q-img :src="m.img" :alt="m.name"
-                style="width:100px;height:100px;border-radius:50%" />
+                      style="width:100px;height:100px;border-radius:50%" />
                 <div class="text-subtitle1 text-bold q-mt-sm">{{ m.name }}</div>
                 <div class="text-caption text-center">{{ m.role }}</div>
               </q-card>
             </div>
-          </q-slide-group>
+          </div>
         </div>
 
         <!-- Services Text -->
@@ -191,6 +191,14 @@ export default {
 </script>
 
 <style scoped>
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.row.no-wrap {
+  flex-wrap: nowrap;
+}
+
 .portfolio-container {
   max-width: 1100px;
   margin: 0 auto;
