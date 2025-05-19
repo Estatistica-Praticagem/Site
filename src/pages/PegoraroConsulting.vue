@@ -1,297 +1,128 @@
 <template>
   <q-page class="q-pa-md">
+    <!-- Navigation Buttons -->
+    <div class="text-center q-mb-lg">
+      <q-btn label="About the Company"
+      color="primary" flat @click="scrollTo('about')" class="q-mx-sm" />
+      <q-btn label="Data Driven"
+      color="primary" flat @click="scrollTo('data')" class="q-mx-sm" />
+      <q-btn label="Skills & Expertise"
+      color="primary" flat @click="scrollTo('skills')" class="q-mx-sm" />
+      <q-btn label="Clients" color="primary" flat @click="scrollTo('clients')" class="q-mx-sm" />
+      <q-btn label="Services" color="primary" flat @click="scrollTo('services')" class="q-mx-sm" />
+      <q-btn label="Team" color="primary" flat @click="scrollTo('team')" class="q-mx-sm" />
+      <q-btn label="Contact" color="primary" flat @click="scrollTo('contact')" class="q-mx-sm" />
+    </div>
+
     <q-slide-transition>
       <q-card flat bordered class="q-pa-md portfolio-container">
-        <!-- Título Principal -->
+        <!-- Title -->
         <div class="text-center q-mb-xl">
-          <h1 class="text-h4 text-weight-bold">
-            Horizonte BI
-          </h1>
-          <p class="text-subtitle1">
-            Global Solutions, Local Results
-          </p>
+          <h1 class="text-h4 text-weight-bold">Horizonte BI</h1>
+          <p class="text-subtitle1">Global Solutions, Local Results</p>
         </div>
 
         <!-- About the Company -->
         <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
+        <div id="about" class="row q-col-gutter-md q-mt-lg items-center">
           <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/About the Company.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="About the Company"
-            />
+            <q-img src="~assets/About the Company.png"
+            style="width:100%" spinner-color="primary" alt="About the Company" />
           </div>
           <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              About the Company
-            </h2>
-            <p>
-              Horizonte BI is a full-service marketing
-              consultancy with deep expertise in Business
-              Intelligence. We support global clients across
-              industries throughout the digital marketing
-              cycle—from strategy and execution to performance
-              optimization.
-            </p>
-            <p>
-              We also offer robust data solutions, insightful
-              dashboards, and comprehensive analytics—always
-              customized to each client’s objective. Our detailed
-              reporting and actionable recommendations empower
-              businesses to make informed decisions that drive
-              meaningful, real-world results.
-            </p>
+            <h2 class="text-h5 text-primary">About the Company</h2>
+            <p>Horizonte BI is a full-service marketing
+              consultancy with deep BI expertise. We
+              support clients across the digital marketing cycle—from strategy to optimization.</p>
+            <p>We deliver tailored data solutions,
+               dashboards and analytics that power informed decisions.</p>
           </div>
         </div>
 
         <!-- Data Driven Business -->
         <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
+        <div id="data" class="row q-col-gutter-md q-mt-lg items-center">
           <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              Data Driven Business
-            </h2>
-            <p>
-              As a data-driven company, we empower businesses by
-              leveraging relevant and reliable data to evaluate
-              current strategies and design new paths for growth.
-              We use data as a strategic resource to drive
-              informed decision-making, optimize processes,
-              enhance performance, and unlock potential for
-              sustainable growth.
-            </p>
-            <p>
-              Our approach is grounded in a culture that values
-              data-driven insights across all business cycles.
-              We provide the technologies, tools, and expertise
-              needed to collect, store, analyze, and interpret
-              large volumes of data efficiently, helping our
-              clients turn information into actionable strategies
-              that deliver results.
-            </p>
+            <h2 class="text-h5 text-primary">Data Driven Business</h2>
+            <p>We leverage reliable data to evaluate current strategies and design growth paths.</p>
+            <p>Our culture values data insights in
+              every cycle, turning information into strategy.</p>
           </div>
-          <div class="col-12 col-md-6">
-            <!-- <q-img
-              src="~assets/*.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="Data Driven"
-            /> -->
-          </div>
+          <div class="col-12 col-md-6"></div>
         </div>
 
         <!-- Skills & Expertise -->
         <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
+        <div id="skills" class="row q-col-gutter-md q-mt-lg items-center">
           <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/Skills&Expertise.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="Skills and Expertise"
-            />
+            <q-img src="~assets/Skills&Expertise.png"
+            style="width:100%" spinner-color="primary" alt="Skills & Expertise" />
           </div>
           <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              Skills & Expertise
-            </h2>
-            <p>
-              By respecting the different stages of digital
-              marketing, we generate results and analyze data,
-              always seeking better decision-making and
-              performance gains for companies.
-            </p>
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              ETL Process
-            </h3>
-            <p>
-              At our company, ETL (Extract, Transform, Load) is
-              key to delivering data-driven solutions for our
-              clients. This process integrates data from multiple
-              sources, transforming it into clean, standardized,
-              and reliable insights. By ensuring high data
-              quality, we empower businesses to make smarter
-              decisions and drive growth.
-            </p>
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              Database
-            </h3>
-            <p>
-              After extracting data, we perform processing and
-              transformations with SQL to generate our database.
-            </p>
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              Dashboard
-            </h3>
-            <p>
-              The database feeds interactive dashboards that
-              provide insights for campaign optimization and
-              reporting.
-            </p>
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              Complete Media Funnel
-            </h3>
-            <p>
-              <em>*Illustrative Data</em>
-            </p>
+            <h2 class="text-h5 text-primary">Skills & Expertise</h2>
+            <p>We analyse data, generate insights and improve decisions across marketing stages.</p>
+            <h3 class="text-h6 text-bold q-mt-sm">ETL Process</h3>
+            <p>Integration and transformation from multiple sources ensure clean, trusted data.</p>
+            <h3 class="text-h6 text-bold q-mt-sm">Database</h3>
+            <p>SQL pipelines standardise and store insights.</p>
+            <h3 class="text-h6 text-bold q-mt-sm">Dashboard</h3>
+            <p>Interactive dashboards drive optimisation.</p>
           </div>
         </div>
 
-        <!-- Examples of Skills and Methodologies -->
+        <!-- Clients Carousel -->
         <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 text-center q-my-md">
-            <p>
-              And here we have examples of these skills and
-              methodologies applied:
-            </p>
-          </div>
+        <div id="clients" class="q-mt-xl">
+          <h2 class="text-h5 text-primary text-center">Big Clients</h2>
+          <q-slide-group show-arrows class="q-mt-md" dense>
+            <div v-for="(c, i) in clientCards" :key="'cl'+i"
+            class="q-slide-item q-pa-sm" style="min-width: 250px">
+              <q-card class="column items-center q-pa-md client-card">
+                <q-img :src="c.img" :alt="c.name" style="height:120px;width:100%" />
+                <div class="text-subtitle1 text-bold q-mt-sm">{{ c.name }}</div>
+                <div class="text-caption text-center">{{ c.desc }}</div>
+              </q-card>
+            </div>
+          </q-slide-group>
         </div>
 
-        <!-- Big Clients in Brazil -->
+        <!-- Team Carousel -->
         <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
+        <div id="team" class="q-mt-xl">
+          <h2 class="text-h5 text-primary text-center">The Team</h2>
+          <q-slide-group show-arrows class="q-mt-md" dense>
+            <div v-for="(m, i) in teamSlides" :key="'tm'+i"
+            class="q-slide-item q-pa-sm" style="min-width: 220px">
+              <q-card class="column items-center q-pa-md team-card">
+                <q-img :src="m.img" :alt="m.name"
+                style="width:100px;height:100px;border-radius:50%" />
+                <div class="text-subtitle1 text-bold q-mt-sm">{{ m.name }}</div>
+                <div class="text-caption text-center">{{ m.role }}</div>
+              </q-card>
+            </div>
+          </q-slide-group>
+        </div>
+
+        <!-- Services Text -->
+        <q-separator spaced />
+        <div id="services" class="row q-col-gutter-md q-mt-lg items-center">
           <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              Big Clients in Brazil
-            </h2>
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              International Port of Rio Grande
-            </h3>
-            <p>
-              We developed a complete system to collect climate
-              data from different sources and sensors, training
-              and deploying ML models to make tide and current
-              predictions.
-            </p>
-            <p>
-              Our system delivers real-time predictions 24/7 to
-              increase port safety, achieving a high degree of
-              assertiveness and reliability.
-            </p>
-            <p><em>Since 2020</em></p>
-
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              Via Marte Ecommerce
-            </h3>
-            <p>
-              One of the largest footwear e-commerce sites in
-              southern Brazil. We automated data collection from
-              all media platforms, created consolidated views and
-              dashboards, and compared sales information.
-            </p>
-            <p>
-              The data is updated daily, allowing quick
-              decision-making to maximize returns and boost
-              sales.
-            </p>
-            <p><em>Since 2024</em></p>
-
-            <h3 class="text-h6 text-weight-bold q-mt-sm">
-              Agency Rfill
-            </h3>
-            <p>
-              The Rfill agency sought to optimize their digital
-              marketing flow for luxury properties, so we
-              automated data collection, developed dashboards,
-              and implemented workflows for lead generation.
-              These efforts delivered actionable insights,
-              empowering better decision-making and driving more
-              effective campaigns.
-            </p>
-            <p><em>Since 2024</em></p>
+            <h2 class="text-h5 text-primary">Offered Services</h2>
+            <p>End-to-end performance: ETL, analysis, CRM, dashboards and media optimisation.</p>
           </div>
           <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/RGPilots.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="Big Clients in Brazil"
-            />
-          </div>
-        </div>
-
-        <!-- Offered Services -->
-        <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              Offered Services
-            </h2>
-            <p>
-              We provide end-to-end marketing performance services,
-              including ETL, data analysis, dashboards, CRM
-              strategy, and performance campaigns.
-            </p>
-          </div>
-          <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/OfferedServices.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="Offered Services"
-            />
-          </div>
-        </div>
-
-        <!-- Team -->
-        <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-start">
-          <div class="col-12">
-            <h2 class="text-h5 text-primary">The Team</h2>
-          </div>
-          <!-- <div class="col-12 col-md-4 text-justify">
-            <h3 class="text-h6 text-weight-bold">
-              Data Specialist
-            </h3>
-            <p>
-              Kévi Pegoraro, United States
-            </p>
-          </div>
-          <div class="col-12 col-md-4 text-justify">
-            <h3 class="text-h6 text-weight-bold">
-              Media Specialist
-            </h3>
-            <p>
-              Lorenzo de Oliveira, Brazil
-            </p>
-          </div>
-          <div class="col-12 col-md-4 text-justify">
-            <h3 class="text-h6 text-weight-bold">
-              Planning Specialist
-            </h3>
-            <p>
-              Carolina Schaefer, Brazil
-            </p>
-          </div> -->
-          <div class="col-12 q-mt-md text-justify">
-            <p>
-              <strong>Designers:</strong> Creative and writing are
-              outsourced for now.
-            </p>
+            <q-img src="~assets/OfferedServices.png"
+             style="width:100%" spinner-color="primary" alt="Services" />
           </div>
         </div>
 
         <!-- Contact Us -->
         <q-separator spaced />
-        <div class="text-center q-mt-xl">
+        <div id="contact" class="text-center q-mt-xl">
           <h2 class="text-h5 text-primary">Contact Us</h2>
-          <p class="q-mt-sm">
-            <!-- <strong>Kévi Pegoraro</strong> -->
-          </p>
-          <!-- <p>Email: <a href="mailto:kevipegoraro@hotmail.com">
-            kevipegoraro@hotmail.com</a>
-          </p> -->
-          <!-- <p>+1 (256) 871-9730</p> -->
           <p>Data Specialist</p>
-          <p class="q-mt-md text-italic">
-            Horizonte BI<br />
-            Thank you! We look forward to working with you.
-          </p>
+          <p class="q-mt-md text-italic">Horizonte BI<br />Thank you!</p>
         </div>
-
       </q-card>
     </q-slide-transition>
   </q-page>
@@ -302,28 +133,82 @@ export default {
   name: 'PegoraroConsultingPortfolio',
   data() {
     return {
-      // Controlar slides, se quiser carrossel
+      clientCards: [
+        {
+          name: 'Port of Rio Grande',
+          desc: 'Real-time tide/current ML system',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/RGPilots.png'),
+        },
+        {
+          name: 'Via Marte',
+          desc: 'E-commerce media automation',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/RGPilots.png'),
+        },
+        {
+          name: 'Agency Rfill',
+          desc: 'Luxury property lead dashboards',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/RGPilots.png'),
+        },
+      ],
+      teamSlides: [
+        {
+          name: 'Kévi Pegoraro',
+          role: 'Data Specialist – USA',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/image/kevi.png'),
+        },
+        {
+          name: 'Lorenzo de Oliveira',
+          role: 'Media Specialist – BR',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/image/lorenzo.png'),
+        },
+        {
+          name: 'Carolina Schaefer',
+          role: 'Planning Specialist – BR',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/image/carol.png'),
+        },
+        {
+          name: 'Cristian P.',
+          role: 'Full-stack Developer',
+          // eslint-disable-next-line global-require
+          img: require('src/assets/image/cristian.png'),
+        },
+      ],
     };
+  },
+  methods: {
+    scrollTo(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    },
   },
 };
 </script>
 
 <style scoped>
-/* Ajustes básicos de layout e fontes */
 .portfolio-container {
   max-width: 1100px;
   margin: 0 auto;
 }
 h2 {
-  margin-top: 16px;
-  margin-bottom: 12px;
+  margin: 16px 0 12px;
 }
-p,
-ul {
+p, ul {
   font-size: 16px;
   line-height: 1.6;
 }
 .text-justify {
   text-align: justify;
+}
+.client-card, .team-card {
+  width: 100%;
+  min-height: 260px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 </style>
