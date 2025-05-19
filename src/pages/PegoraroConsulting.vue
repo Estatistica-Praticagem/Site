@@ -5,7 +5,7 @@
         <!-- Título Principal -->
         <div class="text-center q-mb-xl">
           <h1 class="text-h4 text-weight-bold">
-            Pegoraro Consulting
+            Horizonte BI
           </h1>
           <p class="text-subtitle1">
             Global Solutions, Local Results
@@ -28,7 +28,7 @@
               About the Company
             </h2>
             <p>
-              Pegoraro Consulting is a full-service marketing
+              Horizonte BI is a full-service marketing
               consultancy with deep expertise in Business
               Intelligence. We support global clients across
               industries throughout the digital marketing
@@ -73,12 +73,12 @@
             </p>
           </div>
           <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/embecta.png"
+            <!-- <q-img
+              src="~assets/*.png"
               style="width: 100%;"
               spinner-color="primary"
               alt="Data Driven"
-            />
+            /> -->
           </div>
         </div>
 
@@ -213,87 +213,6 @@
           </div>
         </div>
 
-        <!-- Global Experiences -->
-        <q-separator spaced />
-        <div class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/AstraZeneca.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="AstraZeneca"
-            />
-          </div>
-          <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">
-              Global Experiences
-            </h2>
-            <p class="text-weight-bold q-mt-none">
-              Key International Clients
-            </p>
-            <p>
-              <strong>2023 - 2024:</strong> Managing and
-              developing the entire business intelligence area for
-              this client in Brazil, outsourced by the agency
-              responsible for their marketing. We established
-              email marketing strategies, automated data
-              collection, and created dashboards to streamline
-              operations.
-            </p>
-            <p>
-              We also developed automations for managing CRM
-              databases, enhancing lead communication, and
-              driving business growth. <em>*Illustrative Data</em>
-            </p>
-          </div>
-        </div>
-
-        <!-- Outro bloco de Global Experiences -->
-        <div class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6 text-justify">
-            <p>
-              <strong>2020 - 2024:</strong> Developing the entire
-              BI area for this client's e-commerce throughout
-              Latin America, including Mexico, as outsourced by
-              the agency responsible for their marketing.
-            </p>
-            <p>
-              Operating conversion and traffic campaigns, carrying
-              out ETL processes, and optimizing performance to
-              achieve revenue growth. Also generating leads for an
-              educational project.
-            </p>
-            <p>
-              <em>*Dimensionless Illustrative Data</em>
-            </p>
-
-            <p class="q-mt-md">
-              <strong>2023 - 2024:</strong> We operate and develop
-              BI for this client in Brazil, including organic
-              channels, as an outsourced partner. Our involvement
-              spans brand awareness, traffic generation, and lead
-              campaigns, consistently helping them achieve
-              strategic goals.
-            </p>
-            <p>
-              As outsourced partners of the agency serving GE in
-              Brazil, we managed multi-platform campaigns to
-              acquire leads from a niche audience of potential
-              medical equipment buyers, successfully impacting
-              sales.
-            </p>
-            <p><em>2020 - 2021</em></p>
-          </div>
-          <div class="col-12 col-md-6">
-            <q-img
-              src="~assets/GeneralElectric.png"
-              style="width: 100%;"
-              spinner-color="primary"
-              alt="Global Experiences"
-            />
-          </div>
-        </div>
-
         <!-- Offered Services -->
         <q-separator spaced />
         <div class="row q-col-gutter-md q-mt-lg items-center">
@@ -323,7 +242,7 @@
           <div class="col-12">
             <h2 class="text-h5 text-primary">The Team</h2>
           </div>
-          <div class="col-12 col-md-4 text-justify">
+          <!-- <div class="col-12 col-md-4 text-justify">
             <h3 class="text-h6 text-weight-bold">
               Data Specialist
             </h3>
@@ -346,7 +265,7 @@
             <p>
               Carolina Schaefer, Brazil
             </p>
-          </div>
+          </div> -->
           <div class="col-12 q-mt-md text-justify">
             <p>
               <strong>Designers:</strong> Creative and writing are
@@ -360,15 +279,15 @@
         <div class="text-center q-mt-xl">
           <h2 class="text-h5 text-primary">Contact Us</h2>
           <p class="q-mt-sm">
-            <strong>Kévi Pegoraro</strong>
+            <!-- <strong>Kévi Pegoraro</strong> -->
           </p>
-          <p>Email: <a href="mailto:kevipegoraro@hotmail.com">
+          <!-- <p>Email: <a href="mailto:kevipegoraro@hotmail.com">
             kevipegoraro@hotmail.com</a>
-          </p>
-          <p>+1 (256) 871-9730</p>
+          </p> -->
+          <!-- <p>+1 (256) 871-9730</p> -->
           <p>Data Specialist</p>
           <p class="q-mt-md text-italic">
-            Pegoraro Consulting<br />
+            Horizonte BI<br />
             Thank you! We look forward to working with you.
           </p>
         </div>

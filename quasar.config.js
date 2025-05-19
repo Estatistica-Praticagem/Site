@@ -150,8 +150,8 @@ module.exports = configure((ctx) => ({
     },
 
     manifest: {
-      name: 'Acougue App',
-      short_name: 'Acougue App',
+      name: 'HorizonBI',
+      short_name: 'HorizonBI',
       description: 'A Quasar Project',
       display: 'standalone',
       orientation: 'portrait',

@@ -12,7 +12,7 @@
         />
 
         <q-toolbar-title>
-          Pegoraro Consulting
+          Horizonte BI
         </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
@@ -51,7 +51,7 @@ import EssentialLink from 'components/EssentialLink.vue';
 
 const linksList = [
   {
-    title: 'Pegoraro Consulting',
+    title: 'Horizonte BI',
     caption: '',
     icon: 'mdi-deskphone',
     link: 'https://quasar.dev',

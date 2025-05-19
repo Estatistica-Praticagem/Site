@@ -1,4 +1,4 @@
-# Acougue App (quasar-project)
+# HorizonBI (quasar-project)
 
 A Quasar Project
 
