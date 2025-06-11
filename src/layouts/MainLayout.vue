@@ -1,15 +1,15 @@
 <template>
   <q-layout view="lhr Lpr lFf">
-    <q-header elevated>
-      <q-toolbar class="justify-center q-py-sm">
-        <q-toolbar-title class="full-width text-center">
+    <!-- <q-header elevated>
+      <q-toolbar class="justify-center q-py-sm"> -->
+        <!-- <q-toolbar-title class="full-width text-center">
           <div>
             <h2 class="q-mt-sm q-mb-xs">Horizonte BI</h2>
             <h6 class="q-mt-none q-mb-sm">Global Solutions, Local Results</h6>
           </div>
-        </q-toolbar-title>
-      </q-toolbar>
-    </q-header>
+        </q-toolbar-title> -->
+      <!-- </q-toolbar>
+    </q-header> -->
 
     <q-page-container>
       <router-view />

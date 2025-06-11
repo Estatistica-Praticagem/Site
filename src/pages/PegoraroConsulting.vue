@@ -1,156 +1,136 @@
 <template>
-  <q-page class="q-pa-md">
-    <!-- Navegação principal -->
-    <div class="text-center q-mb-lg">
-      <q-btn label="Orientado a Dados"   color="primary" flat class="q-mx-sm" @click="scrollTo('data')" />
-      <q-btn label="Habilidades e Expertise" color="primary" flat class="q-mx-sm" @click="scrollTo('skills')" />
-      <q-btn label="Clientes"            color="primary" flat class="q-mx-sm" @click="scrollTo('clients')" />
-      <q-btn label="Serviços"            color="primary" flat class="q-mx-sm" @click="scrollTo('services')" />
-      <q-btn label="Equipe"              color="primary" flat class="q-mx-sm" @click="scrollTo('team')" />
-      <q-btn label="Contato"             color="primary" flat class="q-mx-sm" @click="scrollTo('contact-info')" />
+  <q-page class="q-pa-none main-portfolio-page">
+    <!-- Hero Section -->
+    <section class="section-hero flex flex-center">
+      <div class="hero-content">
+        <h1 class="text-h3 text-weight-bold text-white">Horizonte BI</h1>
+        <p class="text-subtitle1 text-white q-mt-sm">Soluções Globais, Resultados Locais</p>
+      </div>
+    </section>
+
+    <!-- Navegação Fixa -->
+    <div class="q-pa-md nav-bar">
+      <div class="row justify-center q-gutter-sm">
+        <q-btn label="Orientado a Dados" flat color="primary" @click="scrollTo('data')" />
+        <q-btn label="Habilidades" flat color="primary" @click="scrollTo('skills')" />
+        <q-btn label="Clientes" flat color="primary" @click="scrollTo('clients')" />
+        <q-btn label="Serviços" flat color="primary" @click="scrollTo('services')" />
+        <q-btn label="Equipe" flat color="primary" @click="scrollTo('team')" />
+        <q-btn label="Contato" flat color="primary" @click="scrollTo('contact-info')" />
+      </div>
     </div>
 
-    <q-slide-transition>
-      <q-card flat bordered class="q-pa-md portfolio-container">
-        <!-- =================== SOBRE =================== -->
-        <q-separator spaced />
-        <div id="about" class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6">
-            <q-img src="~assets/About the Company.png" style="width:100%" spinner-color="primary" alt="Sobre a Empresa" />
-          </div>
-          <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">Sobre a Empresa</h2>
-            <p>
-              A Horizonte BI é uma consultoria de marketing com serviço completo e know‑how em BI. Atuamos em todo o ciclo do marketing digital — da estratégia à otimização.
-            </p>
-            <p>
-              Entregamos soluções de dados personalizadas, dashboards interativos e análises que sustentam decisões informadas.
-            </p>
-          </div>
-        </div>
+    <!-- Sessão Orientado a Dados -->
+    <section id="data" class="section-data flex flex-center">
+      <div class="section-content">
+        <h2 class="text-h5 text-primary">Negócios Orientados a Dados</h2>
+        <p>Utilizamos dados confiáveis para avaliar estratégias atuais e desenhar caminhos de crescimento.</p>
+        <p>Nossa cultura valoriza insights em cada ciclo, transformando informação em estratégia.</p>
+      </div>
+    </section>
 
-        <!-- ============== DATA‑DRIVEN BUSINESS ============== -->
-        <q-separator spaced />
-        <div id="data" class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">Negócios Orientados a Dados</h2>
-            <p>Utilizamos dados confiáveis para avaliar estratégias atuais e desenhar caminhos de crescimento.</p>
-            <p>Nossa cultura valoriza insights em cada ciclo, transformando informação em estratégia.</p>
-          </div>
-        </div>
+    <!-- Skills & Expertise -->
+    <section id="skills" class="section-skills flex flex-center">
+      <div class="section-content">
+        <h2 class="text-h5 text-primary">Habilidades e Expertise</h2>
+        <ul>
+          <li>Análise de dados e insights para decisões em todas as fases do marketing.</li>
+          <li>Processo ETL: integração de múltiplas fontes, dados limpos e confiáveis.</li>
+          <li>Pipelines SQL, Data Warehouses e dashboards interativos.</li>
+          <li>Automação com Inteligência Artificial em campanhas.</li>
+        </ul>
+      </div>
+    </section>
 
-        <!-- ============== SKILLS ============== -->
-        <q-separator spaced />
-        <div id="skills" class="row q-col-gutter-md q-mt-lg items-center">
-          <div class="col-12 col-md-6">
-            <q-img src="~assets/Skills&Expertise.png" style="width:100%" spinner-color="primary" alt="Habilidades e Expertise" />
-          </div>
-          <div class="col-12 col-md-6 text-justify">
-            <h2 class="text-h5 text-primary">Habilidades e Expertise</h2>
-            <p>Analisamos dados, geramos insights e melhoramos decisões em todas as fases do marketing.</p>
-            <h3 class="text-h6 text-bold q-mt-sm">Processo ETL</h3>
-            <p>Integração e transformação de múltiplas fontes garantem dados limpos e confiáveis.</p>
-            <h3 class="text-h6 text-bold q-mt-sm">Banco de Dados</h3>
-            <p>Pipelines SQL padronizam e armazenam insights.</p>
-            <h3 class="text-h6 text-bold q-mt-sm">Dashboard</h3>
-            <p>Dashboards interativos impulsionam a otimização.</p>
-            <h3 class="text-h6 text-bold q-mt-sm">Inteligência Artificial</h3>
-            <p>Automatizamos análises e identificamos padrões de comportamento em campanhas.</p>
-          </div>
-        </div>
+    <!-- Serviços -->
+    <section id="services" class="section-services flex flex-center">
+      <div class="section-content">
+        <h2 class="text-h5 text-primary">Serviços Detalhados</h2>
+        <ul>
+          <li>Traqueamento de jornada, GTM, pixels e eventos.</li>
+          <li>Sites, landing pages e páginas de conversão otimizadas.</li>
+          <li>Data Warehouse com fontes integradas (CRM, mídia, vendas).</li>
+          <li>Dashboards interativos, reports automatizados.</li>
+          <li>Análises com IA para marketing e vendas.</li>
+          <li>Planejamento de campanhas e clientes.</li>
+          <li>CRM: configuração e gestão de leads.</li>
+          <li>Conteúdo visual por parceiros especializados.</li>
+        </ul>
+      </div>
+    </section>
 
-        <!-- ============== SERVIÇOS ============== -->
-        <q-separator spaced />
-        <div id="services" class="q-mt-xl">
-          <h2 class="text-h5 text-primary text-center">Serviços Detalhados</h2>
-          <div class="row q-col-gutter-md q-mt-md">
-            <div class="col-12 col-md-6 text-justify">
-              <ul>
-                <li>Traqueamento completo da jornada do cliente (GTM, pixels, eventos personalizados).</li>
-                <li>Criação de sites, landing pages e páginas de conversão otimizadas.</li>
-                <li>Data Warehouse integrado (CRM, mídia, vendas).</li>
-                <li>Dashboards e reports automatizados (Data‑Driven Visualization).</li>
-                <li>Análises com IA para marketing e vendas.</li>
-                <li>Planejamento estratégico de campanhas e clientes.</li>
-                <li>CRM: configuração e gestão de relacionamento com leads.</li>
-                <li>Conteúdo e peças visuais através de parceiros especializados.</li>
-              </ul>
-            </div>
-            <div class="col-12 col-md-6">
-              <q-img src="~assets/OfferedServices.png" style="width:100%" spinner-color="primary" alt="Serviços" />
-            </div>
+    <!-- Clientes -->
+    <section id="clients" class="section-clients flex flex-center">
+      <div class="section-content">
+        <h2 class="text-h5 text-primary text-center">Grandes Clientes</h2>
+        <div class="row no-wrap scroll-x q-mt-md q-px-sm">
+          <div
+            v-for="(c, i) in clientCards"
+            :key="'cl'+i"
+            class="q-pr-sm client-card-custom"
+          >
+            <q-card class="column items-center q-pa-md client-card">
+              <q-img
+                :src="c.img"
+                :alt="c.name"
+                style="height: 90px; width: 80px; object-fit: contain;"
+              />
+              <div class="text-subtitle1 text-bold q-mt-sm">{{ c.name }}</div>
+              <div class="text-caption text-center">{{ c.desc }}</div>
+            </q-card>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- ============== CLIENTES ============== -->
-        <q-separator spaced />
-        <div id="clients" class="q-mt-xl">
-          <h2 class="text-h5 text-primary text-center">Grandes Clientes</h2>
-          <div class="row no-wrap scroll-x q-mt-md q-px-sm">
-            <div
-              v-for="(c, i) in clientCards"
-              :key="'cl' + i"
-              class="q-pr-sm client-card-custom"
-            >
-              <q-card class="column items-center q-pa-md client-card">
-                <q-img
-                  :src="c.img"
-                  :alt="c.name"
-                  style="height:90px;width:120px;object-fit:contain;"
-                />
-                <div class="text-subtitle1 text-bold q-mt-sm">{{ c.name }}</div>
-                <div class="text-caption text-center">{{ c.desc }}</div>
-              </q-card>
-            </div>
+    <!-- Equipe -->
+    <section id="team" class="section-team flex flex-center">
+      <div class="section-content">
+        <h2 class="text-h5 text-primary text-center">A Equipe</h2>
+        <div class="row no-wrap scroll-x q-mt-md q-px-sm" style="overflow-x: auto;">
+          <div v-for="(m, i) in teamSlides" :key="'tm'+i" class="q-pr-sm" style="min-width: 320px">
+            <q-card class="column items-center q-pa-md team-card">
+              <q-img :src="m.img" :alt="m.name" style="width:100px;height:100px;border-radius:50%" />
+              <div class="text-subtitle1 text-bold q-mt-sm">{{ m.name }}</div>
+              <div class="text-caption text-center">{{ m.role }}</div>
+            </q-card>
           </div>
         </div>
+      </div>
+    </section>
 
-        <!-- ============== EQUIPE ============== -->
-        <q-separator spaced />
-        <div id="team" class="q-mt-xl">
-          <h2 class="text-h5 text-primary text-center">A Equipe</h2>
-          <div class="row no-wrap scroll-x q-mt-md q-px-sm" style="overflow-x:auto;">
-            <div v-for="(m, i) in teamSlides" :key="'tm' + i" class="q-pr-sm" style="min-width:320px">
-              <q-card class="column items-center q-pa-md team-card">
-                <q-img :src="m.img" :alt="m.name" style="width:100px;height:100px;border-radius:50%" />
-                <div class="text-subtitle1 text-bold q-mt-sm">{{ m.name }}</div>
-                <div class="text-caption text-center">{{ m.role }}</div>
-              </q-card>
-            </div>
+    <!-- Contato -->
+    <section id="contact-info" class="section-contact flex flex-center">
+      <div class="section-content text-center">
+        <h2 class="text-h5 text-white q-mb-sm">Entre em Contato</h2>
+        <div class="row justify-center items-center q-gutter-lg">
+          <div>
+            <q-btn outline color="white" icon="email" label="E-mail" @click="mailto" />
+            <div class="text-caption q-mt-xs text-white">horizontetbi@gmail.com</div>
+          </div>
+          <div>
+            <q-btn outline color="white" icon="linkedin" label="LinkedIn" @click="linkedin" />
+            <div class="text-caption q-mt-xs text-white">linkedin.com/company/orizzonttebi</div>
           </div>
         </div>
+        <q-btn color="white" text-color="primary" label="Fale Conosco" class="q-mt-lg" size="lg" @click="abrirFormulario" />
+      </div>
+    </section>
 
-        <!-- ============== CONTATO / CTA ============== -->
-        <q-separator spaced />
-        <div id="contact-info" class="text-center q-mt-xl q-mb-lg">
-          <h2 class="text-h5 text-primary q-mb-sm">Entre em Contato</h2>
-          <div class="row justify-center items-center q-gutter-lg">
-            <div>
-              <q-btn outline color="primary" icon="email" label="E‑mail" @click="mailto" />
-              <div class="text-caption q-mt-xs">horizontetbi@gmail.com</div>
-            </div>
-            <div>
-              <q-btn outline color="primary" icon="linkedin" label="LinkedIn" @click="linkedin" />
-              <div class="text-caption q-mt-xs">linkedin.com/company/horizontebi</div>
-            </div>
-          </div>
-          <q-btn color="primary" label="Fale Conosco" class="q-mt-lg" size="lg" @click="abrirFormulario" />
-        </div>
-
-        <!-- Formulário -->
-        <div id="contact" class="text-center q-mt-xl" v-if="showForm">
-          <q-form @submit.prevent="onSubmit" class="q-gutter-md q-mt-md" style="max-width:400px;margin:auto">
-            <q-input filled v-model="form.nome"      label="Nome"        required />
-            <q-input filled v-model="form.email"     label="E‑mail" type="email" required />
-            <q-input filled v-model="form.telefone"  label="Telefone" />
-            <q-select filled v-model="form.servico"  :options="['Consultoria','Dashboards','Campanhas']" label="Serviço" />
-            <q-input filled v-model="form.descricao" label="Descrição" type="textarea" />
-            <q-btn type="submit" label="Enviar" color="primary" class="full-width" />
-          </q-form>
-          <p v-if="formEnviado" class="q-mt-md text-italic">Horizonte BI<br>Obrigado!</p>
-        </div>
-      </q-card>
-    </q-slide-transition>
+    <!-- Formulário -->
+    <section id="contact" v-if="showForm" class="section-form flex flex-center">
+      <div class="section-content text-center">
+        <q-form @submit.prevent="onSubmit" class="q-gutter-md q-mt-md" style="max-width: 400px; margin: auto">
+          <q-input filled v-model="form.nome" label="Nome" required />
+          <q-input filled v-model="form.email" label="E-mail" type="email" required />
+          <q-input filled v-model="form.telefone" label="Telefone" />
+          <q-select filled v-model="form.servico" :options="['Consultoria', 'Dashboards', 'Campanhas']" label="Serviço" />
+          <q-input filled v-model="form.descricao" label="Descrição" type="textarea" />
+          <q-btn type="submit" label="Enviar" color="primary" class="full-width" />
+        </q-form>
+        <p v-if="formEnviado" class="q-mt-md text-italic text-white">Horizonte BI<br />Obrigado!</p>
+      </div>
+    </section>
   </q-page>
 </template>
 
@@ -180,42 +160,82 @@ const form = ref({
 });
 const showForm = ref(false);
 const formEnviado = ref(false);
-
-function onSubmit() {
-  console.log('Formulário enviado:', form.value);
-  formEnviado.value = true;
-}
-
-function abrirFormulario() {
-  showForm.value = true;
-  // eslint-disable-next-line no-use-before-define
-  setTimeout(() => scrollTo('contact'), 50);
-}
-
-const mailto = () => window.open('mailto:horizontetbi@gmail.com', '_blank');
-const linkedin = () => window.open('https://linkedin.com/company/horizontebi', '_blank');
-
-function scrollTo(id) {
-  const el = document.getElementById(id);
-  if (el) el.scrollIntoView({ behavior: 'smooth' });
-}
+function onSubmit() { formEnviado.value = true; }
+// eslint-disable-next-line no-use-before-define
+function abrirFormulario() { showForm.value = true; setTimeout(() => scrollTo('contact'), 10); }
+function mailto() { window.open('mailto:horizontetbi@gmail.com', '_blank'); }
+function linkedin() { window.open('https://linkedin.com/company/horizontebi', '_blank'); }
+function scrollTo(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth' }); }
 </script>
 
 <style scoped>
-.scroll-x { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-.row.no-wrap { flex-wrap:nowrap; }
-.portfolio-container { max-width:1100px; margin:0 auto; }
+.main-portfolio-page {
+  background: #f7e5d8;
+}
 
-h2{ margin:16px 0 12px; }
-p, ul{ font-size:16px; line-height:1.6; }
-.text-justify{ text-align:justify; }
+/* HERO */
+.section-hero {
+  min-height: 60vh;
+  background: linear-gradient(135deg, #097f99 0%, #0b4f76 100%);
+  width: 100vw;
+}
+.hero-content {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
 
-.client-card, .team-card{ width:100%; min-height:260px; box-shadow:0 2px 8px rgba(0,0,0,.08); border-radius:10px; }
-.client-card-custom{ min-width:340px; max-width:380px; flex:0 0 auto; }
+/* Barra de navegação fixa */
+.nav-bar {
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
 
-@media (max-width:600px){
-  .portfolio-container{ padding:0!important; }
-  .row.no-wrap{ flex-wrap:wrap; }
-  .client-card-custom{ min-width:280px; }
+/* SECTIONS */
+.section-data {
+  min-height: 340px;
+  background: #f7e5d8;
+}
+.section-skills {
+  min-height: 340px;
+  background: linear-gradient(120deg, #3e8097 0%, #097f99 100%);
+  color: #fff;
+}
+.section-services {
+  min-height: 340px;
+  background: #f7e5d8;
+}
+.section-clients {
+  min-height: 340px;
+  background: linear-gradient(90deg, #f7e5d8 40%, #769ca8 100%);
+}
+.section-team {
+  min-height: 340px;
+  background: linear-gradient(100deg, #769ca8 0%, #fff 80%);
+}
+.section-contact {
+  min-height: 340px;
+  background: linear-gradient(135deg, #0b4f76 0%, #097f99 100%);
+}
+.section-form {
+  min-height: 340px;
+  background: #097f99;
+}
+.section-content {
+  width: 100%;
+  max-width: 900px;
+  padding: 40px 20px;
+  background: transparent;
+  margin: 0 auto;
+}
+
+@media (max-width: 800px) {
+  .section-content { padding: 20px 8px; }
+}
+@media (max-width: 600px) {
+  .section-hero { min-height: 40vh; }
+  .section-content { padding: 12px 4px; }
 }
 </style>
