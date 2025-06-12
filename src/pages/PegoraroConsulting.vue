@@ -12,11 +12,11 @@
     <div class="q-pa-md nav-bar">
       <div class="row justify-center q-gutter-sm">
         <q-btn flat color="primary" label="Orientado a Dados" @click="scrollTo('data')" />
-        <q-btn flat color="primary" label="Habilidades"        @click="scrollTo('skills')" />
-        <q-btn flat color="primary" label="Clientes"           @click="scrollTo('clients')" />
-        <q-btn flat color="primary" label="Serviços"           @click="scrollTo('services')" />
-        <q-btn flat color="primary" label="Equipe"             @click="scrollTo('team')" />
-        <q-btn flat color="primary" label="Contato"            @click="scrollTo('contact-info')" />
+        <q-btn flat color="primary" label="Habilidades" @click="scrollTo('skills')" />
+        <q-btn flat color="primary" label="Clientes" @click="scrollTo('clients')" />
+        <q-btn flat color="primary" label="Serviços" @click="scrollTo('services')" />
+        <q-btn flat color="primary" label="Equipe" @click="scrollTo('team')" />
+        <q-btn flat color="primary" label="Contato" @click="scrollTo('contact-info')" />
       </div>
     </div>
 
@@ -24,7 +24,7 @@
     <section id="data" class="section-data flex flex-center">
       <div class="section-content row items-center q-col-gutter-md">
         <div class="col-12 col-md-6">
-          <q-img src="~assets/About the Company.png" :ratio="16/9" />
+          <q-img src="~assets/About the Company.png" style="width: 100%; max-width: 450px; height: auto;" />
         </div>
         <div class="col-12 col-md-6">
           <h2 class="text-h5 text-primary">Negócios Orientados a Dados</h2>
@@ -47,7 +47,7 @@
           </ul>
         </div>
         <div class="col-12 col-md-6">
-          <q-img src="~assets/Skills&Expertise.png" :ratio="1" />
+          <q-img src="~assets/Skills&Expertise.png" style="width: 100%; max-width: 400px; height: auto;" />
         </div>
       </div>
     </section>
@@ -56,7 +56,7 @@
     <section id="services" class="section-services flex flex-center">
       <div class="section-content row items-center q-col-gutter-md">
         <div class="col-12 col-md-6 order-md-last">
-          <q-img src="~assets/OfferedServices.png" :ratio="1" />
+          <q-img src="~assets/OfferedServices.png" style="width: 100%; max-width: 400px; height: auto;" />
         </div>
         <div class="col-12 col-md-6">
           <h2 class="text-h5 text-primary">Serviços Detalhados</h2>
@@ -107,7 +107,7 @@
                 <q-img
                   :src="c.img"
                   :alt="c.name"
-                  style="max-width:100%;object-fit:contain"
+                  style="width: 100%; max-width: 380px; height: auto;"
                 />
               </div>
               <div class="col-12 col-md-7">
@@ -150,7 +150,7 @@
             v-for="m in teamMembers"
             :key="m.id"
             :name="m.id"
-            :label="m.tabLabel"
+            :label="m.role"
             class="text-capitalize"
           />
         </q-tabs>
@@ -167,7 +167,7 @@
                 <q-img
                   :src="m.img"
                   :alt="m.name"
-                  style="max-width:100%;object-fit:contain"
+                  style="width: 100%; max-width: 350px; height: auto;"
                 />
               </div>
               <div class="col-12 col-md-8">
@@ -210,9 +210,9 @@
     <section id="contact" v-if="showForm" class="section-form flex flex-center">
       <div class="section-content text-center">
         <q-form @submit.prevent="onSubmit" class="q-gutter-md q-mt-md" style="max-width:400px;margin:auto">
-          <q-input filled v-model="form.nome"      label="Nome"      required />
-          <q-input filled v-model="form.email"     label="E-mail"    type="email" required />
-          <q-input filled v-model="form.telefone"  label="Telefone" />
+          <q-input filled v-model="form.nome" label="Nome" required />
+          <q-input filled v-model="form.email" label="E-mail" type="email" required />
+          <q-input filled v-model="form.telefone" label="Telefone" />
           <q-select
             filled
             v-model="form.servico"
@@ -346,10 +346,12 @@ function scrollTo(id) {
 .section-services { background:#f7e5d8 }
 .section-clients  { background:linear-gradient(90deg,#f7e5d8 40%,#769ca8 100%) }
 .section-team     { background:linear-gradient(100deg,#769ca8 0%,#ffffff 80%) }
-.section-contact  { background:linear-gradient(135deg,#0b4f76 0%,#097f99 100%) }
+.section-contact  {
+   background:linear-gradient(135deg,#0b4f76 0%,#097f99 100%);
+  }
 .section-form     { background:#097f99 }
 
-.section-content  { width:100%;max-width:900px;padding:40px 20px;margin:0 auto }
+.section-content  { width:100%;max-width:1200px;padding:40px 20px;margin:0 auto }
 
 /* RESPONSIVO ------------------------------------------------------------ */
 @media(max-width:800px){ .section-content{ padding:20px 8px } }
@@ -357,4 +359,9 @@ function scrollTo(id) {
   .section-hero{ min-height:40vh }
   .section-content{ padding:12px 4px }
 }
+.section-content p {
+  font-size: 1.1rem; /* ou 16px, 18px... */
+  line-height: 1.6;
+}
+
 </style>
