@@ -1,9 +1,18 @@
 <template>
   <section id="services" class="section-services flex flex-center">
+    <!-- Balão decorativo com texto -->
     <div class="section-wave-top">
-      <svg width="100%" height="90" viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#cecb3f"/>
+      <svg
+        width="100%" height="90"
+        viewBox="0 0 1440 90"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="none"
+      >
+        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#cecb3f" />
       </svg>
+
+      <div class="wave-title text-h5 text-primary text-center">Serviços</div>
     </div>
 
     <div class="section-content row items-center q-col-gutter-xl q-pb-xl">
@@ -59,15 +68,24 @@ const servicePills = [
   overflow: hidden;
   z-index: 1;
 }
+
 .section-wave-top {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   width: 100%;
-  height: 80px;
+  height: 90px;
   z-index: 2;
   pointer-events: none;
 }
+
+.wave-title {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .section-content {
   position: relative;
   z-index: 3;
@@ -76,20 +94,24 @@ const servicePills = [
   margin: 0 auto;
   padding: 40px 20px;
 }
+
 .image-container {
   width: 100%;
   max-width: 420px;
   position: relative;
 }
+
 .img-services {
   width: 100%;
   border-radius: 24px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
+
 .pills-wrapper {
   position: relative;
   min-height: 180px;
 }
+
 .floating-pill {
   position: absolute;
   left: 16px;
@@ -105,6 +127,7 @@ const servicePills = [
   animation: floatY 7s ease-in-out infinite;
   pointer-events: none;
 }
+
 @keyframes floatY {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -114,6 +137,7 @@ const servicePills = [
   padding-left: 20px;
   list-style: none;
 }
+
 .service-list li {
   margin-bottom: 16px;
   font-size: 1.15rem;
@@ -121,6 +145,7 @@ const servicePills = [
   letter-spacing: 0.3px;
   text-wrap: balance;
 }
+
 .service-list li::before {
   content: "•";
   color: #3e8097;
@@ -134,6 +159,10 @@ const servicePills = [
   .section-content {
     flex-direction: column-reverse;
     padding: 20px 12px;
+  }
+
+  .wave-title {
+    font-size: 1.3rem;
   }
 }
 </style>

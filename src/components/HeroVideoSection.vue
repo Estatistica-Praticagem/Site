@@ -21,10 +21,10 @@
 
       <div class="q-mt-lg row q-col-gutter-md">
         <div class="col-auto">
-          <q-btn color="primary" label="Soluções em Marketing" to="#marketing" />
+          <q-btn color="" label="Soluções em Marketing" to="#marketing" />
         </div>
         <div class="col-auto">
-          <q-btn color="secondary" label="Soluções em Vendas" to="#vendas" />
+          <q-btn color="" label="Soluções em Vendas" to="#vendas" />
         </div>
       </div>
     </div>
