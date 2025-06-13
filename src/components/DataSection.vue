@@ -5,7 +5,7 @@
       <svg width="100%" height="90" viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
         <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#47e295" />
       </svg>
-      <div class="wave-title text-h5 text-primary text-center">habilidades</div>
+      <div class="wave-title text-h5 text-primary text-center">Dados</div>
     </div>
 
     <div class="section-content row items-center q-col-gutter-xl q-pb-xl">

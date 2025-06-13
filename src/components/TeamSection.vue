@@ -2,11 +2,13 @@
   <section id="team" class="section-team flex flex-center">
     <div class="section-wave-top">
       <svg width="100%" height="90" viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#A3DDF0"/>
+        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#A3DDF0" />
       </svg>
     </div>
+
     <div class="section-content">
-      <h2 class="text-h5 text-primary text-center">A Equipe</h2>
+      <h2 class="text-h4 text-primary text-center q-mb-md">A Equipe</h2>
+
       <q-tabs
         v-model="teamTab"
         class="q-mt-md text-primary bg-transparent"
@@ -20,28 +22,29 @@
           :key="m.id"
           :name="m.id"
           :label="m.role"
-          class="text-capitalize text-subtitle1"
+          class="text-subtitle2 text-weight-medium"
         />
       </q-tabs>
-      <q-tab-panels v-model="teamTab" animated class="q-mt-lg">
+
+      <q-tab-panels v-model="teamTab" animated class="q-mt-xl">
         <q-tab-panel
           v-for="m in teamMembers"
           :key="m.id"
           :name="m.id"
           class="q-pa-none"
         >
-          <div class="row q-col-gutter-md items-center">
+          <div class="row q-col-gutter-xl items-center">
             <div class="col-12 col-md-4">
               <q-img
                 :src="m.img"
                 :alt="m.name"
-                style="width: 100%; max-width: 350px; height: auto;"
+                class="team-media"
               />
             </div>
             <div class="col-12 col-md-8">
-              <h4 class="text-subtitle1">{{ m.name }}</h4>
-              <p class="text-primary text-bold text-subtitle1">{{ m.role }}</p>
-              <p class="q-mt-sm text-body1">{{ m.bio }}</p>
+              <p class="text-pink-7 text-bold text-caption q-mb-xs">{{ m.role.toUpperCase() }}</p>
+              <h4 class="text-subtitle1 q-mb-xs">{{ m.name }}</h4>
+              <p class="text-body1">{{ m.bio }}</p>
             </div>
           </div>
         </q-tab-panel>
@@ -91,18 +94,34 @@ const teamMembers = [
   background: #fff;
   overflow: hidden;
   z-index: 1;
+  padding-top: 90px;
 }
+
 .section-wave-top {
-  width: 100%;
-  height: 80px;
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 80px;
   z-index: 2;
   pointer-events: none;
 }
-.section-team .section-content {
+
+.section-content {
   position: relative;
   z-index: 3;
+  width: 100%;
+  max-width: 1200px;
+  padding: 40px 20px;
+  margin: 0 auto;
+}
+
+.team-media {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  display: block;
 }
 </style>
