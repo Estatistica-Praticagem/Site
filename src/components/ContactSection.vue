@@ -12,14 +12,6 @@
           <div class="text-caption text-white q-mt-xs">linkedin.com/company/orizzonttebi</div>
         </div>
       </div>
-      <q-btn
-        color="white"
-        text-color="primary"
-        label="Fale Conosco"
-        class="q-mt-lg"
-        size="lg"
-        @click="abrirFormulario"
-      />
     </div>
   </section>
 </template>
@@ -31,10 +23,7 @@ function mailto() {
 function linkedin() {
   window.open('https://linkedin.com/company/horizontebi', '_blank');
 }
-function abrirFormulario() {
-  // Dispare um evento ou use um prop para abrir o formulário na página principal
-  // Exemplo: emit('openForm')
-}
+
 </script>
 
 <style scoped>

@@ -6,11 +6,11 @@
     <!-- DATA -->
     <DataSection />
 
+      <!-- SERVICES -->
+    <ServicesSection />
+
     <!-- SKILLS -->
     <SkillsVideoSection />
-
-    <!-- SERVICES -->
-    <ServicesSection />
 
     <!-- CLIENTES -->
     <ClientsSection />
@@ -18,11 +18,11 @@
     <!-- TEAM -->
     <TeamSection />
 
-    <!-- CONTATO -->
-    <ContactSection />
-
     <!-- FORM -->
     <ContactForm/>
+
+    <!-- CONTATO -->
+    <ContactSection />
   </q-page>
 </template>
 
