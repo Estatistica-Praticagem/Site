@@ -1,15 +1,34 @@
 <template>
   <q-layout view="lhr Lpr lFf">
-    <!-- <q-header elevated>
-      <q-toolbar class="justify-center q-py-sm"> -->
-        <!-- <q-toolbar-title class="full-width text-center">
-          <div>
-            <h2 class="q-mt-sm q-mb-xs">Horizonte BI</h2>
-            <h6 class="q-mt-none q-mb-sm">Global Solutions, Local Results</h6>
+    <q-header elevated class="bg-white shadow-header">
+      <q-toolbar class="q-py-xs q-px-lg flex flex-center" style="min-height: 58px;">
+        <div class="row items-center justify-center full-width">
+          <!-- Logo + Nome -->
+          <div class="row items-center no-wrap">
+            <q-img
+              src="~assets/icons/icon.png"
+              alt="Logo Horizonte BI"
+              class="q-mr-md"
+              style="width:86px;height:76px;"
+              spinner-color="primary"
+              fit="contain"
+            />
+            <div>
+              <div class="text-h6 text-primary q-mb-xs" style="letter-spacing:1px;">Horizonte BI</div>
+              <div class="text-caption text-grey-8" style="margin-top:-4px;">Global Solutions, Local Results</div>
+            </div>
           </div>
-        </q-toolbar-title> -->
-      <!-- </q-toolbar>
-    </q-header> -->
+          <!-- Barra de Navegação -->
+          <div class="row items-center no-wrap q-ml-xl">
+            <q-btn flat dense color="primary" label="Clientes"     @click="scrollTo('clients')"    class="q-mx-xs text-body1" />
+            <q-btn flat dense color="primary" label="Serviços"     @click="scrollTo('services')"   class="q-mx-xs text-body1" />
+            <q-btn flat dense color="primary" label="Equipe"       @click="scrollTo('team')"       class="q-mx-xs text-body1" />
+            <q-btn flat dense color="primary" label="Contato"      @click="scrollTo('contact-info')" class="q-mx-xs text-body1" />
+          </div>
+        </div>
+      </q-toolbar>
+
+    </q-header>
 
     <q-page-container>
       <router-view />
@@ -17,37 +36,16 @@
   </q-layout>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
-// import EssentialLink from 'components/EssentialLink.vue';
-
-const linksList = [
-  {
-    title: 'Horizonte BI',
-    caption: '',
-    icon: 'mdi-deskphone',
-    link: 'https://quasar.dev',
-  },
-];
-
-export default defineComponent({
-  name: 'MainLayout',
-
-  components: {
-    // EssentialLink,
-  },
-
-  data() {
-    return {
-      linksList,
-      leftDrawerOpen: false,
-    };
-  },
-
-  methods: {
-    toggleLeftDrawer() {
-      this.leftDrawerOpen = !this.leftDrawerOpen;
-    },
-  },
-});
+<script setup>
+function scrollTo(id) {
+  // Caso as âncoras estejam em páginas diferentes, trocar para uso do vue-router!
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
 </script>
+
+<style scoped>
+.shadow-header {
+  box-shadow: 0 2px 14px 0 rgba(64,64,64,0.05);
+}
+</style>
