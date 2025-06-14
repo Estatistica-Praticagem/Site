@@ -9,7 +9,7 @@
         </div>
         <div>
           <q-btn outline color="white" icon="linkedin" label="LinkedIn" @click="linkedin" />
-          <div class="text-caption text-white q-mt-xs">linkedin.com/company/orizzonttebi</div>
+          <div class="text-caption text-white q-mt-xs">https://www.linkedin.com/company/orizzonttebi</div>
         </div>
       </div>
     </div>
