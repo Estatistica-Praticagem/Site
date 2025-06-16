@@ -1,168 +1,199 @@
 <template>
-  <section id="services" class="section-services flex flex-center">
-    <!-- Balão decorativo com texto -->
-    <div class="section-wave-top">
-      <svg
-        width="100%" height="90"
-        viewBox="0 0 1440 90"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        preserveAspectRatio="none"
-      >
-        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#cecb3f" />
-      </svg>
-
-      <div class="wave-title text-h5 text-primary text-center">Serviços</div>
-    </div>
-
-    <div class="section-content row items-center q-col-gutter-xl q-pb-xl">
-      <!-- Imagem à direita -->
-      <div class="col-12 col-md-6 order-md-last d-flex flex-center relative-position">
-        <div class="image-container">
-          <q-img src="~assets/OfferedServices.png" class="img-services" />
-          <div class="pills-wrapper">
-            <q-chip
-              v-for="(b, idx) in servicePills"
-              :key="'servicePill'+idx"
-              class="floating-pill"
-              color="white"
-              text-color="primary"
-              :icon="b.icon"
-              :style="{ top: `${32 + idx * 64}px` }"
+  <section id="services" class="section-services">
+    <div class="section-content row items-start justify-between cards-wrapper">
+      <!-- CARD 1: Tópicos -->
+      <div class="col-12 col-md-3">
+        <q-card flat bordered class="bg-grey-3 q-pa-sm rounded-borders">
+          <q-list separator>
+            <q-item
+              v-for="(s, i) in services"
+              :key="s.titulo"
+              clickable
+              :active="selected === i"
+              active-class="selected-service"
+              @click="selected = i"
+              class="service-item"
             >
-              {{ b.text }}
-            </q-chip>
-          </div>
-        </div>
+              <q-item-section>{{ s.titulo }}</q-item-section>
+            </q-item>
+          </q-list>
+        </q-card>
       </div>
 
-      <!-- Texto à esquerda -->
-      <div class="col-12 col-md-6 q-mt-md q-mb-lg">
-        <h2 class="text-h4 text-primary q-mb-md text-weight-bold">Serviços Detalhados</h2>
-        <ul class="service-list">
-          <li>Traqueamento de jornada, GTM, pixels e eventos.</li>
-          <li>Sites e landing pages otimizadas.</li>
-          <li>Data Warehouse integrado (CRM, mídia, vendas).</li>
-          <li>Dashboards e reports automatizados.</li>
-          <li>Análises de IA para marketing e vendas.</li>
-          <li>Planejamento de campanhas e CRM.</li>
-          <li>Conteúdo visual por parceiros especializados.</li>
-        </ul>
+      <!-- CARD 2: Descrição -->
+      <div class="col-12 col-md-5">
+        <q-card class="bg-grey-2 q-pa-lg shadow-1 rounded-borders">
+          <q-card-section>
+            <h4 class="text-h6 text-primary q-mb-sm">{{ services[selected].titulo }}</h4>
+            <p class="text-body1 q-mt-sm description-text">
+              {{ services[selected].descricao }}
+            </p>
+          </q-card-section>
+          <q-card-actions align="left">
+          </q-card-actions>
+        </q-card>
       </div>
+
+      <!-- CARD 3: Imagem -->
+      <div class="col-12 col-md-4" style="margin-right: 25px;">
+        <q-card flat class="shadow-2 rounded-borders" style="margin-right: 12px;">
+          <q-img
+            :src="services[selected].imagem"
+            alt="Ilustração do serviço"
+            style="border-radius: 25px;"
+            :ratio="4/3"
+          />
+        </q-card>
+      </div>
+
     </div>
+          <!-- BOTÃO FIXO AO FINAL -->
+      <div class="q-mt-xl text-right">
+        <q-btn
+          color="primary"
+          label="Fale com a gente"
+          icon="send"
+          rounded
+          @click="scrollToContato"
+          class="final-cta"
+        />
+      </div>
   </section>
 </template>
 
 <script setup>
-const servicePills = [
-  { icon: 'north_east', text: 'Aumente Suas Vendas' },
-  { icon: 'handshake', text: 'Fidelize Seus Clientes' },
-  { icon: 'grid_view', text: 'Otimize Seus Processos' },
+import { ref } from 'vue';
+
+const selected = ref(0);
+
+const services = [
+  {
+    titulo: 'Traqueamento completo da jornada do cliente',
+    descricao: `Implementamos e configuramos ferramentas como Google Tag Manager, pixels e tags para rastrear o comportamento dos usuários em cada etapa da navegação.
+Fazemos o mapeamento de botões, cliques e eventos personalizados para garantir dados precisos e acionáveis desde o primeiro acesso até a conversão.`,
+    imagem: new URL('src/assets/services/ETLProcess.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Criação de sites, onepages e páginas de conversão',
+    descricao: `Desenvolvemos sites responsivos, páginas únicas e landing pages otimizadas para conversão.
+Todos os projetos já incluem a estrutura de trackeamento configurada, garantindo que cada interação seja captada corretamente.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Construção de Data Warehouse',
+    descricao: `Criamos ambientes de dados centralizados e integrados, permitindo que diferentes fontes (como CRM, mídia, site e vendas) conversem entre si.
+O resultado é uma base sólida e confiável para análises e decisões estratégicas.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Visualização orientada por dados',
+    descricao: `Desenvolvemos dashboards interativos e automatizados que traduzem dados em insights claros.
+As visualizações são conectadas a fontes atualizadas e pensadas para facilitar a tomada de decisão por áreas como marketing, vendas e gestão.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Análises automatizadas com Inteligência Artificial',
+    descricao: `Utilizamos algoritmos de IA para identificar padrões, prever comportamentos e automatizar análises complexas.
+Isso permite insights rápidos e acionáveis com base em grandes volumes de dados.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Planejamento estratégico de campanhas e clientes',
+    descricao: `Ajudamos a definir metas, KPIs e táticas personalizadas para campanhas e negócios.
+Com base em dados, criamos estratégias alinhadas aos objetivos da marca, otimizando investimentos e resultados.`,
+    imagem: new URL('src/assets/services/analytc.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Planejamento de Redes Sociais',
+    descricao: 'Desenvolvemos calendários, pautas e diretrizes estratégicas para redes sociais, sempre alinhadas ao posicionamento da marca e ao comportamento do público-alvo.',
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Mídia Online (Google, Meta)',
+    descricao: `Planejamos, operamos e otimizamos campanhas em plataformas como Google Ads, Meta Ads e outras.
+Acompanhamos métricas como CPC, CTR e conversões para maximizar o retorno sobre o investimento.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'CRM (Gestão de Relacionamento com o Cliente)',
+    descricao: `Apoiamos a implementação, organização e uso de ferramentas de CRM para capturar, nutrir e qualificar leads.
+Isso garante um relacionamento mais eficiente com o cliente ao longo do funil.`,
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
+  {
+    titulo: 'Criação (terceirizada)',
+    descricao: 'Contamos com parceiros especializados para desenvolver peças criativas como vídeos, artes, textos e outros conteúdos visuais, garantindo qualidade e alinhamento com a estratégia de marketing.',
+    imagem: new URL('src/assets/services/sites.png', import.meta.url).href,
+  },
 ];
+
+function scrollToContato() {
+  const el = document.getElementById('contact-info');
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
 </script>
 
 <style scoped>
 .section-services {
-  position: relative;
-  background: #fff;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.section-wave-top {
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 90px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.wave-title {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  background: #ffffff;
+  /* background: #f7e5d8; */
+  /* background: #f7f7f7; */
+  padding: 60px 16px;
 }
 
 .section-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 40px 20px;
 }
 
-.image-container {
-  width: 100%;
-  max-width: 420px;
-  position: relative;
+.cards-wrapper {
+  gap: 12px;
+  display: flex;
+  flex-wrap: nowrap;
 }
 
-.img-services {
-  width: 100%;
-  border-radius: 24px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+.service-item {
+  transition: background 0.2s ease;
+}
+.service-item:hover {
+  background: #e0f0f4;
 }
 
-.pills-wrapper {
-  position: relative;
-  min-height: 180px;
-}
-
-.floating-pill {
-  position: absolute;
-  left: 16px;
-  padding: 8px 16px;
-  font-size: 1.05rem;
-  font-weight: 500;
-  border-radius: 999px;
-  white-space: normal;
-  background: #fff;
-  border: 1.5px solid #2fca49;
-  color: #097f99;
-  box-shadow: 0 2px 8px rgba(4, 187, 111, 0.13);
-  animation: floatY 7s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.service-list {
-  padding-left: 20px;
-  list-style: none;
-}
-
-.service-list li {
-  margin-bottom: 16px;
-  font-size: 1.15rem;
-  line-height: 1.6;
-  letter-spacing: 0.3px;
-  text-wrap: balance;
-}
-
-.service-list li::before {
-  content: "•";
-  color: #3e8097;
+.selected-service {
+  background-color: #c2effa !important;
+  color: #007b9a !important;
   font-weight: bold;
-  margin-right: 8px;
-  font-size: 1.3rem;
 }
 
-/* Responsivo */
+.description-text {
+  line-height: 1.6;
+  white-space: pre-line;
+  font-size: 1.05rem;
+}
+.cards-wrapper {
+  gap: 12px; /* controla o espaçamento fino entre os 3 cards */
+  flex-wrap: nowrap;
+}
+
 @media (max-width: 1024px) {
-  .section-content {
-    flex-direction: column-reverse;
-    padding: 20px 12px;
-  }
-
-  .wave-title {
-    font-size: 1.3rem;
+  .cards-wrapper {
+    flex-direction: column;
+    gap: 24px;
   }
 }
+.final-cta {
+  margin-top: 40px;
+  margin-right: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .final-cta {
+    display: block;
+    margin: 32px auto 0 auto;
+    text-align: center;
+  }
+}
+
 </style>

@@ -54,7 +54,9 @@ function onSubmit() {
 
 <style scoped>
 .section-form {
-  background: linear-gradient(135deg,#e2b38f 3%, #ffffff 100%, #e7975e 20%, #41220c 80%);
+  background: #ffffff;
+  /* background: linear-gradient(135deg,#e2b38f 3%, #ffffff 100%, #e7975e 20%, #41220c 80%); */
+  /* background: linear-gradient(135deg, #0b4f76 0%, #47e295 100%); */
   padding: 80px 20px;
   min-height: 100vh;
   display: flex;

@@ -23,7 +23,7 @@
             <q-btn flat dense color="primary" label="Clientes"     @click="scrollTo('clients')"    class="q-mx-xs text-body1" />
             <q-btn flat dense color="primary" label="Serviços"     @click="scrollTo('services')"   class="q-mx-xs text-body1" />
             <q-btn flat dense color="primary" label="Equipe"       @click="scrollTo('team')"       class="q-mx-xs text-body1" />
-            <q-btn flat dense color="primary" label="Contato"      @click="scrollTo('contact-info')" class="q-mx-xs text-body1" />
+            <q-btn flat dense color="primary" label="Contato"      @click="scrollTo('contact')" class="q-mx-xs text-body1" />
           </div>
         </div>
       </q-toolbar>

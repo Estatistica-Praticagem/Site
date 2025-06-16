@@ -1,12 +1,5 @@
 <template>
   <section id="clients" class="section-clients flex flex-center">
-    <!-- Onda decorativa -->
-    <div class="section-wave-top">
-      <svg width="100%" height="90" viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-        <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#f9e9dd" />
-      </svg>
-    </div>
-
     <div class="section-content">
       <h2 class="text-h4 text-primary text-center q-mb-md">Grandes Clientes</h2>
 
@@ -34,8 +27,8 @@
           :name="c.id"
           class="q-pa-none"
         >
-          <div class="row q-col-gutter-xl items-center">
-            <div class="col-12 col-md-5">
+          <div class="row q-col-gutter-xl items-center justify-center">
+            <div class="col-12 col-md-5 text-center">
               <component
                 :is="c.isVideo ? 'video' : 'q-img'"
                 :src="c.img"
@@ -44,22 +37,15 @@
                 class="client-media"
               />
             </div>
-            <div class="col-12 col-md-7">
+            <div class="col-12 col-md-7 text-left">
               <p class="text-primary text-bold text-subtitle1 q-mb-sm">{{ c.name }}</p>
               <p class="text-body1 q-mb-md">"{{ c.quote }}"</p>
+              <p class="text-body2 q-mb-md">{{ c.description }}</p>
               <h5 class="text-subtitle1 q-mb-xs">
                 {{ c.person }} |
                 <span class="text-primary">{{ c.name }}</span>
               </h5>
               <p class="text-caption text-grey-8">{{ c.personRole }}</p>
-              <q-btn
-                v-if="c.link"
-                color="primary"
-                label="Ler sobre o Case"
-                :href="c.link"
-                target="_blank"
-                class="q-mt-sm"
-              />
             </div>
           </div>
         </q-tab-panel>
@@ -70,31 +56,45 @@
 
 <script setup>
 import { ref } from 'vue';
+import rgImg from 'src/assets/clients/logo-rgpilots.png';
+import viaMarteImg from 'src/assets/clients/viamarte.png';
+import rfillVideo from 'src/assets/clients/rfill.png';
+import unisinos from 'src/assets/clients/unisinos.png';
 
 const clientTab = ref('rg');
+
 const clientCards = [
   {
     id: 'rg',
     tabLabel: 'Rio Grande',
-    name: 'Port of Rio Grande',
+    name: 'Porto Internacional do Rio Grande',
     quote: 'Sistema de marés e correntes em tempo real com IA.',
+    description: 'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes. Nosso sistema fornece previsões em tempo real 24/7 para aumentar a segurança do porto, alcançando alto grau de assertividade e confiabilidade. Desde 2020.',
     person: 'Capitão Pilot Board',
-    personRole: 'Harbor Operations',
-    // eslint-disable-next-line global-require
-    img: require('src/assets/clients/RGPilots.png'),
-    link: '#',
+    personRole: 'Operações Portuárias',
+    img: rgImg,
+    isVideo: false,
+  },
+  {
+    id: 'unisinos',
+    tabLabel: 'Unisinos',
+    name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
+    quote: 'Do zero ao dashboard em tempo real.',
+    description: 'A Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, incluindo a limpeza de configurações antigas e o mapeamento das necessidades. Utilizamos Google Tag Manager, pixels, tags e botões para rastrear o comportamento em cada etapa da navegação. Os dados foram estruturados no BigQuery e Google Sheets e integrados a dashboards interativos para decisões com base na taxonomia personalizada da Unisinos.',
+    person: 'Equipe de BI',
+    personRole: 'Marketing & Tecnologia',
+    img: unisinos,
     isVideo: false,
   },
   {
     id: 'vm',
     tabLabel: 'Via Marte',
     name: 'Via Marte',
-    quote: 'Automação de mídia para e-commerce com crescimento de 40 %.',
+    quote: 'Automação de mídia para e-commerce com crescimento de 40%.',
+    description: 'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de todas as plataformas de mídia, criamos visões consolidadas e dashboards, e comparamos os dados de vendas. As informações são atualizadas diariamente, permitindo decisões rápidas para maximizar retorno e impulsionar as vendas. Desde 2024.',
     person: 'Equipe Growth',
     personRole: 'Marketing Digital',
-    // eslint-disable-next-line global-require
-    img: require('src/assets/graphics.png'),
-    link: '#',
+    img: viaMarteImg,
     isVideo: false,
   },
   {
@@ -102,50 +102,36 @@ const clientCards = [
     tabLabel: 'Agency Rfill',
     name: 'Agency Rfill',
     quote: 'Dashboards de leads de imóveis de luxo em tempo real.',
+    description: 'A agência Rfill buscava otimizar o fluxo de marketing digital para imóveis de luxo. Automatizamos a coleta de dados, desenvolvemos dashboards e implementamos fluxos para geração de leads. Esses esforços entregaram insights acionáveis, permitindo decisões mais precisas e campanhas mais eficazes.',
     person: 'Diretoria de Vendas',
     personRole: 'Imobiliário Premium',
-    // eslint-disable-next-line global-require
-    img: require('src/assets/videos/minedashboard.mp4'),
-    link: '#',
-    isVideo: true,
+    img: rfillVideo,
+    isVideo: false,
   },
 ];
 </script>
 
 <style scoped>
 .section-clients {
-  position: relative;
-  background: #fff;
-  overflow: hidden;
-  z-index: 1;
-  padding-top: 90px;
-}
-
-.section-wave-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  z-index: 2;
-  pointer-events: none;
+  /* background: linear-gradient(90deg, #f7e5d8 40%, #A3DDF0 100%); */
+  background-color: #ffffff;
+  padding-top: 80px;
+  padding-bottom: 60px;
 }
 
 .section-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
   max-width: 1200px;
-  padding: 40px 20px;
   margin: 0 auto;
+  padding: 40px 20px;
 }
 
 .client-media {
   width: 100%;
-  max-width: 680px;
+  max-width: 380px;
   height: auto;
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
-  display: block;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  background-color: #f0f0f0;
+  object-fit: cover;
 }
 </style>
