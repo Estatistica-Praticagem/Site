@@ -57,7 +57,7 @@
 <script setup>
 import { ref } from 'vue';
 import rgImg from 'src/assets/clients/logo-rgpilots.png';
-import viaMarteImg from 'src/assets/clients/viamarte.png';
+import viaMarteImg from 'src/assets/clients/viamarte2.png';
 import rfillVideo from 'src/assets/clients/rfill.png';
 import unisinos from 'src/assets/clients/unisinos.png';
 
@@ -81,14 +81,14 @@ const clientCards = [
     name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
     quote: 'Do zero ao dashboard em tempo real.',
     description: 'A Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, incluindo a limpeza de configurações antigas e o mapeamento das necessidades. Utilizamos Google Tag Manager, pixels, tags e botões para rastrear o comportamento em cada etapa da navegação. Os dados foram estruturados no BigQuery e Google Sheets e integrados a dashboards interativos para decisões com base na taxonomia personalizada da Unisinos.',
-    person: 'Equipe de BI',
+    person: 'Equipe Unisinos',
     personRole: 'Marketing & Tecnologia',
     img: unisinos,
     isVideo: false,
   },
   {
     id: 'vm',
-    tabLabel: 'Via Marte',
+    tabLabel: 'RBA + Via Marte',
     name: 'Via Marte',
     quote: 'Automação de mídia para e-commerce com crescimento de 40%.',
     description: 'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de todas as plataformas de mídia, criamos visões consolidadas e dashboards, e comparamos os dados de vendas. As informações são atualizadas diariamente, permitindo decisões rápidas para maximizar retorno e impulsionar as vendas. Desde 2024.',
@@ -127,11 +127,12 @@ const clientCards = [
 
 .client-media {
   width: 100%;
-  max-width: 380px;
+  max-width: 240px;
   height: auto;
   border-radius: 12px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   background-color: #f0f0f0;
-  object-fit: cover;
+  object-fit: contain; /* Evita cortes em logos */
+  /* object-fit: cover; */
 }
 </style>

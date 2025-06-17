@@ -1,59 +1,61 @@
 <template>
-  <section id="footer" class="section-footer flex flex-center">
-    <div class="footer-content q-relative">
-      <!-- Logo + Slogan -->
-      <div class="row justify-between items-center q-mb-lg">
-        <div class="row items-center no-wrap">
-          <q-img
-            src="~assets/icons/icon.png"
-            alt="Logo Horizonte BI"
-            class="q-mr-md"
-            style="width: 86px; height: 76px;"
-            spinner-color="primary"
-            fit="contain"
-          />
-          <div>
-            <div class="text-h6 text-white q-mb-xs" style="letter-spacing: 1px;">Horizonte BI</div>
-            <div class="text-caption text-white">Global Solutions, Local Results</div>
+  <section id="footer" class="section-footer">
+    <div class="footer-container">
+      <div class="footer-main row q-col-gutter-md items-start justify-between">
+
+        <!-- ESQUERDA: logo + texto + social -->
+        <div class="footer-left col-12 col-md-6">
+          <div class="row items-center no-wrap">
+            <q-img
+              src="~assets/icons/icon.png"
+              alt="Logo Horizonte BI"
+              class="footer-logo"
+              spinner-color="primary"
+              fit="contain"
+            />
+            <div class="q-ml-md">
+              <div class="text-h6 text-white">Horizonte BI</div>
+              <div class="text-caption text-white q-mt-xs">Global Solutions, Local Results</div>
+            </div>
+          </div>
+          <div class="footer-social row q-mt-md">
+            <q-btn
+              v-for="logo in partnerLogos"
+              :key="logo.alt"
+              flat
+              round
+              dense
+              tag="a"
+              :href="logo.link"
+              target="_blank"
+              class="footer-social-btn"
+            >
+              <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
+            </q-btn>
           </div>
         </div>
-        <!-- Headquarter info -->
-        <div class="text-caption text-white text-right q-mt-sm q-mr-sm hidden-xs-only">
-          Headquartered in Brazil
+
+        <!-- DIREITA: contato -->
+        <div class="footer-right col-12 col-md-6 text-md-right text-center q-mt-md q-mt-none--md">
+          <q-btn
+            outline
+            color="white"
+            icon="email"
+            label="E-mail: horizontetbi@gmail.com"
+            class="footer-contact-btn"
+            @click="mailto"
+          />
         </div>
       </div>
-           <!-- Contato -->
-      <div class="row justify-center q-mt-lg">
-        <q-btn
-          outline
-          color="white"
-          icon="email"
-          label="E-mail: horizontetbi@gmail.com"
-          style="text-transform: none"
-          @click="mailto"
-        />
-      </div>
 
-      <!-- Parceiros -->
-      <div class="row justify-center items-center icons-row">
-        <q-btn
-          v-for="logo in partnerLogos"
-          :key="logo.alt"
-          flat
-          round
-          dense
-          tag="a"
-          :href="logo.link"
-          target="_blank"
-          class="partner-btn"
-        >
-          <q-img :src="logo.src" :alt="logo.alt" class="partner-logo" />
-        </q-btn>
-      </div>
-
-      <!-- Direitos -->
-      <div class="text-caption text-white text-center q-mt-md">
-        © 2025 Horizonte BI
+      <!-- INFERIOR: direitos autorais + localização -->
+      <div class="footer-bottom row justify-between items-center q-mt-lg">
+        <div class="text-caption text-white">
+          © 2025 Horizonte BI
+        </div>
+        <div class="text-caption text-white">
+          Headquartered in Brazil
+        </div>
       </div>
     </div>
   </section>
@@ -94,30 +96,42 @@ const partnerLogos = [
 
 <style scoped>
 .section-footer {
-  background: linear-gradient(135deg, #0b4f76 0%, #47e295 100%);
-  padding: 60px 24px;
+  background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%);
+  padding: 48px 24px 24px;
+  font-size: 0.9rem;
 }
-.footer-content {
+.footer-container {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
-.icons-row {
-  margin-top: 16px;
-  flex-wrap: wrap;
+.footer-logo {
+  width: 72px;
+  height: 72px;
 }
-.partner-btn {
-  margin: 8px 12px;
-  padding: 8px;
-  border-radius: 50%;
+.footer-social {
+  gap: 12px;
 }
-.partner-logo {
-  width: 48px;
-  height: 48px;
+.footer-social-btn {
+  padding: 4px;
+}
+.footer-social-logo {
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   transition: filter 0.3s ease;
 }
-.partner-logo:hover {
+.footer-social-logo:hover {
   filter: brightness(1.2);
+}
+.footer-contact-btn {
+  font-size: 0.9rem;
+  text-transform: none;
+  padding: 10px 20px;
+}
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 16px;
+  font-size: 0.75rem;
 }
 </style>
