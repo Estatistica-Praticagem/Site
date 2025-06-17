@@ -130,7 +130,7 @@ Isso garante um relacionamento mais eficiente com o cliente ao longo do funil.`,
 ];
 
 function scrollToContato() {
-  const el = document.getElementById('contact-info');
+  const el = document.getElementById('contact');
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 </script>
