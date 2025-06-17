@@ -2,14 +2,14 @@
   <section
     id="clients"
     data-gtm="clients-section"
-    class="section-clients flex flex-center"
+    class="section-clients"
   >
-    <div class="section-content">
+    <div class="section-inner">
       <h2 class="text-h4 text-primary text-center q-mb-md">Grandes Clientes</h2>
 
       <q-tabs
         v-model="clientTab"
-        class="q-mt-md text-primary bg-transparent"
+        class="clients-tabs q-mt-md text-primary bg-transparent"
         active-color="primary"
         indicator-color="primary"
         align="justify"
@@ -24,14 +24,41 @@
         />
       </q-tabs>
 
-      <q-tab-panels v-model="clientTab" animated class="q-mt-xl">
+      <q-tab-panels v-model="clientTab" animated class="transparent-panel q-mt-xl">
         <q-tab-panel
           v-for="c in clientCards"
           :key="c.id"
           :name="c.id"
           class="q-pa-none"
         >
-          <div class="row q-col-gutter-xl items-center justify-center">
+          <div class="row items-center q-col-gutter-xl">
+            <!-- Text / Info -->
+            <div class="col-12 col-md-7">
+              <div class="client-info">
+                <!-- Icon + Name -->
+                <div class="client-header flex items-center q-mb-sm">
+                  <q-img
+                    :src="c.icon || c.img"
+                    class="client-icon"
+                    :alt="`${c.name} icon`"
+                    width="40"
+                    height="40"
+                    no-spinner
+                  />
+                  <h3 class="client-name">{{ c.name }}</h3>
+                </div>
+
+                <p class="client-quote">"{{ c.quote }}"</p>
+                <p class="client-description">{{ c.description }}</p>
+
+                <p class="client-person q-mt-md">
+                  {{ c.person }}
+                  <span v-if="c.personRole"> | <span class="text-primary">{{ c.personRole }}</span></span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Media -->
             <div class="col-12 col-md-5 text-center">
               <component
                 :is="c.isVideo ? 'video' : 'q-img'"
@@ -40,16 +67,6 @@
                 v-bind="c.isVideo ? { controls: true, autoplay: true, muted: true, loop: true } : {}"
                 class="client-media"
               />
-            </div>
-            <div class="col-12 col-md-7 text-left">
-              <p class="text-primary text-bold text-subtitle1 q-mb-sm">{{ c.name }}</p>
-              <p class="text-body1 q-mb-md">"{{ c.quote }}"</p>
-              <p class="text-body2 q-mb-md">{{ c.description }}</p>
-              <h5 class="text-subtitle1 q-mb-xs">
-                {{ c.person }} |
-                <span class="text-primary">{{ c.name }}</span>
-              </h5>
-              <p class="text-caption text-grey-8">{{ c.personRole }}</p>
             </div>
           </div>
         </q-tab-panel>
@@ -77,6 +94,7 @@ const clientCards = [
     person: 'Capitão Pilot Board',
     personRole: 'Operações Portuárias',
     img: rgImg,
+    icon: rgImg,
     isVideo: false,
   },
   {
@@ -84,10 +102,11 @@ const clientCards = [
     tabLabel: 'Unisinos',
     name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
     quote: 'Do zero ao dashboard em tempo real.',
-    description: 'A Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, incluindo a limpeza de configurações antigas e o mapeamento das necessidades. Utilizamos Google Tag Manager, pixels, tags e botões para rastrear o comportamento em cada etapa da navegação. Os dados foram estruturados no BigQuery e Google Sheets e integrados a dashboards interativos para decisões com base na taxonomia personalizada da Unisinos.',
+    description: 'Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, desde a limpeza de configurações antigas, mapeamento das necessidades e configuração de ferramentas como Google Tag Manager, pixels, tags e botões para rastrear o comportamento dos usuários em cada etapa da navegação. Após a organização e configuração interna do ecossistema de mapeamento das informações do site da Unisinos, realizamos bases de dados via BigQuery e Google Sheets para extração e manipulação dos anúncios de mídia — informações que foram disponibilizadas via dashboard interativo para tomada de decisão após manipulação dos dados em conjunto com a taxonomia de mídia personalizada e exclusiva da Unisinos. O resultado do trabalho passou por diferentes etapas, desde organização do traqueamento da jornada do cliente, configuração do Data Warehouse da Unisinos e dashboards exclusivos para análise e tomadas de decisões em realtime.',
     person: 'Equipe Unisinos',
     personRole: 'Marketing & Tecnologia',
     img: unisinos,
+    icon: unisinos,
     isVideo: false,
   },
   {
@@ -99,6 +118,7 @@ const clientCards = [
     person: '',
     personRole: 'Marketing Digital',
     img: viaMarteImg,
+    icon: viaMarteImg,
     isVideo: false,
   },
   {
@@ -110,6 +130,7 @@ const clientCards = [
     person: 'Diretoria de Vendas',
     personRole: 'Imobiliário Premium',
     img: rfillVideo,
+    icon: rfillVideo,
     isVideo: false,
   },
 ];
@@ -117,26 +138,75 @@ const clientCards = [
 
 <style scoped>
 .section-clients {
-  /* background-color: #ffffff; */
   background: linear-gradient(90deg, #f7e5d8 40%, #A3DDF0 100%);
-  /* background:linear-gradient(90deg,#f6fbff 40%,#d1ebff 100%); */
-  padding-top: 80px;
-  padding-bottom: 60px;
+  padding: 80px 0 60px;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
 }
 
-.section-content {
-  max-width: 1200px;
+.section-inner {
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 0 24px;
 }
 
+h2 {
+  margin: 0 0 36px;
+}
+
+/* Tabs / Panels */
+.clients-tabs,
+.transparent-panel,
+.q-tab-panel {
+  background: none !important;
+}
+
+/* Header */
+.client-header .client-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-right: 12px;
+}
+
+.client-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1C1C1C;
+}
+
+.client-quote {
+  font-style: italic;
+  font-size: 1.125rem;
+  margin-bottom: 8px;
+}
+
+.client-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.client-person {
+  font-weight: 600;
+  color: #000;
+}
+
+/* Media */
 .client-media {
   width: 100%;
-  max-width: 240px;
+  max-width: 340px;
   height: auto;
-  border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-  background-color: #f0f0f0;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+  background-color: transparent !important;
   object-fit: contain;
+}
+
+@media (max-width: 1023px) {
+  .client-name {
+    font-size: 1.4rem;
+  }
 }
 </style>

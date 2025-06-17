@@ -1,7 +1,10 @@
 <template>
   <section id="contact" class="section-form flex flex-center" data-gtm="section-contact">
     <div class="section-content">
-      <h2 class="text-h4 text-primary text-center q-mb-md text-weight-bold">Entre em Contato</h2>
+      <h2 class="text-h4 text-primary text-center q-mb-md text-weight-bold">
+        Entre em Contato
+      </h2>
+
       <q-form @submit.prevent="onSubmit" class="form-wrapper" id="form-contato" data-gtm="form-contato">
         <q-input
           filled
@@ -38,15 +41,18 @@
           id="select-servico"
           data-gtm="select-servico"
         />
-        <q-input
-          filled
-          v-model="form.descricao"
-          label="Como podemos ajudar?"
-          type="textarea"
-          autogrow
-          id="input-descricao"
-          data-gtm="input-descricao"
-        />
+
+      <q-input
+        filled
+        v-model="form.descricao"
+        label="Como podemos ajudar?"
+        type="textarea"
+        autogrow
+        id="input-descricao"
+        data-gtm="input-descricao"
+        class="large-textarea"
+      />
+
         <q-btn
           type="submit"
           label="Enviar"
@@ -73,14 +79,17 @@
 import { ref } from 'vue';
 
 const form = ref({
-  nome: '', email: '', telefone: '', servico: '', descricao: '',
+  nome: '',
+  email: '',
+  telefone: '',
+  servico: '',
+  descricao: '',
 });
 const formEnviado = ref(false);
 
 function onSubmit() {
   formEnviado.value = true;
 
-  // Aqui você pode adicionar integração com API ou envio por e-mail futuramente
   setTimeout(() => {
     form.value = {
       nome: '', email: '', telefone: '', servico: '', descricao: '',
@@ -93,9 +102,7 @@ function onSubmit() {
 
 <style scoped>
 .section-form {
-  /* background: #ffffff; */
   background: linear-gradient(135deg, #f7e5d8 0%, #bdfadc 100%);
-  /* background:linear-gradient(135deg,#f6fbff 0%,#dff9ff 100%); */
   padding: 80px 20px;
   min-height: 100vh;
   display: flex;
@@ -122,4 +129,16 @@ function onSubmit() {
 .full-width {
   width: 100%;
 }
+
+.large-textarea ::v-deep textarea.q-field__native {
+  min-height: 140px;   /* cerca de 4 linhas */
+  padding: 12px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+textarea.q-field__native {
+  resize: vertical !important;
+}
+
 </style>

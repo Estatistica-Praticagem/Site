@@ -10,36 +10,19 @@
         Atendemos clientes globais de diversos setores em todo o ciclo do marketing digital—da estratégia e execução à otimização de performance.<br><br>
         Também oferecemos soluções robustas de dados, dashboards inteligentes e análises completas—sempre personalizadas para o objetivo de cada cliente.
         Nossos relatórios detalhados e recomendações práticas capacitam empresas a tomar decisões informadas que geram resultados reais e significativos.
+        <br><br>
+        <a href="#" @click.prevent="showCard = !showCard" class="leia-mais-link">
+          {{ showCard ? 'Ocultar' : 'Leia mais' }}
+        </a>
       </p>
 
-      <div class="q-mt-xl">
-        <q-btn
-          id="btn-saiba-mais"
-          color="primary"
-          round
-          size="lg"
-          icon="add"
-          label="Saiba mais"
-          @click="showCard = !showCard"
-          class="btn-saiba-mais"
-          data-gtm="botao-saiba-mais"
-        />
-      </div>
-
       <transition name="fade">
-        <q-card v-if="showCard" class="card-content q-mt-xl" id="card-info">
-          <q-card-section>
-            <h3 class="text-h5 text-primary q-mb-sm" id="titulo-card">
-              Metodologia e o porquê: Data Driven Business
-            </h3>
-            <p id="conteudo-card">
-              Como uma empresa orientada por dados, capacitamos negócios aproveitando informações relevantes e confiáveis para avaliar estratégias atuais e desenhar novos caminhos de crescimento.<br><br>
-              Usamos dados como recurso estratégico para impulsionar decisões informadas, otimizar processos, melhorar a performance e desbloquear potencial para um crescimento sustentável.<br><br>
-              Nossa abordagem está fundamentada em uma cultura que valoriza insights orientados por dados em todos os ciclos do negócio.
-              Oferecemos as tecnologias, ferramentas e expertise necessárias para coletar, armazenar, analisar e interpretar grandes volumes de dados de forma eficiente, ajudando nossos clientes a transformar informação em estratégias acionáveis que entregam resultados.
-            </p>
-          </q-card-section>
-        </q-card>
+        <div v-if="showCard" class="q-mt-md text-white text-body1 text-left leading" id="conteudo-card">
+          Como uma empresa orientada por dados, capacitamos negócios aproveitando informações relevantes e confiáveis para avaliar estratégias atuais e desenhar novos caminhos de crescimento.<br><br>
+          Usamos dados como recurso estratégico para impulsionar decisões informadas, otimizar processos, melhorar a performance e desbloquear potencial para um crescimento sustentável.<br><br>
+          Nossa abordagem está fundamentada em uma cultura que valoriza insights orientados por dados em todos os ciclos do negócio.
+          Oferecemos as tecnologias, ferramentas e expertise necessárias para coletar, armazenar, analisar e interpretar grandes volumes de dados de forma eficiente, ajudando nossos clientes a transformar informação em estratégias acionáveis que entregam resultados.
+        </div>
       </transition>
     </div>
   </section>
@@ -68,29 +51,28 @@ const showCard = ref(false);
   padding: 32px 0;
 }
 
-.card-content {
-  max-width: 700px;
-  margin: 0 auto;
-  border-radius: 22px;
-  box-shadow: 0 2px 18px 0 rgba(10,120,190,.08);
+.leading {
+  line-height: 1.72;
 }
 
-.btn-saiba-mais {
+.leia-mais-link {
+  display: inline-block;
   margin-top: 12px;
-  font-size: 1.4rem;
-  box-shadow: 0 4px 20px #0b9dd344;
-  transition: transform 0.18s cubic-bezier(.42,0,.58,1);
-  font-weight: bold;
+  font-weight: 500;
+  color: #ffeb3b;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-.btn-saiba-mais:hover {
-  background: linear-gradient(90deg, #0b9dd3 0%, #0b4f76 100%);
-  color: #fff;
-  transform: scale(1.08);
+.leia-mais-link:hover {
+  color: #fff59d;
 }
 
 .fade-enter-active, .fade-leave-active {
   transition: opacity .35s cubic-bezier(.4,0,.2,1);
 }
-.fade-enter, .fade-leave-to { opacity: 0; }
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
 </style>

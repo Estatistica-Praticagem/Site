@@ -1,9 +1,9 @@
 <template>
   <section id="services" class="section-services">
     <div class="section-content row items-start justify-between cards-wrapper">
-      <!-- CARD 1: Tópicos -->
+      <!-- CARD 1: Tópicos com rolagem -->
       <div class="col-12 col-md-3">
-        <q-card flat bordered class="bg-grey-3 q-pa-sm rounded-borders">
+        <q-card flat bordered class="topics-scroll glass-card q-pa-sm">
           <q-list separator>
             <q-item
               v-for="(s, i) in services"
@@ -22,15 +22,13 @@
 
       <!-- CARD 2: Descrição -->
       <div class="col-12 col-md-5">
-        <q-card class="bg-grey-2 q-pa-lg shadow-1 rounded-borders">
+        <q-card class="desc-card q-pa-lg shadow-1 rounded-borders">
           <q-card-section>
             <h4 class="text-h6 text-primary q-mb-sm">{{ services[selected].titulo }}</h4>
             <p class="text-body1 q-mt-sm description-text">
               {{ services[selected].descricao }}
             </p>
           </q-card-section>
-          <q-card-actions align="left">
-          </q-card-actions>
         </q-card>
       </div>
 
@@ -137,21 +135,33 @@ function scrollToContato() {
 
 <style scoped>
 .section-services {
-  /* background: #ffffff; */
-  background: #f7e5d8;
-  /* background: #f7f7f7; */
+  background: #ffffff;
   padding: 60px 16px;
 }
-
 .section-content {
   max-width: 1280px;
   margin: 0 auto;
 }
-
 .cards-wrapper {
   gap: 12px;
   display: flex;
   flex-wrap: nowrap;
+}
+
+/* CARD LATERAL COM SCROLL */
+.topics-scroll {
+  max-height: 390px;
+  overflow-y: auto;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* CARD DE DESCRIÇÃO */
+.desc-card {
+  background-color: #f7e5d8;
+  border-radius: 18px;
+  border: none;
 }
 
 .service-item {
@@ -160,7 +170,6 @@ function scrollToContato() {
 .service-item:hover {
   background: #e0f0f4;
 }
-
 .selected-service {
   background-color: #c2effa !important;
   color: #007b9a !important;
@@ -172,24 +181,23 @@ function scrollToContato() {
   white-space: pre-line;
   font-size: 1.05rem;
 }
-.cards-wrapper {
-  gap: 12px; /* controla o espaçamento fino entre os 3 cards */
-  flex-wrap: nowrap;
-}
 
 @media (max-width: 1024px) {
   .cards-wrapper {
     flex-direction: column;
     gap: 24px;
   }
+  .topics-scroll {
+    max-height: none;
+  }
 }
+
 .final-cta {
   margin-top: 40px;
   margin-right: 12px;
   font-size: 1.1rem;
   font-weight: 600;
 }
-
 @media (max-width: 1024px) {
   .final-cta {
     display: block;
@@ -197,5 +205,4 @@ function scrollToContato() {
     text-align: center;
   }
 }
-
 </style>

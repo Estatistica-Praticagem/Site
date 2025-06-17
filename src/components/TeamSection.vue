@@ -1,3 +1,4 @@
+<!-- eslint-disable global-require -->
 <template>
   <section
     id="team"
@@ -9,7 +10,7 @@
 
       <q-tabs
         v-model="teamTab"
-        class="q-mt-md text-primary bg-transparent"
+        class="team-tabs q-mt-md text-primary bg-transparent"
         active-color="primary"
         indicator-color="primary"
         align="justify"
@@ -24,7 +25,8 @@
         />
       </q-tabs>
 
-      <q-tab-panels v-model="teamTab" animated class="q-mt-xl">
+      <!-- Painéis com fundo totalmente transparente -->
+      <q-tab-panels v-model="teamTab" animated class="transparent-panel q-mt-xl">
         <q-tab-panel
           v-for="m in teamMembers"
           :key="m.id"
@@ -41,8 +43,8 @@
             </div>
             <div class="col-12 col-md-8 text-left">
               <p class="text-pink-7 text-bold text-caption q-mb-xs">{{ m.role.toUpperCase() }}</p>
-              <h4 class="text-subtitle1 q-mb-xs">{{ m.name }}</h4>
-              <p class="text-body1">{{ m.bio }}</p>
+              <h4 class="text-subtitle1 q-mb-xs team-name">{{ m.name }}</h4>
+              <p class="text-body1 team-bio">{{ m.bio }}</p>
             </div>
           </div>
         </q-tab-panel>
@@ -55,6 +57,7 @@
 import { ref } from 'vue';
 
 const teamTab = ref('kevi');
+
 const teamMembers = [
   {
     id: 'kevi',
@@ -85,24 +88,41 @@ const teamMembers = [
 
 <style scoped>
 .section-team {
-  /* background: #ffffff; */
   background: linear-gradient(100deg, #A3DDF0 0%, #ffffff 90%);
-  padding-top: 80px;
-  padding-bottom: 40px;
+  padding: 80px 0 40px;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
 }
 
 .section-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 0 24px;
 }
 
+/* Tabs & Panels sem fundo */
+.team-tabs,
+.transparent-panel,
+.q-tab-panel {
+  background: none !important;
+}
+
+/* Avatar */
 .team-media {
   width: 140px;
   height: 140px;
   object-fit: cover;
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin: 0 auto;
+}
+
+/* Typography tweaks */
+.team-name {
+  font-weight: 700;
+}
+
+.team-bio {
+  line-height: 1.5;
 }
 </style>
