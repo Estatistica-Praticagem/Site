@@ -23,6 +23,9 @@
      <!--  Foto circular e reduzir o tamanho-->
     <TeamSection />
 
+     <!-- Logos -->
+    <ClientsLogo/>
+
     <!-- FORM -->
     <ContactForm/>
      <!-- Criar section logos parceiros contem todos os logos dos clientes -->
@@ -44,6 +47,7 @@ import ClientsSection from 'src/components/ClientsSection.vue';
 import TeamSection from 'src/components/TeamSection.vue';
 import ContactSection from 'src/components/ContactSection.vue';
 import ContactForm from 'src/components/ContactForm.vue';
+import ClientsLogo from 'src/components/ClientsLogo.vue';
 
 </script>
 
