@@ -95,6 +95,7 @@ function onSubmit() {
 .section-form {
   /* background: #ffffff; */
   background: linear-gradient(135deg, #f7e5d8 0%, #bdfadc 100%);
+  /* background:linear-gradient(135deg,#f6fbff 0%,#dff9ff 100%); */
   padding: 80px 20px;
   min-height: 100vh;
   display: flex;

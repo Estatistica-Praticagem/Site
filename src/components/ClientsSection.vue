@@ -119,6 +119,7 @@ const clientCards = [
 .section-clients {
   /* background-color: #ffffff; */
   background: linear-gradient(90deg, #f7e5d8 40%, #A3DDF0 100%);
+  /* background:linear-gradient(90deg,#f6fbff 40%,#d1ebff 100%); */
   padding-top: 80px;
   padding-bottom: 60px;
 }
