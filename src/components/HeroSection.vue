@@ -1,11 +1,11 @@
 <template>
-  <section class="section-hero flex flex-center">
-    <div class="hero-content">
-      <h1 class="text-h3 text-weight-bold text-white">Horizonte BI</h1>
-      <p class="text-subtitle1 text-white q-mt-sm">
+  <section id="section-hero" class="section-hero flex flex-center">
+    <div class="hero-content" id="hero-content">
+      <h1 class="text-h3 text-weight-bold text-white" id="titulo-hero">Horizonte BI</h1>
+      <p class="text-subtitle1 text-white q-mt-sm" id="subtitulo-hero">
         Soluções Globais, Resultados Locais
       </p>
-      <p class="q-mt-md text-white">
+      <p class="q-mt-md text-white" id="descricao-hero">
         A Orizzontte BI é uma consultoria de marketing full-service com profunda experiência em Business Intelligence.
         Atendemos clientes globais de diversos setores em todo o ciclo do marketing digital—da estratégia e execução à otimização de performance.<br><br>
         Também oferecemos soluções robustas de dados, dashboards inteligentes e análises completas—sempre personalizadas para o objetivo de cada cliente.
@@ -14,6 +14,7 @@
 
       <div class="q-mt-xl">
         <q-btn
+          id="btn-saiba-mais"
           color="primary"
           round
           size="lg"
@@ -21,16 +22,17 @@
           label="Saiba mais"
           @click="showCard = !showCard"
           class="btn-saiba-mais"
+          data-gtm="botao-saiba-mais"
         />
       </div>
 
       <transition name="fade">
-        <q-card v-if="showCard" class="card-content q-mt-xl">
+        <q-card v-if="showCard" class="card-content q-mt-xl" id="card-info">
           <q-card-section>
-            <h3 class="text-h5 text-primary q-mb-sm">
+            <h3 class="text-h5 text-primary q-mb-sm" id="titulo-card">
               Metodologia e o porquê: Data Driven Business
             </h3>
-            <p>
+            <p id="conteudo-card">
               Como uma empresa orientada por dados, capacitamos negócios aproveitando informações relevantes e confiáveis para avaliar estratégias atuais e desenhar novos caminhos de crescimento.<br><br>
               Usamos dados como recurso estratégico para impulsionar decisões informadas, otimizar processos, melhorar a performance e desbloquear potencial para um crescimento sustentável.<br><br>
               Nossa abordagem está fundamentada em uma cultura que valoriza insights orientados por dados em todos os ciclos do negócio.

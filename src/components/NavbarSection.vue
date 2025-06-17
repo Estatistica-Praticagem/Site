@@ -1,9 +1,11 @@
 <template>
-  <nav class="navbar-sections q-pa-md">
+  <nav id="navbar-sections" class="navbar-sections q-pa-md">
     <div class="row justify-center q-gutter-sm">
       <q-btn
         v-for="(section, idx) in sections"
         :key="section.anchor + idx"
+        :id="`btn-${section.anchor}`"
+        :data-gtm="`btn-${section.anchor}`"
         flat
         color="primary"
         :label="section.label"

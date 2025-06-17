@@ -45,19 +45,21 @@
           />
         </q-card>
       </div>
-
     </div>
-          <!-- BOTÃO FIXO AO FINAL -->
-      <div class="q-mt-xl text-right">
-        <q-btn
-          color="primary"
-          label="Fale com a gente"
-          icon="send"
-          rounded
-          @click="scrollToContato"
-          class="final-cta"
-        />
-      </div>
+
+    <!-- BOTÃO FIXO AO FINAL -->
+    <div class="q-mt-xl text-right">
+      <q-btn
+        id="btn-fale-conosco"
+        data-gtm="btn-fale-conosco"
+        color="primary"
+        label="Fale com a gente"
+        icon="send"
+        rounded
+        @click="scrollToContato"
+        class="final-cta"
+      />
+    </div>
   </section>
 </template>
 

@@ -1,11 +1,33 @@
 <template>
-  <section id="contact" class="section-form flex flex-center">
+  <section id="contact" class="section-form flex flex-center" data-gtm="section-contact">
     <div class="section-content">
       <h2 class="text-h4 text-primary text-center q-mb-md text-weight-bold">Entre em Contato</h2>
-      <q-form @submit.prevent="onSubmit" class="form-wrapper">
-        <q-input filled v-model="form.nome" label="Nome" required />
-        <q-input filled v-model="form.email" label="E-mail" type="email" required />
-        <q-input filled v-model="form.telefone" label="Telefone" mask="(##) #####-####" />
+      <q-form @submit.prevent="onSubmit" class="form-wrapper" id="form-contato" data-gtm="form-contato">
+        <q-input
+          filled
+          v-model="form.nome"
+          label="Nome"
+          required
+          id="input-nome"
+          data-gtm="input-nome"
+        />
+        <q-input
+          filled
+          v-model="form.email"
+          label="E-mail"
+          type="email"
+          required
+          id="input-email"
+          data-gtm="input-email"
+        />
+        <q-input
+          filled
+          v-model="form.telefone"
+          label="Telefone"
+          mask="(##) #####-####"
+          id="input-telefone"
+          data-gtm="input-telefone"
+        />
         <q-select
           filled
           v-model="form.servico"
@@ -13,9 +35,26 @@
           label="Serviço de Interesse"
           emit-value
           map-options
+          id="select-servico"
+          data-gtm="select-servico"
         />
-        <q-input filled v-model="form.descricao" label="Como podemos ajudar?" type="textarea" autogrow />
-        <q-btn type="submit" label="Enviar" color="primary" class="full-width q-mt-md" />
+        <q-input
+          filled
+          v-model="form.descricao"
+          label="Como podemos ajudar?"
+          type="textarea"
+          autogrow
+          id="input-descricao"
+          data-gtm="input-descricao"
+        />
+        <q-btn
+          type="submit"
+          label="Enviar"
+          color="primary"
+          class="full-width q-mt-md"
+          id="btn-enviar-contato"
+          data-gtm="btn-enviar-contato"
+        />
       </q-form>
 
       <q-banner
@@ -55,8 +94,6 @@ function onSubmit() {
 <style scoped>
 .section-form {
   background: #ffffff;
-  /* background: linear-gradient(135deg,#e2b38f 3%, #ffffff 100%, #e7975e 20%, #41220c 80%); */
-  /* background: linear-gradient(135deg, #0b4f76 0%, #47e295 100%); */
   padding: 80px 20px;
   min-height: 100vh;
   display: flex;

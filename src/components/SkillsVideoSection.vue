@@ -1,5 +1,9 @@
 <template>
-  <section class="skills-video-section relative-position">
+  <section
+    id="skills-expertise"
+    data-gtm="skills-expertise"
+    class="skills-video-section relative-position"
+  >
     <video
       autoplay
       muted

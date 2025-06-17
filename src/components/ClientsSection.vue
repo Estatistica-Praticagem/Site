@@ -1,5 +1,9 @@
 <template>
-  <section id="clients" class="section-clients flex flex-center">
+  <section
+    id="clients"
+    data-gtm="clients-section"
+    class="section-clients flex flex-center"
+  >
     <div class="section-content">
       <h2 class="text-h4 text-primary text-center q-mb-md">Grandes Clientes</h2>
 
@@ -92,7 +96,7 @@ const clientCards = [
     name: 'Via Marte',
     quote: 'Automação de mídia para e-commerce com crescimento de 40%.',
     description: 'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de todas as plataformas de mídia, criamos visões consolidadas e dashboards, e comparamos os dados de vendas. As informações são atualizadas diariamente, permitindo decisões rápidas para maximizar retorno e impulsionar as vendas. Desde 2024.',
-    person: 'Equipe Growth',
+    person: '',
     personRole: 'Marketing Digital',
     img: viaMarteImg,
     isVideo: false,
@@ -113,7 +117,6 @@ const clientCards = [
 
 <style scoped>
 .section-clients {
-  /* background: linear-gradient(90deg, #f7e5d8 40%, #A3DDF0 100%); */
   background-color: #ffffff;
   padding-top: 80px;
   padding-bottom: 60px;
@@ -132,7 +135,6 @@ const clientCards = [
   border-radius: 12px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
   background-color: #f0f0f0;
-  object-fit: contain; /* Evita cortes em logos */
-  /* object-fit: cover; */
+  object-fit: contain;
 }
 </style>

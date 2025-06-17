@@ -1,19 +1,19 @@
 <template>
-  <section id="data" class="section-data flex flex-center">
+  <section id="data" class="section-data flex flex-center" data-gtm="section-data">
     <!-- Onda decorativa no topo -->
-    <div class="section-wave-top">
+    <div class="section-wave-top" id="wave-top" data-gtm="wave-top">
       <svg width="100%" height="90" viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
         <path d="M0,72 C320,110 1120,-10 1440,65 L1440,0 L0,0 Z" fill="#47e295" />
       </svg>
-      <div class="wave-title text-h5 text-primary text-center">Dados</div>
+      <div class="wave-title text-h5 text-primary text-center" id="wave-title" data-gtm="wave-title">Dados</div>
     </div>
 
-    <div class="section-content row items-center q-col-gutter-xl q-pb-xl">
+    <div class="section-content row items-center q-col-gutter-xl q-pb-xl" id="data-content" data-gtm="data-content">
       <!-- Imagem à esquerda -->
-      <div class="col-12 col-md-6 d-flex flex-center relative-position">
+      <div class="col-12 col-md-6 d-flex flex-center relative-position" id="data-image-block" data-gtm="data-image-block">
         <div class="image-container">
-          <q-img src="~assets/About the Company.png" class="img-data" />
-          <div class="pills-wrapper">
+          <q-img src="~assets/About the Company.png" class="img-data" id="data-image" data-gtm="data-image" />
+          <div class="pills-wrapper" id="data-pills" data-gtm="data-pills">
             <q-chip
               v-for="(b, idx) in dataPills"
               :key="'dataPill'+idx"
@@ -22,6 +22,8 @@
               text-color="primary"
               :icon="b.icon"
               :style="{ top: `${32 + idx * 64}px` }"
+              :id="`data-pill-${idx}`"
+              :data-gtm="`data-pill-${b.icon.toLowerCase()}`"
             >
               {{ b.text }}
             </q-chip>
@@ -30,7 +32,7 @@
       </div>
 
       <!-- Texto à direita -->
-      <div class="col-12 col-md-6 q-mt-md q-mb-lg">
+      <div class="col-12 col-md-6 q-mt-md q-mb-lg" id="data-text" data-gtm="data-text">
         <h2 class="text-h4 text-primary q-mb-md text-weight-bold">Negócios Orientados a Dados</h2>
         <p class="text-body1">Utilizamos dados confiáveis para avaliar estratégias atuais e desenhar caminhos de crescimento.</p>
         <p class="text-body1">Nossa cultura valoriza insights em cada ciclo, transformando informação em estratégia.</p>
@@ -65,6 +67,7 @@ const dataPills = [
   z-index: 5;
   pointer-events: none;
 }
+
 .wave-title {
   position: absolute;
   top: 16px;

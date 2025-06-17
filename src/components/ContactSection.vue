@@ -1,10 +1,10 @@
 <template>
-  <section id="footer" class="section-footer">
+  <section id="footer" class="section-footer" data-gtm="section-footer">
     <div class="footer-container">
       <div class="footer-main row q-col-gutter-md items-start justify-between">
 
         <!-- ESQUERDA: logo + texto + social -->
-        <div class="footer-left col-12 col-md-6">
+        <div class="footer-left col-12 col-md-6" id="footer-logo-social" data-gtm="footer-logo-social">
           <div class="row items-center no-wrap">
             <q-img
               src="~assets/icons/icon.png"
@@ -12,13 +12,15 @@
               class="footer-logo"
               spinner-color="primary"
               fit="contain"
+              id="footer-logo"
+              data-gtm="footer-logo"
             />
             <div class="q-ml-md">
               <div class="text-h6 text-white">Horizonte BI</div>
               <div class="text-caption text-white q-mt-xs">Global Solutions, Local Results</div>
             </div>
           </div>
-          <div class="footer-social row q-mt-md">
+          <div class="footer-social row q-mt-md" id="footer-social" data-gtm="footer-social-icons">
             <q-btn
               v-for="logo in partnerLogos"
               :key="logo.alt"
@@ -29,6 +31,8 @@
               :href="logo.link"
               target="_blank"
               class="footer-social-btn"
+              :id="`social-${logo.alt.toLowerCase()}`"
+              :data-gtm="`social-${logo.alt.toLowerCase()}`"
             >
               <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
             </q-btn>
@@ -36,7 +40,11 @@
         </div>
 
         <!-- DIREITA: contato -->
-        <div class="footer-right col-12 col-md-6 text-md-right text-center q-mt-md q-mt-none--md">
+        <div
+          class="footer-right col-12 col-md-6 text-md-right text-center q-mt-md q-mt-none--md"
+          id="footer-contato"
+          data-gtm="footer-contato"
+        >
           <q-btn
             outline
             color="white"
@@ -44,12 +52,14 @@
             label="E-mail: horizontetbi@gmail.com"
             class="footer-contact-btn"
             @click="mailto"
+            id="btn-footer-email"
+            data-gtm="btn-footer-email"
           />
         </div>
       </div>
 
       <!-- INFERIOR: direitos autorais + localização -->
-      <div class="footer-bottom row justify-between items-center q-mt-lg">
+      <div class="footer-bottom row justify-between items-center q-mt-lg" id="footer-bottom" data-gtm="footer-bottom">
         <div class="text-caption text-white">
           © 2025 Horizonte BI
         </div>

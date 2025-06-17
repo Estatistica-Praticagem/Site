@@ -1,5 +1,9 @@
 <template>
-  <section id="team" class="section-team flex flex-center">
+  <section
+    id="team"
+    data-gtm="team-section"
+    class="section-team flex flex-center"
+  >
     <div class="section-content">
       <h2 class="text-h4 text-primary text-center q-mb-md">A Equipe</h2>
 
@@ -82,7 +86,6 @@ const teamMembers = [
 <style scoped>
 .section-team {
   background: #ffffff;
-  /* background: linear-gradient(100deg, #A3DDF0 0%, #ffffff 90%); */
   padding-top: 80px;
   padding-bottom: 40px;
 }
