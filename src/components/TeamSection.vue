@@ -88,7 +88,8 @@ const teamMembers = [
 
 <style scoped>
 .section-team {
-  background: linear-gradient(100deg, #A3DDF0 0%, #ffffff 90%);
+  background:transparent;
+  /* background: linear-gradient(100deg, #985ee4 0%, #b5abf1 90%); */
   padding: 80px 0 40px;
   width: 100vw;
   margin-left: calc(-50vw + 50%);

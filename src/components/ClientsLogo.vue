@@ -1,7 +1,7 @@
 <template>
   <section id="footer" class="section-footer">
     <div class="footer-container">
-      <h2 class="footer-title">Parceiros</h2>
+      <h2 class="text-h4 text-center q-mb-md">Parceiros</h2>
       <div class="footer-social row wrap items-center justify-center">
         <div v-for="logo in partnerLogos" :key="logo.alt" class="footer-card">
           <q-btn
@@ -52,7 +52,9 @@ const partnerLogos = [
 
 <style scoped>
 .section-footer {
-  background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%);
+  background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
+  /* background:transparent; */
+  /* background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%); */
   padding: 40px 16px;
 }
 .footer-container {

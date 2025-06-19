@@ -114,7 +114,9 @@ const partnerLogos = [
 
 <style scoped>
 .section-footer {
-  background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%);
+  background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
+  /* background:transparent; */
+  /* background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%); */
   padding: 48px 24px 24px;
   font-size: 0.9rem;
 }

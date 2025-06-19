@@ -138,7 +138,8 @@ const clientCards = [
 
 <style scoped>
 .section-clients {
-  background: linear-gradient(90deg, #f7e5d8 40%, #A3DDF0 100%);
+  /* background:transparent; */
+  background: linear-gradient(90deg, #f07f29 10%, #eba43b 100%);
   padding: 80px 0 60px;
   width: 100vw;
   margin-left: calc(-50vw + 50%);

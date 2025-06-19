@@ -53,6 +53,6 @@ import ClientsLogo from 'src/components/ClientsLogo.vue';
 
 <style scoped>
 .main-portfolio-page {
-  background: #f7e5d8;
+  background: linear-gradient(100deg, #e8f6fa 0%, #ffffff 100%);
 }
 </style>

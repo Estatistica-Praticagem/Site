@@ -138,7 +138,8 @@ function scrollToContato() {
 
 <style scoped>
 .section-services {
-  background: #ffffff;
+  background:transparent;
+  /* background: #ffffff; */
   padding: 60px 16px;
 }
 .section-content {
