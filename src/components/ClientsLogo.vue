@@ -1,154 +1,98 @@
 <template>
-  <section id="footer" class="section-footer" data-gtm="section-footer">
+  <section id="footer" class="section-footer">
     <div class="footer-container">
-      <div class="footer-main row q-col-gutter-md items-start justify-between">
-          <div class="footer-social row q-mt-md" id="footer-social" data-gtm="footer-social-icons">
-            <q-btn
-              v-for="logo in partnerLogos"
-              :key="logo.alt"
-              flat
-              round
-              dense
-              tag="a"
-              :href="logo.link"
-              target="_blank"
-              class="footer-social-btn"
-              :id="`social-${logo.alt.toLowerCase()}`"
-              :data-gtm="`social-${logo.alt.toLowerCase()}`"
-            >
-              <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
-            </q-btn>
-          </div>
+      <h2 class="footer-title">Parceiros</h2>
+      <div class="footer-social row wrap items-center justify-center">
+        <div v-for="logo in partnerLogos" :key="logo.alt" class="footer-card">
+          <q-btn
+            flat round dense tag="a"
+            :href="logo.link || '#'"
+            target="_blank"
+            class="footer-card-btn"
+            :title="logo.alt"
+          >
+            <q-img
+              :src="logo.src"
+              :alt="logo.alt"
+              fit="contain"
+              class="footer-social-logo"
+              style="min-width: 120px; min-height: 60px;"
+            />
+          </q-btn>
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
+// Importe as imagens usando import ou new URL
+import DreamLandSrc from 'src/assets/clients/DreamLand.png';
+import RfillSrc from 'src/assets/clients/fr-imoveis.png';
+import RGPilotsSrc from 'src/assets/clients/logo-rgpilots.png';
+import UnisinosSrc from 'src/assets/clients/unisinos.png';
+import ViaMarteSrc from 'src/assets/clients/viamarte.png';
+import EdenredSrc from 'src/assets/clients/edenred.png';
+import OakberrySrc from 'src/assets/clients/oakberry.svg';
+import StihlSrc from 'src/assets/clients/Stihl_logo.png';
+import TKESrc from 'src/assets/clients/TKE-logo.png';
 
 const partnerLogos = [
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/icons/Google.svg'),
-    alt: 'Google',
-    link: 'https://www.google.com/partners/',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/icons/Facebook.svg'),
-    alt: 'Facebook',
-    link: 'https://www.facebook.com/business/partner-directory',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/icons/Instagram.svg'),
-    alt: 'Instagram',
-    link: 'https://www.instagram.com/',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/icons/Linkedin.svg'),
-    alt: 'LinkedIn',
-    link: 'https://www.linkedin.com/company/orizzonttebi/about/',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/fr-imoveis.png'),
-    alt: 'Rfill',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/logo-rgpilots.png'),
-    alt: 'Praticagem',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/unisinos.jpeg'),
-    alt: 'Unisinos',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/viamarte.png'),
-    alt: 'Via Marte',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/edenred.png'),
-    alt: 'Edenred',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/oakberry.svg'),
-    alt: 'Oakberry',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/Stihl_logo.png'),
-    alt: 'Stihl',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/tke_logo.jpg'),
-    alt: 'TKE',
-    link: '',
-  },
-  {
-    // eslint-disable-next-line global-require
-    src: require('src/assets/clients/DreamLand.png'),
-    alt: 'DreamLand',
-    link: '',
-  },
+  { src: DreamLandSrc, alt: 'DreamLand', link: 'https://www.dreamland.com.br/gramado' },
+  { src: RfillSrc, alt: 'Rfill', link: 'https://frimoveisdeluxo.com.br' },
+  { src: RGPilotsSrc, alt: 'RG Pilots', link: 'https://www.rgpilots.com.br' },
+  { src: UnisinosSrc, alt: 'Unisinos', link: 'https://www.unisinos.br' },
+  { src: ViaMarteSrc, alt: 'Via Marte', link: 'https://www.viamarte.com.br' },
+  { src: EdenredSrc, alt: 'Edenred', link: 'https://www.edenred.com' },
+  { src: OakberrySrc, alt: 'Oakberry', link: 'https://www.oakberry.com' },
+  { src: StihlSrc, alt: 'Stihl', link: 'https://loja.stihl.com.br' },
+  { src: TKESrc, alt: 'TKE', link: 'https://www.tkelevator.com' },
 ];
 </script>
 
 <style scoped>
 .section-footer {
   background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%);
-  padding: 48px 24px 24px;
-  font-size: 0.9rem;
+  padding: 40px 16px;
 }
 .footer-container {
   max-width: 1200px;
   margin: 0 auto;
-  width: 100%;
+  text-align: center;
 }
-.footer-logo {
-  width: 72px;
-  height: 72px;
-}
-.footer-desc {
-  font-size: 1rem;
+.footer-title {
+  color: #fff;
+  font-size: 1.6rem;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 .footer-social {
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
 }
-.footer-social-btn {
-  padding: 4px;
+.footer-card {
+  background: transparent;
+  /* border-radius: 12px; */
+  padding: 16px;
+  transition: background 0.3s, transform 0.3s;
+}
+.footer-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+}
+.footer-card-btn {
+  padding: 0;
 }
 .footer-social-logo {
-  width: 36px;
-  height: 36px;
   object-fit: contain;
-  transition: filter 0.3s ease;
 }
-.footer-social-logo:hover {
-  filter: brightness(1.2);
-}
-.footer-contact-btn {
-  font-size: 0.9rem;
-  text-transform: none;
-  padding: 10px 20px;
-}
-.footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 16px;
-  font-size: 0.75rem;
+@media (max-width: 600px) {
+  .footer-social-logo {
+    min-width: 80px;
+    min-height: 40px;
+  }
 }
 </style>

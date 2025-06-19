@@ -1,62 +1,65 @@
 <template>
   <section id="services" class="section-services">
-    <div class="section-content row items-start justify-between cards-wrapper">
-      <!-- CARD 1: Tópicos com rolagem -->
-      <div class="col-12 col-md-3">
-        <q-card flat bordered class="topics-scroll glass-card q-pa-sm">
-          <q-list separator>
-            <q-item
-              v-for="(s, i) in services"
-              :key="s.titulo"
-              clickable
-              :active="selected === i"
-              active-class="selected-service"
-              @click="selected = i"
-              class="service-item"
-            >
-              <q-item-section>{{ s.titulo }}</q-item-section>
-            </q-item>
-          </q-list>
-        </q-card>
+    <div class="section-content">
+      <!-- Linhas com os 3 cards -->
+      <div class="row items-start justify-between cards-wrapper">
+        <!-- CARD 1: Tópicos com rolagem -->
+        <div class="col-12 col-md-3">
+          <q-card flat bordered class="topics-scroll glass-card q-pa-sm">
+            <q-list separator>
+              <q-item
+                v-for="(s, i) in services"
+                :key="s.titulo"
+                clickable
+                :active="selected === i"
+                active-class="selected-service"
+                @click="selected = i"
+                class="service-item"
+              >
+                <q-item-section>{{ s.titulo }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-card>
+        </div>
+
+        <!-- CARD 2: Descrição -->
+        <div class="col-12 col-md-5">
+          <q-card class="desc-card q-pa-lg shadow-1 rounded-borders">
+            <q-card-section>
+              <h4 class="text-h6 text-primary q-mb-sm">{{ services[selected].titulo }}</h4>
+              <p class="text-body1 q-mt-sm description-text">
+                {{ services[selected].descricao }}
+              </p>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- CARD 3: Imagem -->
+        <div class="col-12 col-md-4">
+          <q-card flat class="shadow-2 rounded-borders">
+            <q-img
+              :src="services[selected].imagem"
+              alt="Ilustração do serviço"
+              style="border-radius: 25px;"
+              :ratio="4/3"
+            />
+          </q-card>
+        </div>
       </div>
 
-      <!-- CARD 2: Descrição -->
-      <div class="col-12 col-md-5">
-        <q-card class="desc-card q-pa-lg shadow-1 rounded-borders">
-          <q-card-section>
-            <h4 class="text-h6 text-primary q-mb-sm">{{ services[selected].titulo }}</h4>
-            <p class="text-body1 q-mt-sm description-text">
-              {{ services[selected].descricao }}
-            </p>
-          </q-card-section>
-        </q-card>
+      <!-- BOTÃO ABAIXO DOS CARDS, DENTRO DO CONTAINER -->
+      <div class="q-mt-xl text-right">
+        <q-btn
+          id="btn-fale-conosco"
+          data-gtm="btn-fale-conosco"
+          color="primary"
+          label="Fale com a gente"
+          icon="send"
+          rounded
+          @click="scrollToContato"
+          class="final-cta"
+        />
       </div>
-
-      <!-- CARD 3: Imagem -->
-      <div class="col-12 col-md-4" style="margin-right: 25px;">
-        <q-card flat class="shadow-2 rounded-borders" style="margin-right: 12px;">
-          <q-img
-            :src="services[selected].imagem"
-            alt="Ilustração do serviço"
-            style="border-radius: 25px;"
-            :ratio="4/3"
-          />
-        </q-card>
-      </div>
-    </div>
-
-    <!-- BOTÃO FIXO AO FINAL -->
-    <div class="q-mt-xl text-right">
-      <q-btn
-        id="btn-fale-conosco"
-        data-gtm="btn-fale-conosco"
-        color="primary"
-        label="Fale com a gente"
-        icon="send"
-        rounded
-        @click="scrollToContato"
-        class="final-cta"
-      />
     </div>
   </section>
 </template>
@@ -148,7 +151,7 @@ function scrollToContato() {
   flex-wrap: nowrap;
 }
 
-/* CARD LATERAL COM SCROLL */
+/* CARD LATERAL */
 .topics-scroll {
   max-height: 390px;
   overflow-y: auto;
@@ -182,6 +185,28 @@ function scrollToContato() {
   font-size: 1.05rem;
 }
 
+/* BOTÃO FINAL CTA */
+.final-cta {
+  max-width: 280px;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.text-right {
+  text-align: right;
+}
+
+/* MOBILE: centraliza botão */
+@media (max-width: 1024px) {
+  .text-right {
+    text-align: center;
+  }
+  .final-cta {
+    margin: 32px auto 0;
+  }
+}
+
+/* RESPONSIVIDADE DOS CARDS (mantém layout vertical) */
 @media (max-width: 1024px) {
   .cards-wrapper {
     flex-direction: column;
@@ -189,20 +214,6 @@ function scrollToContato() {
   }
   .topics-scroll {
     max-height: none;
-  }
-}
-
-.final-cta {
-  margin-top: 40px;
-  margin-right: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-@media (max-width: 1024px) {
-  .final-cta {
-    display: block;
-    margin: 32px auto 0 auto;
-    text-align: center;
   }
 }
 </style>
