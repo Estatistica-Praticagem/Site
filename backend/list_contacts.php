@@ -1,6 +1,15 @@
 <?php
 // Habilita CORS apenas para o domínio autorizado
-header("Access-Control-Allow-Origin: *");
+$allowed_origins = [
+    'https://www.meusimulador.com',
+    'https://www.orizzonttebi.com'
+];
+
+if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+} else {
+    header("Access-Control-Allow-Origin: https://www.meusimulador.com"); // fallback
+}
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
