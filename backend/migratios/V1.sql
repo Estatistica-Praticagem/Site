@@ -20,3 +20,16 @@ CREATE TABLE users_orizzonttebi (
 
 INSERT INTO users_orizzonttebi (name, email, password)
 VALUES ('Cristian', 'cristiano@email.com', '202508');
+
+-- No BQ
+CREATE SCHEMA IF NOT EXISTS `orizzonttebi.form_data`;
+
+CREATE TABLE IF NOT EXISTS `orizzonttebi.form_data.contacts` (
+  name STRING,
+  email STRING,
+  country_code STRING,
+  phone STRING,
+  service STRING,
+  message STRING,
+  created_at STRING
+);
