@@ -5,7 +5,13 @@
         Entre em Contato
       </h2>
 
-      <q-form @submit.prevent="onSubmit" class="form-wrapper" id="form-contato" data-gtm="form-contato">
+      <q-form
+        ref="formRef"
+        @submit.prevent="onSubmit"
+        class="form-wrapper"
+        id="form-contato"
+        data-gtm="form-contato"
+      >
         <q-input
           filled
           v-model="form.nome"
@@ -117,6 +123,7 @@ const form = ref({
   descricao: '',
 });
 
+const formRef = ref(null);
 const formEnviado = ref(false);
 const loading = ref(false);
 
@@ -158,6 +165,7 @@ async function submitForm() {
         servico: '',
         descricao: '',
       };
+      formRef.value.resetValidation(); // limpa os erros visuais
       // eslint-disable-next-line no-return-assign
       setTimeout(() => (formEnviado.value = false), 4000);
     } else {
@@ -223,3 +231,4 @@ textarea.q-field__native {
   resize: vertical !important;
 }
 </style>
+s

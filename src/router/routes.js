@@ -8,6 +8,15 @@ const routes = [
         // component: () => import('pages/IndexPage.vue'),
         component: () => import('src/pages/PegoraroConsulting.vue'),
       },
+      {
+        path: 'login',
+        component: () => import('src/pages/LoginPage.vue'),
+      },
+      {
+        path: 'contacts',
+        component: () => import('src/pages/ContactsList.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
 
