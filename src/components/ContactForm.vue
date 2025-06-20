@@ -10,31 +10,57 @@
           filled
           v-model="form.nome"
           label="Nome"
+          maxlength="100"
           required
           id="input-nome"
           data-gtm="input-nome"
         />
+
         <q-input
           filled
           v-model="form.email"
           label="E-mail"
           type="email"
+          maxlength="100"
           required
           id="input-email"
           data-gtm="input-email"
         />
-        <q-input
-          filled
-          v-model="form.telefone"
-          label="Telefone"
-          mask="(##) #####-####"
-          id="input-telefone"
-          data-gtm="input-telefone"
-        />
+
+        <div class="row q-col-gutter-sm">
+          <div class="col-4">
+            <q-input
+              filled
+              v-model="form.ddd"
+              label="DDD / País"
+              maxlength="6"
+              :rules="[val => !!val || 'Obrigatório']"
+              id="input-ddd"
+              data-gtm="input-ddd"
+            />
+          </div>
+          <div class="col-8">
+            <q-input
+              filled
+              v-model="form.telefone"
+              label="Telefone"
+              maxlength="20"
+              :rules="[val => !!val || 'Obrigatório']"
+              id="input-telefone"
+              data-gtm="input-telefone"
+            />
+          </div>
+        </div>
+
         <q-select
           filled
           v-model="form.servico"
-          :options="['Consultoria', 'Dashboards', 'Campanhas']"
+          :options="[
+            'Serviços de markting',
+            'Estudos / consultoria',
+            'Construção de base de dados e dashboards',
+            'Soluções em ML: Preditivas / MMM'
+          ]"
           label="Serviço de Interesse"
           emit-value
           map-options
@@ -42,18 +68,21 @@
           data-gtm="select-servico"
         />
 
-      <q-input
-        filled
-        v-model="form.descricao"
-        label="Como podemos ajudar?"
-        type="textarea"
-        autogrow
-        id="input-descricao"
-        data-gtm="input-descricao"
-        class="large-textarea"
-      />
+        <q-input
+          filled
+          v-model="form.descricao"
+          label="Como podemos ajudar?"
+          type="textarea"
+          autogrow
+          maxlength="5000"
+          id="input-descricao"
+          data-gtm="input-descricao"
+          class="large-textarea"
+        />
 
         <q-btn
+          :loading="loading"
+          :disable="loading"
           type="submit"
           label="Enviar"
           color="primary"
@@ -77,33 +106,85 @@
 
 <script setup>
 import { ref } from 'vue';
+import { Notify } from 'quasar';
 
 const form = ref({
   nome: '',
   email: '',
+  ddd: '',
   telefone: '',
   servico: '',
   descricao: '',
 });
+
 const formEnviado = ref(false);
+const loading = ref(false);
+
+function validarCampos() {
+  const camposObrigatorios = ['nome', 'email', 'ddd', 'telefone', 'servico', 'descricao'];
+  // eslint-disable-next-line no-restricted-syntax
+  for (const campo of camposObrigatorios) {
+    if (!form.value[campo] || form.value[campo].trim() === '') {
+      Notify.create({
+        type: 'warning',
+        message: `O campo "${campo}" é obrigatório.`,
+      });
+      return false;
+    }
+  }
+  return true;
+}
+
+async function submitForm() {
+  if (!validarCampos()) return;
+
+  loading.value = true;
+  try {
+    const response = await fetch('https://www.meusimulador.com/kevi/backend/contacts.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form.value),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      formEnviado.value = true;
+      form.value = {
+        nome: '',
+        email: '',
+        ddd: '',
+        telefone: '',
+        servico: '',
+        descricao: '',
+      };
+      // eslint-disable-next-line no-return-assign
+      setTimeout(() => (formEnviado.value = false), 4000);
+    } else {
+      Notify.create({
+        type: 'negative',
+        message: data.message || 'Erro ao enviar o formulário.',
+      });
+    }
+  } catch (error) {
+    Notify.create({
+      type: 'negative',
+      message: 'Erro de conexão com o servidor.',
+    });
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+}
 
 function onSubmit() {
-  formEnviado.value = true;
-
-  setTimeout(() => {
-    form.value = {
-      nome: '', email: '', telefone: '', servico: '', descricao: '',
-    };
-    // eslint-disable-next-line no-return-assign
-    setTimeout(() => (formEnviado.value = false), 4000);
-  }, 100);
+  submitForm();
 }
 </script>
 
 <style scoped>
 .section-form {
-  background:transparent;
-  /* background: linear-gradient(135deg, #f7e5d8 0%, #bdfadc 100%); */
+  background: transparent;
   padding: 80px 20px;
   min-height: 100vh;
   display: flex;
@@ -132,7 +213,7 @@ function onSubmit() {
 }
 
 .large-textarea ::v-deep textarea.q-field__native {
-  min-height: 140px;   /* cerca de 4 linhas */
+  min-height: 140px;
   padding: 12px;
   line-height: 1.6;
   resize: vertical;
@@ -141,5 +222,4 @@ function onSubmit() {
 textarea.q-field__native {
   resize: vertical !important;
 }
-
 </style>

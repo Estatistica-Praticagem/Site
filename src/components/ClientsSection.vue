@@ -77,7 +77,8 @@
 
 <script setup>
 import { ref } from 'vue';
-import rgImg from 'src/assets/clients/logo-rgpilots.png';
+import rgIcon from 'src/assets/clients/logo-rgpilots.png';
+import rgImg from 'src/assets/clients/pilots.png';
 import viaMarteImg from 'src/assets/clients/viamarte2.png';
 import rfillVideo from 'src/assets/clients/rfill.png';
 import unisinos from 'src/assets/clients/unisinos.png';
@@ -94,14 +95,14 @@ const clientCards = [
     person: 'Capitão Pilot Board',
     personRole: 'Operações Portuárias',
     img: rgImg,
-    icon: rgImg,
+    icon: rgIcon,
     isVideo: false,
   },
   {
     id: 'unisinos',
     tabLabel: 'Unisinos',
     name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
-    quote: 'Do zero ao dashboard em tempo real.',
+    quote: 'Dashboard em tempo real.',
     description: 'Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, desde a limpeza de configurações antigas, mapeamento das necessidades e configuração de ferramentas como Google Tag Manager, pixels, tags e botões para rastrear o comportamento dos usuários em cada etapa da navegação. Após a organização e configuração interna do ecossistema de mapeamento das informações do site da Unisinos, realizamos bases de dados via BigQuery e Google Sheets para extração e manipulação dos anúncios de mídia — informações que foram disponibilizadas via dashboard interativo para tomada de decisão após manipulação dos dados em conjunto com a taxonomia de mídia personalizada e exclusiva da Unisinos. O resultado do trabalho passou por diferentes etapas, desde organização do traqueamento da jornada do cliente, configuração do Data Warehouse da Unisinos e dashboards exclusivos para análise e tomadas de decisões em realtime.',
     person: 'Equipe Unisinos',
     personRole: 'Marketing & Tecnologia',
