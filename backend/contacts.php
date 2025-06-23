@@ -27,12 +27,73 @@ log_msg("📥 Requisição recebida");
 $data = json_decode(file_get_contents("php://input"), true);
 log_msg("📦 Dados recebidos: " . json_encode($data));
 
+// Lista de palavras proibidas
+function contemConteudoProibido($texto) {
+  $palavras = array_merge([
+    "buceta","xereca","xoxota","vagina","clitoris","xana","pau","caralho","rola",
+    "piroca","penis","pênis","c@ralho","c*ralho","foda","foder","foda-se","fudido",
+    "fudida","sexo","transar","boquete","gozada","tarado","siririca","masturbação",
+    "ejacular","putaria","puta","puto","putinha","vagabunda","tarada","safada",
+    "nudes","nude","gemido","tesão","gemendo","sacanagem","safado","gozar"
+  ], [
+    "merda","porra","cocô","bosta","cacet*","cacete","fdp","f*d*","vtc","vai tnc",
+    "diabo","capeta","arrombado","corno","vagabundo","nojento","escroto","viado",
+    "gayzinho","sapatão","traveco","travec*","macaco","macaca","preto fedido",
+    "crente lixo","terrorista","verme","escória"
+  ]);
+
+  $texto = strtolower(iconv('UTF-8', 'ASCII//TRANSLIT', $texto));
+  foreach ($palavras as $palavra) {
+    if (strpos($texto, $palavra) !== false) {
+      return true;
+    }
+  }
+
+  // Verifica se contém link
+  if (preg_match('/(https?:\/\/|www\.)\S+/i', $texto)) {
+    return true;
+  }
+
+  return false;
+}
+
+// ------- VERIFICAÇÃO reCAPTCHA ANTES DE TUDO --------
+function verificarRecaptcha($token) {
+    $secret = '6Le2FWsrAAAAAK-CV3BsGLlgNZthaRya3zxPwalG'; // SUA NOVA SECRET KEY
+    $url = 'https://www.google.com/recaptcha/api/siteverify';
+    $response = file_get_contents($url . '?secret=' . $secret . '&response=' . $token);
+    $data = json_decode($response);
+    return isset($data->success) && $data->success;
+}
+
+if (!isset($data['g-recaptcha-response']) || !verificarRecaptcha($data['g-recaptcha-response'])) {
+    log_msg("❌ reCAPTCHA inválido.");
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "reCAPTCHA inválido.", "logs" => $logs]);
+    exit;
+}
+
+// -------- FIM reCAPTCHA --------
+
 if (!isset($data['nome'], $data['email'], $data['ddd'], $data['telefone'], $data['servico'], $data['descricao'])) {
     log_msg("❌ Campos obrigatórios ausentes.");
     http_response_code(400);
     echo json_encode(["success" => false, "message" => "Missing required fields.", "logs" => $logs]);
     exit;
 }
+
+// ------------- FILTRO DE CONTEÚDO PROIBIDO ---------------
+if (contemConteudoProibido($data['nome']) || contemConteudoProibido($data['descricao'])) {
+    log_msg("❌ Conteúdo proibido detectado nos campos do formulário.");
+    http_response_code(400);
+    echo json_encode([
+        "success" => false,
+        "message" => "O texto contém palavras proibidas, links ou termos ofensivos.",
+        "logs" => $logs
+    ]);
+    exit;
+}
+// ----------------------------------------------------------
 
 $name         = $data['nome'];
 $email        = $data['email'];
