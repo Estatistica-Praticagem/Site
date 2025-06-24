@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/config.php';
-
 header('Content-Type: application/json; charset=utf-8');
 
 // Recebe o JSON enviado pelo front
@@ -8,8 +7,8 @@ $data = json_decode(file_get_contents("php://input"), true);
 $contact_id = isset($data['contact_id']) ? intval($data['contact_id']) : 0;
 $user_id    = isset($data['user_id']) ? $data['user_id'] : '';
 $comment    = isset($data['comment']) ? trim($data['comment']) : '';
+$image_url  = isset($data['image_url']) ? trim($data['image_url']) : ''; // NOVO
 
-// Validação básica
 if (!$contact_id || $user_id === '' || $comment === '') {
     http_response_code(400);
     echo json_encode(["message" => "Dados obrigatórios ausentes."]);
@@ -39,9 +38,11 @@ if (!$res || $res->num_rows === 0) {
     exit;
 }
 
-// Salva o comentário
+// Salva o comentário, incluindo a imagem se vier
 $comment_sql = $conn->real_escape_string($comment);
-$sql = "INSERT INTO comments (contact_id, user_id, comment) VALUES ('$contact_id', '$user_id', '$comment_sql')";
+$image_url_sql = $image_url ? ("'" . $conn->real_escape_string($image_url) . "'") : 'NULL';
+
+$sql = "INSERT INTO comments (contact_id, user_id, comment, image_url) VALUES ('$contact_id', '$user_id', '$comment_sql', $image_url_sql)";
 if ($conn->query($sql)) {
     echo json_encode(["message" => "Comentário adicionado com sucesso."]);
 } else {

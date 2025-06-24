@@ -29,7 +29,7 @@ if (!$res || $res->num_rows === 0) {
     exit;
 }
 
-$sql = "SELECT id, comment, user_id, created_at, updated_at FROM comments WHERE contact_id = $contact_id ORDER BY created_at DESC";
+$sql = "SELECT id, comment, user_id, created_at, updated_at, image_url FROM comments WHERE contact_id = $contact_id ORDER BY created_at DESC";
 $res = $conn->query($sql);
 $arr = [];
 if ($res) {

@@ -67,15 +67,22 @@
             <div v-if="comentarios[contato.id] && comentarios[contato.id].length" class="q-mb-sm">
               <div v-for="coment in comentarios[contato.id]" :key="coment.id" class="comment-box q-mb-xs">
                 <div class="row items-center">
-                  <q-avatar size="26px" color="grey-3" text-color="primary" :icon="userIcon(coment)" :label="userInitial(coment)" class="q-mr-xs" />
-                  <span class="text-caption text-weight-bold q-mr-sm">{{ coment.user_name || 'Usuário' }}</span>
-                  <span class="text-caption text-grey">{{ formatarData(coment.created_at) }}</span>
+                  <q-avatar size="26px" color="grey-3" text-color="primary" class="q-mr-xs">
+                    <template v-if="coment.image_url">
+                      <img :src="coment.image_url" alt="avatar" />
+                    </template>
+                    <template v-else>
+                      {{ userInitial(coment) }}
+                    </template>
+                  </q-avatar>
+                  <span class="text-caption text-weight-bold q-mr-sm">{{ formatarData(coment.created_at) }}</span>
                   <q-space />
                   <q-btn size="xs" dense flat icon="edit" color="primary" @click="editarComentario(contato.id, coment)" />
                 </div>
                 <div>{{ coment.comment }}</div>
               </div>
             </div>
+
             <div v-else class="text-caption text-grey">Nenhum comentário ainda.</div>
             <div class="row items-center q-mt-sm">
               <q-input
@@ -156,6 +163,8 @@ const comentarioEditandoTexto = ref('');
 const contatoEditandoComentario = ref(null);
 
 const menuStatus = ref({ visivel: false, contato: null });
+
+const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
 
 const statusOptions = [
   { value: 'Esperando Contato', label: 'Esperando Contato', color: '#757575' }, // cinza
@@ -305,11 +314,20 @@ async function adicionarComentario(contactId) {
   const userId = localStorage.getItem('user_id');
   const comment = novoComentario.value[contactId];
   if (!comment) return;
+
+  // Pega a imagem do usuário logado (ou vazio se não existir)
+  const imageUrl = usuarioLogado.imageUrl || usuarioLogado.image_url || '';
+
   try {
     const response = await fetch('https://www.meusimulador.com/kevi/backend/add_comment.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contact_id: contactId, comment, user_id: userId }),
+      body: JSON.stringify({
+        contact_id: contactId,
+        comment,
+        user_id: userId,
+        image_url: imageUrl,
+      }),
     });
     const data = await response.json();
     if (response.ok) {

@@ -54,3 +54,6 @@ CREATE TABLE comments (
 
 ALTER TABLE users_orizzonttebi
 ADD COLUMN image_url VARCHAR(500) DEFAULT NULL AFTER password;
+
+ALTER TABLE comments ADD COLUMN image_url VARCHAR(512) NULL;
+
