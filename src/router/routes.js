@@ -17,6 +17,16 @@ const routes = [
         component: () => import('src/pages/ContactsList.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'editUser',
+        component: () => import('src/pages/UserEditPage.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'registerUser',
+        component: () => import('src/pages/UserRegisterPage.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
 

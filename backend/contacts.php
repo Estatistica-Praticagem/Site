@@ -1,4 +1,8 @@
 <?php
+
+require_once __DIR__ . '/config.php';
+
+
 $allowed_origins = [
     'https://www.meusimulador.com',
     'https://www.orizzonttebi.com'
@@ -59,7 +63,7 @@ function contemConteudoProibido($texto) {
 
 // ------- VERIFICAÇÃO reCAPTCHA ANTES DE TUDO --------
 function verificarRecaptcha($token) {
-    $secret = '6Le2FWsrAAAAAK-CV3BsGLlgNZthaRya3zxPwalG'; // SUA NOVA SECRET KEY
+    $secret = RECAPTCHA_SECRET_KEY;
     $url = 'https://www.google.com/recaptcha/api/siteverify';
     $response = file_get_contents($url . '?secret=' . $secret . '&response=' . $token);
     $data = json_decode($response);
@@ -104,11 +108,7 @@ $message      = $data['descricao'];
 $created_at   = date('Y-m-d H:i:s');
 
 // Inserção no MySQL
-$host = "mysql.meusimulador.com";
-$usuario = "meusimulador";
-$senha = "@OrizzontteBI2025";
-$banco = "meusimulador";
-$conn = new mysqli($host, $usuario, $senha, $banco);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 
 if ($conn->connect_error) {
     log_msg("❌ Erro MySQL: " . $conn->connect_error);
@@ -119,7 +119,13 @@ if ($conn->connect_error) {
 
 $sql = "INSERT INTO contacts (name, email, country_code, phone, service, message)
         VALUES ('$name', '$email', '$country_code', '$phone', '$service', '$message')";
-$conn->query($sql);
+if (!$conn->query($sql)) {
+    log_msg("❌ Erro ao inserir no MySQL: " . $conn->error);
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Erro ao inserir no banco de dados.", "logs" => $logs]);
+    exit;
+}
+
 $conn->close();
 log_msg("✅ Inserido no MySQL");
 
@@ -128,17 +134,18 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Google\Cloud\BigQuery\BigQueryClient;
 
 try {
-    $credenciaisJson = __DIR__ . '/orizzonttebi-2743f6195331.json';
-    putenv("GOOGLE_APPLICATION_CREDENTIALS=$credenciaisJson");
+    putenv("GOOGLE_APPLICATION_CREDENTIALS=" . BQ_CREDENTIALS_PATH);
 
     $bigQuery = new BigQueryClient([
-        'projectId' => 'orizzonttebi',
-        'keyFilePath' => $credenciaisJson
+        'projectId' => BQ_PROJECT_ID,
+        'keyFilePath' => BQ_CREDENTIALS_PATH
     ]);
+
     log_msg("🔐 Conectado ao BigQuery");
 
-    $dataset = $bigQuery->dataset('form_data');
-    $table = $dataset->table('contacts');
+    $dataset = $bigQuery->dataset(BQ_DATASET_ID);
+    $table = $dataset->table(BQ_TABLE_ID);
+
 
     $insert = $table->insertRows([
         ['data' => [

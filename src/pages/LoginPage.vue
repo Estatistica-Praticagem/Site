@@ -28,6 +28,13 @@
           class="full-width"
           :loading="loading"
         />
+        <q-btn
+          flat
+          label="Criar conta"
+          color="secondary"
+          @click="irParaCadastro"
+          class="q-mt-xs"
+        />
       </q-form>
     </div>
   </section>
@@ -43,6 +50,10 @@ const password = ref('');
 const loading = ref(false);
 const router = useRouter();
 
+function irParaCadastro() {
+  router.push({ path: '/registerUser' });
+}
+
 async function login() {
   loading.value = true;
 
@@ -56,8 +67,18 @@ async function login() {
     const data = await response.json();
 
     if (data.success) {
+      // Salva todos os dados necessários (incluindo imagem!)
       localStorage.setItem('user_id', data.id);
       localStorage.setItem('user_name', data.name);
+
+      // Salva também o objeto completo como "usuarioLogado"
+      localStorage.setItem('usuarioLogado', JSON.stringify({
+        id: data.id,
+        usuario: data.name,
+        email: email.value,
+        imageUrl: data.image_url || '',
+      }));
+
       Notify.create({ type: 'positive', message: 'Login successful!' });
       router.push('/contacts');
     } else {

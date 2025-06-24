@@ -33,3 +33,24 @@ CREATE TABLE IF NOT EXISTS `orizzonttebi.form_data.contacts` (
   message STRING,
   created_at STRING
 );
+
+
+-- Adicionar campo status à tabela contacts (se ainda não existir)
+ALTER TABLE contacts ADD COLUMN status VARCHAR(50) DEFAULT 'Esperando Contato';
+
+
+
+CREATE TABLE comments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contact_id INT(11) NOT NULL,
+    user_id CHAR(36) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL,
+    comment TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (contact_id) REFERENCES contacts(id),
+    FOREIGN KEY (user_id) REFERENCES users_orizzonttebi(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+ALTER TABLE users_orizzonttebi
+ADD COLUMN image_url VARCHAR(500) DEFAULT NULL AFTER password;
