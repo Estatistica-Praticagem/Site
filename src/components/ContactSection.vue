@@ -1,10 +1,19 @@
 <template>
   <section id="footer" class="section-footer" data-gtm="section-footer">
     <div class="footer-container">
-      <div class="footer-main row q-col-gutter-md items-start justify-between">
 
-        <!-- ESQUERDA: logo + texto + social -->
-        <div class="footer-left col-12 col-md-6" id="footer-logo-social" data-gtm="footer-logo-social">
+      <!-- Missão centralizada no topo -->
+      <div class="footer-mission text-center q-mb-xl">
+        <div class="text-h6 text-white text-weight-bold q-mb-xs">Missão</div>
+        <div class="text-caption text-white" style="max-width:360px;margin:0 auto;">
+          Transformar dados em resultados concretos para nossos clientes
+        </div>
+      </div>
+
+      <div class="footer-main row q-col-gutter-md items-start justify-center">
+
+        <!-- BLOCO 1: Esquerda -->
+        <div class="footer-left col-12 col-md-4 flex flex-column items-center items-md-start text-center text-md-left">
           <div class="row items-center no-wrap">
             <q-img
               src="~assets/icons/icon.png"
@@ -20,33 +29,16 @@
               <div class="text-caption text-white q-mt-xs">Global Solutions, Local Results</div>
             </div>
           </div>
-
-          <div class="footer-desc text-white q-mt-lg">
-            Rede sociais:
-          </div>
-
-          <div class="footer-social row q-mt-md" id="footer-social" data-gtm="footer-social-icons">
-            <q-btn
-              v-for="logo in partnerLogos"
-              :key="logo.alt"
-              flat
-              round
-              dense
-              tag="a"
-              :href="logo.link"
-              target="_blank"
-              class="footer-social-btn"
-              :id="`social-${logo.alt.toLowerCase()}`"
-              :data-gtm="`social-${logo.alt.toLowerCase()}`"
-            >
-              <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
-            </q-btn>
-          </div>
         </div>
 
-        <!-- DIREITA: contato -->
+        <!-- BLOCO 2: Centro -->
+        <div class="footer-center col-12 col-md-4 flex flex-column items-center text-center q-mt-md q-mt-none--md">
+          <!-- Deixe vazio ou adicione mais algo aqui -->
+        </div>
+
+        <!-- BLOCO 3: Direita -->
         <div
-          class="footer-right col-12 col-md-6 text-md-right text-center q-mt-md q-mt-none--md"
+          class="footer-right col-12 col-md-4 flex flex-column items-center items-md-end text-center text-md-right q-mt-md q-mt-none--md"
           id="footer-contato"
           data-gtm="footer-contato"
         >
@@ -63,6 +55,26 @@
             id="btn-footer-email"
             data-gtm="btn-footer-email"
           />
+          <div class="footer-desc text-white q-mt-lg q-mb-xs">
+            Redes sociais:
+          </div>
+          <div class="footer-social row q-mt-xs justify-center justify-md-end" id="footer-social" data-gtm="footer-social-icons">
+            <q-btn
+              v-for="logo in partnerLogos"
+              :key="logo.alt"
+              flat
+              round
+              dense
+              tag="a"
+              :href="logo.link"
+              target="_blank"
+              class="footer-social-btn"
+              :id="`social-${logo.alt.toLowerCase()}`"
+              :data-gtm="`social-${logo.alt.toLowerCase()}`"
+            >
+              <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
+            </q-btn>
+          </div>
         </div>
       </div>
 
@@ -85,18 +97,6 @@ function mailto() {
 }
 
 const partnerLogos = [
-  /*
-  {
-    src: require('src/assets/icons/Google.svg'),
-    alt: 'Google',
-    link: 'https://www.google.com/partners/',
-  },
-  {
-    src: require('src/assets/icons/Facebook.svg'),
-    alt: 'Facebook',
-    link: 'https://www.facebook.com/business/partner-directory',
-  },
-  */
   {
     // eslint-disable-next-line global-require
     src: require('src/assets/icons/Instagram.svg'),
@@ -115,8 +115,6 @@ const partnerLogos = [
 <style scoped>
 .section-footer {
   background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
-  /* background:transparent; */
-  /* background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%); */
   padding: 48px 24px 24px;
   font-size: 0.9rem;
 }
@@ -124,6 +122,9 @@ const partnerLogos = [
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+}
+.footer-mission {
+  margin-bottom: 38px;
 }
 .footer-logo {
   width: 72px;
@@ -156,5 +157,17 @@ const partnerLogos = [
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   padding-top: 16px;
   font-size: 0.75rem;
+}
+@media (max-width: 900px) {
+  .footer-main {
+    flex-direction: column !important;
+  }
+  .footer-left,
+  .footer-center,
+  .footer-right {
+    align-items: center !important;
+    text-align: center !important;
+    margin-bottom: 22px;
+  }
 }
 </style>
