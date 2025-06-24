@@ -2,10 +2,10 @@
   <section id="services" class="section-services">
     <div class="section-content">
       <!-- Linhas com os 3 cards -->
-      <div class="row items-start justify-between cards-wrapper">
+      <div class="row items-start justify-between cards-wrapper services-high">
         <!-- CARD 1: Tópicos com rolagem -->
         <div class="col-12 col-md-3">
-          <q-card flat bordered class="topics-scroll glass-card q-pa-sm">
+          <q-card flat class="topics-scroll glass-card q-pa-sm">
             <q-list separator>
               <q-item
                 v-for="(s, i) in services"
@@ -22,29 +22,20 @@
           </q-card>
         </div>
 
-        <!-- CARD 2: Descrição -->
-        <div class="col-12 col-md-5">
-          <q-card class="desc-card q-pa-lg shadow-1 rounded-borders">
+        <!-- CARD 2: Descrição (mais largo, fundo igual ao bloco externo)-->
+        <div class="col-12 col-md-9">
+          <q-card class="desc-card desc-card-expanded q-pa-xl shadow-1 rounded-borders">
             <q-card-section>
               <h4 class="text-h6 text-primary q-mb-sm">{{ services[selected].titulo }}</h4>
               <p class="text-body1 q-mt-sm description-text">
-                {{ services[selected].descricao }}
+                <span class="highlight-bg">
+                  {{ services[selected].descricao }}
+                </span>
               </p>
             </q-card-section>
           </q-card>
         </div>
-
-        <!-- CARD 3: Imagem -->
-        <div class="col-12 col-md-4">
-          <q-card flat class="shadow-2 rounded-borders">
-            <q-img
-              :src="services[selected].imagem"
-              alt="Ilustração do serviço"
-              style="border-radius: 25px;"
-              :ratio="4/3"
-            />
-          </q-card>
-        </div>
+        <!-- REMOVEU O CARD 3 DE IMAGEM -->
       </div>
 
       <!-- BOTÃO ABAIXO DOS CARDS, DENTRO DO CONTAINER -->
@@ -124,7 +115,7 @@ Isso garante um relacionamento mais eficiente com o cliente ao longo do funil.`,
     imagem: new URL('src/assets/services/crm.png', import.meta.url).href,
   },
   {
-    titulo: 'Criação (terceirizada)',
+    titulo: 'Demais Serviços',
     descricao: 'Contamos com parceiros especializados para desenvolver peças criativas como vídeos, artes, textos e outros conteúdos visuais, garantindo qualidade e alinhamento com a estratégia de marketing.',
     imagem: new URL('src/assets/services/create.png', import.meta.url).href,
   },
@@ -138,9 +129,12 @@ function scrollToContato() {
 
 <style scoped>
 .section-services {
-  background:transparent;
-  /* background: #ffffff; */
+  margin-bottom: -40px;
+  margin-top: 80px;
+  background: transparent;
   padding: 60px 16px;
+  border: none !important;
+  box-shadow: none !important;
 }
 .section-content {
   max-width: 1280px;
@@ -151,39 +145,63 @@ function scrollToContato() {
   display: flex;
   flex-wrap: nowrap;
 }
+/* Bloco de serviços +40% altura */
+.services-high {
+  min-height: 546px; /* 390px * 1.4 = 546px */
+}
 
 /* CARD LATERAL */
 .topics-scroll {
-  max-height: 390px;
+  max-height: 446px;
+  max-width: 620px;
   overflow-y: auto;
   border-radius: 12px;
+  outline: none !important;
+  box-shadow: none !important;
   backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(241, 239, 239, 0.4);
 }
 
-/* CARD DE DESCRIÇÃO */
-.desc-card {
-  background-color: #f7e5d8;
-  border-radius: 18px;
+/* CARD DE DESCRIÇÃO, fundo igual ao section-services */
+.desc-card,
+.desc-card-expanded {
+  background-color: transparent !important;
+  /* border-radius: 18px; */
   border: none;
+  width: 100%;
 }
-
-.service-item {
-  transition: background 0.2s ease;
-}
-.service-item:hover {
-  background: #e0f0f4;
-}
-.selected-service {
-  background-color: #c2effa !important;
-  color: #007b9a !important;
-  font-weight: bold;
+.desc-card-expanded {
+  max-width: 100%;
+  min-height: 430px;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .description-text {
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 1.2rem;
   white-space: pre-line;
-  font-size: 1.05rem;
+  max-width: 100%;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Marca-texto (fundo cinza arredondado no texto) */
+.highlight-bg {
+  background: linear-gradient(to top, rgba(235, 233, 233, 0.95) 60%, transparent 100%);
+  border-radius: 6px;
+  padding: 0 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  display: inline;
+}
+
+/* Remove terceira coluna no desktop */
+@media (min-width: 1025px) {
+  .col-md-9 {
+    flex: 0 0 74.5%;
+    max-width: 74.5%;
+  }
 }
 
 /* BOTÃO FINAL CTA */
@@ -205,9 +223,11 @@ function scrollToContato() {
   .final-cta {
     margin: 32px auto 0;
   }
+  .desc-card-expanded {
+    min-height: 200px;
+    padding: 1.2em;
+  }
 }
-
-/* RESPONSIVIDADE DOS CARDS (mantém layout vertical) */
 @media (max-width: 1024px) {
   .cards-wrapper {
     flex-direction: column;
@@ -217,4 +237,5 @@ function scrollToContato() {
     max-height: none;
   }
 }
+
 </style>

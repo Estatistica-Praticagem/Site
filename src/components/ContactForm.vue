@@ -39,7 +39,6 @@
               v-model="form.ddd"
               label="DDD / País"
               maxlength="6"
-              :rules="[val => !!val || 'Obrigatório']"
               id="input-ddd"
               data-gtm="input-ddd"
             />
@@ -48,9 +47,8 @@
             <q-input
               filled
               v-model="form.telefone"
-              label="Telefone"
+              label="Telefone (opcional)"
               maxlength="20"
-              :rules="[val => !!val || 'Obrigatório']"
               id="input-telefone"
               data-gtm="input-telefone"
             />
@@ -115,7 +113,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { Notify } from 'quasar';
-// Ajuste o caminho conforme sua estrutura do projeto
 import { contemConteudoProibido } from 'src/utils/InputFilter';
 
 const siteKey = '6Le2FWsrAAAAAB4hzU3lQ5GU1FCSTLBYTlvFaNa7';
@@ -125,7 +122,7 @@ const form = ref({
   email: '',
   ddd: '',
   telefone: '',
-  servico: '',
+  servico: 'Serviços de markting',
   descricao: '',
 });
 const formRef = ref(null);
@@ -133,8 +130,9 @@ const formEnviado = ref(false);
 const loading = ref(false);
 const recaptchaWidgetId = ref(null);
 
+// Agora telefone e ddd são opcionais
 function validarCampos() {
-  const camposObrigatorios = ['nome', 'email', 'ddd', 'telefone', 'servico', 'descricao'];
+  const camposObrigatorios = ['email', 'servico', 'descricao'];
   // eslint-disable-next-line no-restricted-syntax
   for (const campo of camposObrigatorios) {
     if (!form.value[campo] || form.value[campo].trim() === '') {
@@ -143,7 +141,7 @@ function validarCampos() {
     }
   }
 
-  // Filtro de palavras proibidas nos campos mais sensíveis (ajuste se quiser checar todos)
+  // Filtro de palavras proibidas
   if (
     contemConteudoProibido(form.value.nome)
     || contemConteudoProibido(form.value.descricao)
@@ -175,7 +173,7 @@ async function submitForm(token) {
       };
       formRef.value.resetValidation();
       // eslint-disable-next-line no-return-assign
-      setTimeout(() => (formEnviado.value = false), 4000);
+      setTimeout(() => (formEnviado.value = false), 20000);
     } else {
       Notify.create({ type: 'negative', message: data.message || 'Erro ao enviar o formulário.' });
     }
