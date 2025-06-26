@@ -48,7 +48,7 @@
           />
         </div>
 
-        <!-- BLOCO 3: Direita (texto em cima, ícones lado a lado embaixo) -->
+        <!-- BLOCO 3: Direita (redes sociais) -->
         <div class="footer-right col-12 col-md-4" id="footer-contato" data-gtm="footer-contato">
           <div class="footer-social-wrapper">
             <div class="footer-desc text-white q-mb-xs">
@@ -65,6 +65,8 @@
                 :href="logo.link"
                 target="_blank"
                 class="footer-social-btn"
+                :id="`btn-social-${logo.alt.toLowerCase().replace(/\s+/g, '-')}`"
+                :data-gtm="`btn-social-${logo.alt.toLowerCase().replace(/\s+/g, '-')}`"
               >
                 <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
               </q-btn>
@@ -107,6 +109,7 @@ const partnerLogos = [
   },
 ];
 </script>
+
 <style scoped>
 .section-footer {
   background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
@@ -161,8 +164,8 @@ const partnerLogos = [
 .footer-right {
   display: flex;
   flex-direction: column;
-  padding-right: 36px; /* mais seguro que margin */
-  box-sizing: border-box; /* garante que o padding não estoure a coluna */
+  padding-right: 36px;
+  box-sizing: border-box;
   align-items: center;
   text-align: center;
 }
@@ -179,16 +182,14 @@ const partnerLogos = [
   align-items: center;
 }
 
-/* Agora os ícones ficam lado a lado */
 .footer-social-icons-row {
   display: flex;
-  flex-direction: row; /* <- lado a lado */
+  flex-direction: row;
   justify-content: center;
   gap: 12px;
   margin-top: 4px;
 }
 
-/* Ícone visual */
 .footer-social-btn {
   padding: 4px;
 }
@@ -203,5 +204,4 @@ const partnerLogos = [
 .footer-social-logo:hover {
   filter: brightness(1.2);
 }
-
 </style>

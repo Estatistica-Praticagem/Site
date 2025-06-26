@@ -20,25 +20,29 @@
             </div>
           </div>
 
-          <!-- Barra de Navegação -->
+          <!-- Barra de Navegação com data-gtm -->
           <div v-if="mostrarBotoes" class="row items-center no-wrap q-ml-xl">
-            <q-btn flat dense color="primary" label="Clientes" @click="scrollTo('clients')" class="q-mx-xs text-body1" />
-            <q-btn flat dense color="primary" label="Serviços" @click="scrollTo('services')" class="q-mx-xs text-body1" />
-            <q-btn flat dense color="primary" label="Equipe"   @click="scrollTo('team')"     class="q-mx-xs text-body1" />
-            <q-btn flat dense color="primary" label="Contato"  @click="scrollTo('contact')"  class="q-mx-xs text-body1" />
+            <q-btn
+              v-for="section in sections"
+              :key="section.id"
+              :id="`btn-${section.id}`"
+              :data-gtm="`btn-${section.id}`"
+              flat dense
+              color="primary"
+              :label="section.label"
+              @click="handleClick(section.id)"
+              class="q-mx-xs text-body1"
+            />
           </div>
 
-          <!-- Avatar do Usuário (menu sempre visível se logado) -->
+          <!-- Avatar do Usuário -->
           <div v-if="isLoggedIn" class="row items-center">
-            <q-btn
-              dense flat round class="q-ml-md" size="lg" style="padding:0;"
-            >
+            <q-btn dense flat round class="q-ml-md" size="lg" style="padding:0;">
               <q-avatar size="38px">
                 <template v-if="userImageUrl">
                   <img :src="userImageUrl" :alt="userName" />
                 </template>
                 <template v-else>
-                  <!-- Avatar colorido com iniciais -->
                   <span class="avatar-initials">{{ initials }}</span>
                 </template>
               </q-avatar>
@@ -81,17 +85,21 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
-// eslint-disable-next-line no-unused-vars
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 
 const route = useRoute();
 const router = useRouter();
 
-// Mostra avatar/menu se logado
+const sections = [
+  { id: 'clients', label: 'Clientes' },
+  { id: 'services', label: 'Serviços' },
+  { id: 'team', label: 'Equipe' },
+  { id: 'contact', label: 'Contato' },
+];
+
 const isLoggedIn = computed(() => !!localStorage.getItem('user_id'));
 const mostrarBotoes = computed(() => !['/login', '/contacts', '/editUser', '/registerUser'].includes(route.path));
 
-// Lê o usuário do localStorage (sempre pega atualizado)
 function getUserData() {
   const raw = localStorage.getItem('usuarioLogado');
   try {
@@ -104,7 +112,6 @@ const userData = computed(() => getUserData());
 const userImageUrl = computed(() => userData.value.imageUrl || userData.value.image_url || '');
 const userName = computed(() => userData.value.usuario || userData.value.name || 'Usuário');
 
-// Gera iniciais do nome
 const initials = computed(() => {
   const name = userName.value.trim();
   if (!name) return 'U';
@@ -114,9 +121,16 @@ const initials = computed(() => {
     .slice(0, 2);
 });
 
-function scrollTo(id) {
+function handleClick(id) {
   const el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth' });
+
+  if (window?.dataLayer) {
+    window.dataLayer.push({
+      event: 'gtm_menu_click',
+      gtm_button_id: `btn-${id}`,
+    });
+  }
 }
 
 function gotoEditProfile() {

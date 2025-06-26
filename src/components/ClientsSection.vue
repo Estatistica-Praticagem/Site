@@ -1,7 +1,4 @@
-<!-- ClientsShowcase.vue – versão com controle de:
-     1. Gradiente (por aba)           → .xx-bg
-     2. Cor do título “Grandes Clientes” → CSS-var --title-color
-     3. Cor dos nomes nas abas         → CSS-var --tab-color         -->
+<!-- eslint-disable vue/no-unused-vars -->
 <template>
   <section
     id="clients"
@@ -9,10 +6,8 @@
     :class="['section-clients', `${clientTab}-bg`]"
   >
     <div class="section-inner">
-      <!-- Título usa a var --title-color definida em cada .xx-bg -->
-      <h2 class="section-title text-center  text-h4 q-mb-md">Grandes Clientes</h2>
+      <h2 class="section-title text-center text-h4 q-mb-md">Grandes Clientes</h2>
 
-      <!-- Tabs – labels herdaram a var --tab-color -->
       <q-tabs
         v-model="clientTab"
         class="clients-tabs q-mt-md bg-transparent"
@@ -22,24 +17,26 @@
         narrow-indicator
       >
         <q-tab
-          v-for="c in clientCards"
+          v-for="(c, idx) in clientCards"
           :key="c.id"
+          :id="`tab-${c.id}`"
+          :data-gtm="`tab-${c.id}`"
           :name="c.id"
           :label="c.tabLabel"
           class="text-subtitle2 text-weight-medium"
         />
       </q-tabs>
 
-      <!-- Painéis ------------------------------------------------>
       <q-tab-panels v-model="clientTab" animated class="transparent-panel q-mt-xl">
         <q-tab-panel
-          v-for="c in clientCards"
+          v-for="(c, idx) in clientCards"
           :key="c.id"
           :name="c.id"
+          :id="`panel-${c.id}`"
+          :data-gtm="`panel-${c.id}`"
           class="q-pa-none"
         >
           <div class="row items-center q-col-gutter-xl">
-            <!-- Info -->
             <div class="col-12 col-md-7">
               <div class="client-info">
                 <div class="client-header flex items-center q-mb-sm">
@@ -66,17 +63,14 @@
               </div>
             </div>
 
-            <!-- Mídia -->
             <div class="col-12 col-md-5 text-center">
               <component
                 :is="c.isVideo ? 'video' : 'q-img'"
                 :src="c.img"
                 :alt="c.name"
-                v-bind="
-                  c.isVideo
-                    ? { controls: true, autoplay: true, muted: true, loop: true }
-                    : {}
-                "
+                v-bind="c.isVideo
+                  ? { controls: true, autoplay: true, muted: true, loop: true }
+                  : {}"
                 class="client-media"
               />
             </div>
@@ -89,15 +83,12 @@
 
 <script setup>
 import { ref } from 'vue';
-
-/* Assets -----------------------------------------------------*/
 import rgIcon from 'src/assets/clients/logo-rgpilots.png';
 import rgImg from 'src/assets/clients/pilots.png';
 import viaMarteImg from 'src/assets/clients/viamarte.png';
 import rfillVideo from 'src/assets/clients/rfill.png';
 import unisinosImg from 'src/assets/clients/unisinos.jpeg';
 
-/* Estado -----------------------------------------------------*/
 const clientTab = ref('rg');
 
 const clientCards = [
@@ -107,7 +98,7 @@ const clientCards = [
     name: 'Porto Internacional do Rio Grande',
     quote: 'Sistema de marés e correntes em tempo real com IA.',
     description:
-      'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes. Nosso sistema fornece previsões em tempo real 24/7 para aumentar a segurança do porto, alcançando alto grau de assertividade e confiabilidade. Desde 2020.',
+      'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes.',
     person: 'Capitão Pilot Board',
     personRole: 'Operações Portuárias',
     img: rgImg,
@@ -120,7 +111,7 @@ const clientCards = [
     name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
     quote: 'Dashboard em tempo real.',
     description:
-      'Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, mapeando necessidades e configurando GTM, pixels e botões. Depois criamos bases no BigQuery e dashboards em realtime para decisões de mídia.',
+      'Parceria para configurar traqueamento da jornada do cliente, mapeando necessidades e configurando GTM, pixels e dashboards.',
     person: 'Equipe Unisinos',
     personRole: 'Marketing & Tecnologia',
     img: unisinosImg,
@@ -133,7 +124,7 @@ const clientCards = [
     name: 'Via Marte',
     quote: 'Automação de mídia elevando as vendas em 40%.',
     description:
-      'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de mídia, criamos visões consolidadas e dashboards e cruzamos com vendas, permitindo decisões ágeis para maximizar retorno.',
+      'Automatizamos a coleta de dados de mídia e cruzamos com vendas, permitindo decisões ágeis para maximizar retorno.',
     person: '',
     personRole: 'Marketing Digital',
     img: viaMarteImg,
@@ -146,7 +137,7 @@ const clientCards = [
     name: 'Agency Rfill',
     quote: 'Leads de imóveis de luxo em tempo real.',
     description:
-      'A Rfill buscava otimizar o marketing digital de imóveis de luxo. Automatizamos coleta de dados, desenvolvemos dashboards e fluxos de geração de leads, entregando insights acionáveis e campanhas mais eficazes.',
+      'Automatizamos coleta de dados, dashboards e geração de leads para campanhas mais eficazes.',
     person: 'Diretoria de Vendas',
     personRole: 'Imobiliário Premium',
     img: rfillVideo,
@@ -170,7 +161,7 @@ const clientCards = [
 .clients-tabs .q-tab__label{color:var(--tab-color, #fff) !important;}
 /* ---------- Gradientes + vars --------------------------------*/
 .rg-bg{
-  background: linear-gradient(135deg, #d80622 10%, #f7f8f8 70%);
+  background: linear-gradient(135deg, #e65a6c 10%, #f7f8f8 70%);
 
   --title-color:#f1e9e9;
   --tab-color:#003B73;

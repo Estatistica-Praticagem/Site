@@ -4,8 +4,8 @@
       <q-btn
         v-for="(section, idx) in sections"
         :key="section.anchor + idx"
-        :id="`btn-${section.anchor}`"
-        :data-gtm="`btn-${section.anchor}`"
+        :id="`btn-${section.anchor.toLowerCase().replace(/\s+/g, '-')}`"
+        :data-gtm="`btn-${section.anchor.toLowerCase().replace(/\s+/g, '-')}`"
         flat
         color="primary"
         :label="section.label"

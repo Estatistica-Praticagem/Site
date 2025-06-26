@@ -10,6 +10,8 @@
             target="_blank"
             class="footer-card-btn"
             :title="logo.alt"
+            :id="'logo-' + logo.alt.toLowerCase().replace(/\s+/g, '-')"
+            :data-gtm="'logo-' + logo.alt.toLowerCase().replace(/\s+/g, '-')"
           >
             <q-img
               :src="logo.src"
@@ -53,8 +55,6 @@ const partnerLogos = [
 <style scoped>
 .section-footer {
   background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
-  /* background:transparent; */
-  /* background: linear-gradient(135deg, #47e295 0%, #0b4f76 100%); */
   padding: 40px 16px;
 }
 .footer-container {
@@ -77,7 +77,6 @@ const partnerLogos = [
 }
 .footer-card {
   background: transparent;
-  /* border-radius: 12px; */
   padding: 16px;
   transition: background 0.3s, transform 0.3s;
 }
