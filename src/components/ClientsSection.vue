@@ -1,15 +1,21 @@
+<!-- ClientsShowcase.vue – versão com controle de:
+     1. Gradiente (por aba)           → .xx-bg
+     2. Cor do título “Grandes Clientes” → CSS-var --title-color
+     3. Cor dos nomes nas abas         → CSS-var --tab-color         -->
 <template>
   <section
     id="clients"
     data-gtm="clients-section"
-    class="section-clients"
+    :class="['section-clients', `${clientTab}-bg`]"
   >
     <div class="section-inner">
-      <h2 class="text-h4 text-primary text-center q-mb-md">Grandes Clientes</h2>
+      <!-- Título usa a var --title-color definida em cada .xx-bg -->
+      <h2 class="section-title text-center  text-h4 q-mb-md">Grandes Clientes</h2>
 
+      <!-- Tabs – labels herdaram a var --tab-color -->
       <q-tabs
         v-model="clientTab"
-        class="clients-tabs q-mt-md text-primary bg-transparent"
+        class="clients-tabs q-mt-md bg-transparent"
         active-color="primary"
         indicator-color="primary"
         align="justify"
@@ -24,6 +30,7 @@
         />
       </q-tabs>
 
+      <!-- Painéis ------------------------------------------------>
       <q-tab-panels v-model="clientTab" animated class="transparent-panel q-mt-xl">
         <q-tab-panel
           v-for="c in clientCards"
@@ -32,10 +39,9 @@
           class="q-pa-none"
         >
           <div class="row items-center q-col-gutter-xl">
-            <!-- Text / Info -->
+            <!-- Info -->
             <div class="col-12 col-md-7">
               <div class="client-info">
-                <!-- Icon + Name -->
                 <div class="client-header flex items-center q-mb-sm">
                   <q-img
                     :src="c.icon || c.img"
@@ -53,18 +59,24 @@
 
                 <p class="client-person q-mt-md">
                   {{ c.person }}
-                  <span v-if="c.personRole"> | <span class="text-primary">{{ c.personRole }}</span></span>
+                  <span v-if="c.personRole">
+                    | <span class="client-role">{{ c.personRole }}</span>
+                  </span>
                 </p>
               </div>
             </div>
 
-            <!-- Media -->
+            <!-- Mídia -->
             <div class="col-12 col-md-5 text-center">
               <component
                 :is="c.isVideo ? 'video' : 'q-img'"
                 :src="c.img"
                 :alt="c.name"
-                v-bind="c.isVideo ? { controls: true, autoplay: true, muted: true, loop: true } : {}"
+                v-bind="
+                  c.isVideo
+                    ? { controls: true, autoplay: true, muted: true, loop: true }
+                    : {}
+                "
                 class="client-media"
               />
             </div>
@@ -77,12 +89,15 @@
 
 <script setup>
 import { ref } from 'vue';
+
+/* Assets -----------------------------------------------------*/
 import rgIcon from 'src/assets/clients/logo-rgpilots.png';
 import rgImg from 'src/assets/clients/pilots.png';
-import viaMarteImg from 'src/assets/clients/viamarte2.png';
+import viaMarteImg from 'src/assets/clients/viamarte.png';
 import rfillVideo from 'src/assets/clients/rfill.png';
-import unisinos from 'src/assets/clients/unisinos.png';
+import unisinosImg from 'src/assets/clients/unisinos.jpeg';
 
+/* Estado -----------------------------------------------------*/
 const clientTab = ref('rg');
 
 const clientCards = [
@@ -91,7 +106,8 @@ const clientCards = [
     tabLabel: 'Rio Grande',
     name: 'Porto Internacional do Rio Grande',
     quote: 'Sistema de marés e correntes em tempo real com IA.',
-    description: 'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes. Nosso sistema fornece previsões em tempo real 24/7 para aumentar a segurança do porto, alcançando alto grau de assertividade e confiabilidade. Desde 2020.',
+    description:
+      'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes. Nosso sistema fornece previsões em tempo real 24/7 para aumentar a segurança do porto, alcançando alto grau de assertividade e confiabilidade. Desde 2020.',
     person: 'Capitão Pilot Board',
     personRole: 'Operações Portuárias',
     img: rgImg,
@@ -103,19 +119,21 @@ const clientCards = [
     tabLabel: 'Unisinos',
     name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
     quote: 'Dashboard em tempo real.',
-    description: 'Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, desde a limpeza de configurações antigas, mapeamento das necessidades e configuração de ferramentas como Google Tag Manager, pixels, tags e botões para rastrear o comportamento dos usuários em cada etapa da navegação. Após a organização e configuração interna do ecossistema de mapeamento das informações do site da Unisinos, realizamos bases de dados via BigQuery e Google Sheets para extração e manipulação dos anúncios de mídia — informações que foram disponibilizadas via dashboard interativo para tomada de decisão após manipulação dos dados em conjunto com a taxonomia de mídia personalizada e exclusiva da Unisinos. O resultado do trabalho passou por diferentes etapas, desde organização do traqueamento da jornada do cliente, configuração do Data Warehouse da Unisinos e dashboards exclusivos para análise e tomadas de decisões em realtime.',
+    description:
+      'Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o traqueamento da jornada do cliente, mapeando necessidades e configurando GTM, pixels e botões. Depois criamos bases no BigQuery e dashboards em realtime para decisões de mídia.',
     person: 'Equipe Unisinos',
     personRole: 'Marketing & Tecnologia',
-    img: unisinos,
-    icon: unisinos,
+    img: unisinosImg,
+    icon: unisinosImg,
     isVideo: false,
   },
   {
     id: 'vm',
     tabLabel: 'RBA + Via Marte',
     name: 'Via Marte',
-    quote: 'Automação de mídia para e-commerce com crescimento de 40%.',
-    description: 'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de todas as plataformas de mídia, criamos visões consolidadas e dashboards, e comparamos os dados de vendas. As informações são atualizadas diariamente, permitindo decisões rápidas para maximizar retorno e impulsionar as vendas. Desde 2024.',
+    quote: 'Automação de mídia elevando as vendas em 40%.',
+    description:
+      'Um dos maiores e-commerces de calçados do sul do Brasil. Automatizamos a coleta de dados de mídia, criamos visões consolidadas e dashboards e cruzamos com vendas, permitindo decisões ágeis para maximizar retorno.',
     person: '',
     personRole: 'Marketing Digital',
     img: viaMarteImg,
@@ -126,8 +144,9 @@ const clientCards = [
     id: 'ar',
     tabLabel: 'Agency Rfill',
     name: 'Agency Rfill',
-    quote: 'Dashboards de leads de imóveis de luxo em tempo real.',
-    description: 'A agência Rfill buscava otimizar o fluxo de marketing digital para imóveis de luxo. Automatizamos a coleta de dados, desenvolvemos dashboards e implementamos fluxos para geração de leads. Esses esforços entregaram insights acionáveis, permitindo decisões mais precisas e campanhas mais eficazes.',
+    quote: 'Leads de imóveis de luxo em tempo real.',
+    description:
+      'A Rfill buscava otimizar o marketing digital de imóveis de luxo. Automatizamos coleta de dados, desenvolvemos dashboards e fluxos de geração de leads, entregando insights acionáveis e campanhas mais eficazes.',
     person: 'Diretoria de Vendas',
     personRole: 'Imobiliário Premium',
     img: rfillVideo,
@@ -138,77 +157,83 @@ const clientCards = [
 </script>
 
 <style scoped>
-.section-clients {
-  /* background:transparent; */
-  background: linear-gradient(90deg, #f07f29 10%, #eba43b 100%);
-  padding: 80px 0 60px;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
+/* ---------- Estrutura base ----------------------------------*/
+.section-clients{
+  padding:80px 0 60px;
+  width:100vw;
+  margin-left:calc(-50vw + 50%);
+  margin-right:calc(-50vw + 50%);
+  transition:background .5s ease;
 }
+.section-inner{max-width:1240px;margin:0 auto;padding:0 24px;}
+.section-title{margin:0 0 36px;font-weight:700;color:var(--title-color, #fff);}
+.clients-tabs .q-tab__label{color:var(--tab-color, #fff) !important;}
+/* ---------- Gradientes + vars --------------------------------*/
+.rg-bg{
+  background: linear-gradient(135deg, #d80622 10%, #f7f8f8 70%);
 
-.section-inner {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 0 24px;
+  --title-color:#f1e9e9;
+  --tab-color:#003B73;
 }
-
-h2 {
-  margin: 0 0 36px;
+.vm-bg{
+  background:linear-gradient(135deg,#904d92 10%,#000000 100%);
+  --title-color:#ffd4da;
+  --tab-color:#ffd4da;
 }
+.ar-bg{
+  background:linear-gradient(135deg,#000000 -20%,#ffffff 100%);
+  --title-color:#ffffff;
+  --tab-color:#ffffff;
+}
+.unisinos-bg{
+  background:linear-gradient(135deg,#0066CC -10%,#6A0DAD 100%);
+  --title-color:#e4f0fc;
+  --tab-color:#e4f0fc;
+}
+/* ---------- Textos específicos ------------------------------*/
+.rg-bg .client-name        {color:#022546;}
+.rg-bg .client-quote       {color:#01080e;font-style:italic;}
+.rg-bg .client-description {color:#010911;}
+.rg-bg .client-person,
+.rg-bg .client-role        {color:#001E40;}
 
-/* Tabs / Panels */
+.vm-bg .client-name        {color:#FFD4DA;}
+.vm-bg .client-quote       {color:#FFABB4;font-style:italic;}
+.vm-bg .client-description {color:#FFCDD3;}
+.vm-bg .client-person,
+.vm-bg .client-role        {color:#FFE6EA;}
+
+.ar-bg .client-name        {color:#FFFFFF;}
+.ar-bg .client-quote       {color:#DDDDDD;font-style:italic;}
+.ar-bg .client-description {color:#F2F2F2;}
+.ar-bg .client-person,
+.ar-bg .client-role        {color:#CCCCCC;}
+
+.unisinos-bg .client-name        {color:#e4f0fc;}
+.unisinos-bg .client-quote       {color:#bed5ec;font-style:italic;}
+.unisinos-bg .client-description {color:#eef0f3;}
+.unisinos-bg .client-person,
+.unisinos-bg .client-role        {color:#180429;}
+
+/* ---------- Estrutura dos cartões ---------------------------*/
 .clients-tabs,
 .transparent-panel,
-.q-tab-panel {
-  background: none !important;
+.q-tab-panel{background:none !important;}
+
+.client-icon{width:40px;height:40px;object-fit:contain;margin-right:12px;}
+.client-name{font-size:1.8rem;font-weight:700;}
+.client-quote{font-size:1.125rem;margin-bottom:8px;}
+.client-description{font-size:1rem;line-height:1.5;margin-bottom:12px;}
+.client-person{font-weight:600;}
+
+.client-media{
+  width:100%;
+  max-width:340px;
+  height:auto;
+  border-radius:16px;
+  box-shadow:0 6px 24px rgba(0,0,0,.1);
+  object-fit:contain;
 }
 
-/* Header */
-.client-header .client-icon {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  margin-right: 12px;
-}
-
-.client-name {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1C1C1C;
-}
-
-.client-quote {
-  font-style: italic;
-  font-size: 1.125rem;
-  margin-bottom: 8px;
-}
-
-.client-description {
-  font-size: 1rem;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-
-.client-person {
-  font-weight: 600;
-  color: #000;
-}
-
-/* Media */
-.client-media {
-  width: 100%;
-  max-width: 340px;
-  height: auto;
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.1);
-  background-color: transparent !important;
-  object-fit: contain;
-}
-
-@media (max-width: 1023px) {
-  .client-name {
-    font-size: 1.4rem;
-  }
-}
+@media(max-width:1023px){.client-name{font-size:1.4rem;}}
 </style>

@@ -12,8 +12,8 @@
 
       <div class="footer-main row q-col-gutter-md items-start justify-center">
 
-        <!-- BLOCO 1: Esquerda -->
-        <div class="footer-left col-12 col-md-4 flex flex-column items-center items-md-start text-center text-md-left">
+        <!-- BLOCO 1: Esquerda (logo e slogan) -->
+        <div class="footer-left col-12 col-md-4">
           <div class="row items-center no-wrap">
             <q-img
               src="~assets/icons/icon.png"
@@ -31,17 +31,8 @@
           </div>
         </div>
 
-        <!-- BLOCO 2: Centro -->
-        <div class="footer-center col-12 col-md-4 flex flex-column items-center text-center q-mt-md q-mt-none--md">
-          <!-- Deixe vazio ou adicione mais algo aqui -->
-        </div>
-
-        <!-- BLOCO 3: Direita -->
-        <div
-          class="footer-right col-12 col-md-4 flex flex-column items-center items-md-end text-center text-md-right q-mt-md q-mt-none--md"
-          id="footer-contato"
-          data-gtm="footer-contato"
-        >
+        <!-- BLOCO 2: Centro (só o botão de contato centralizado) -->
+        <div class="footer-center col-12 col-md-4">
           <div class="text-subtitle2 text-white q-mb-sm">
             Contate‑nos diretamente:
           </div>
@@ -49,36 +40,41 @@
             outline
             color="white"
             icon="email"
-            label="horizontetbi@gmail.com"
+            label="horizontebi.contato@gmail.com"
             class="footer-contact-btn"
             @click="mailto"
             id="btn-footer-email"
             data-gtm="btn-footer-email"
           />
-          <div class="footer-desc text-white q-mt-lg q-mb-xs">
-            Redes sociais:
-          </div>
-          <div class="footer-social row q-mt-xs justify-center justify-md-end" id="footer-social" data-gtm="footer-social-icons">
-            <q-btn
-              v-for="logo in partnerLogos"
-              :key="logo.alt"
-              flat
-              round
-              dense
-              tag="a"
-              :href="logo.link"
-              target="_blank"
-              class="footer-social-btn"
-              :id="`social-${logo.alt.toLowerCase()}`"
-              :data-gtm="`social-${logo.alt.toLowerCase()}`"
-            >
-              <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
-            </q-btn>
+        </div>
+
+        <!-- BLOCO 3: Direita (texto em cima, ícones lado a lado embaixo) -->
+        <div class="footer-right col-12 col-md-4" id="footer-contato" data-gtm="footer-contato">
+          <div class="footer-social-wrapper">
+            <div class="footer-desc text-white q-mb-xs">
+              Redes sociais:
+            </div>
+            <div class="footer-social-icons-row">
+              <q-btn
+                v-for="logo in partnerLogos"
+                :key="logo.alt"
+                flat
+                round
+                dense
+                tag="a"
+                :href="logo.link"
+                target="_blank"
+                class="footer-social-btn"
+              >
+                <q-img :src="logo.src" :alt="logo.alt" class="footer-social-logo" />
+              </q-btn>
+            </div>
           </div>
         </div>
+
       </div>
 
-      <!-- INFERIOR: direitos autorais + localização -->
+      <!-- RODAPÉ inferior -->
       <div class="footer-bottom row justify-between items-center q-mt-lg" id="footer-bottom" data-gtm="footer-bottom">
         <div class="text-caption text-white">
           © 2025 Horizonte BI
@@ -111,63 +107,101 @@ const partnerLogos = [
   },
 ];
 </script>
-
 <style scoped>
 .section-footer {
   background: linear-gradient(135deg, #0b9dd3 0%, #0b4f76 100%);
   padding: 48px 24px 24px;
   font-size: 0.9rem;
 }
+
 .footer-container {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
+
 .footer-mission {
   margin-bottom: 38px;
 }
+
+/* BLOCO 1: Esquerda - Logo */
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+@media (min-width: 901px) {
+  .footer-left {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
 .footer-logo {
   width: 72px;
   height: 72px;
 }
-.footer-desc {
-  font-size: 1rem;
+
+/* BLOCO 2: Centro - Botão de e-mail */
+.footer-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
-.footer-social {
-  gap: 12px;
-}
-.footer-social-btn {
-  padding: 4px;
-}
-.footer-social-logo {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  transition: filter 0.3s ease;
-}
-.footer-social-logo:hover {
-  filter: brightness(1.2);
-}
+
 .footer-contact-btn {
   font-size: 0.9rem;
   text-transform: none;
   padding: 10px 20px;
 }
-.footer-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  padding-top: 16px;
-  font-size: 0.75rem;
+
+/* BLOCO 3: Direita - Redes sociais */
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  padding-right: 36px; /* mais seguro que margin */
+  box-sizing: border-box; /* garante que o padding não estoure a coluna */
+  align-items: center;
+  text-align: center;
 }
-@media (max-width: 900px) {
-  .footer-main {
-    flex-direction: column !important;
-  }
-  .footer-left,
-  .footer-center,
+@media (min-width: 901px) {
   .footer-right {
-    align-items: center !important;
-    text-align: center !important;
-    margin-bottom: 22px;
+    align-items: flex-end;
+    text-align: right;
   }
 }
+
+.footer-social-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Agora os ícones ficam lado a lado */
+.footer-social-icons-row {
+  display: flex;
+  flex-direction: row; /* <- lado a lado */
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+/* Ícone visual */
+.footer-social-btn {
+  padding: 4px;
+}
+
+.footer-social-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+.footer-social-logo:hover {
+  filter: brightness(1.2);
+}
+
 </style>

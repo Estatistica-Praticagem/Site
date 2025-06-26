@@ -57,3 +57,19 @@ ADD COLUMN image_url VARCHAR(500) DEFAULT NULL AFTER password;
 
 ALTER TABLE comments ADD COLUMN image_url VARCHAR(512) NULL;
 
+CREATE TABLE contact_status_logs (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  email       VARCHAR(255) NOT NULL,
+  old_status  VARCHAR(60)  NOT NULL,
+  new_status  VARCHAR(60)  NOT NULL,
+  changed_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX(email),
+  INDEX(changed_at)
+);
+
+ALTER TABLE contact_status_logs
+ADD COLUMN contact_id VARCHAR(64) DEFAULT NULL,
+ADD COLUMN user_id    VARCHAR(64) DEFAULT NULL;
+
+ALTER TABLE contact_status_logs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+

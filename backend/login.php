@@ -22,11 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Conexão com o banco
+// Conexão com o banco (MySQLi)
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 if ($conn->connect_error) {
     http_response_code(500);
-    echo json_encode(["success" => false, "message" => "Database connection error."]);
+    echo json_encode(["success" => false, "message" => "Erro ao conectar no banco."]);
     exit;
 }
 
@@ -34,32 +34,37 @@ if ($conn->connect_error) {
 $input = file_get_contents("php://input");
 $data = json_decode($input, true);
 
-if (!isset($data['email']) || !isset($data['password'])) {
-    echo json_encode(["success" => false, "message" => "Missing email or password."]);
+$contact_id = $conn->real_escape_string($data['contact_id'] ?? '');
+$email      = $conn->real_escape_string($data['email'] ?? '');
+$old_status = $conn->real_escape_string($data['old_status'] ?? '');
+$new_status = $conn->real_escape_string($data['new_status'] ?? '');
+$user_id    = $conn->real_escape_string($data['user_id'] ?? '');
+
+if (!$email || !$new_status) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "message" => "Dados incompletos."]);
     exit;
 }
 
-$email = $conn->real_escape_string($data['email']);
-$password = $data['password']; // Não precisa escapar, pois será apenas verificado no hash
-
-// Verifica se o usuário existe
-$checkUser = "SELECT id, name, password, image_url FROM users_orizzonttebi WHERE email = '$email' LIMIT 1";
-$result = $conn->query($checkUser);
-
-if ($result && $result->num_rows === 0) {
-    echo json_encode(["success" => false, "message" => "User not found."]);
-} else {
-    $user = $result->fetch_assoc();
-    if (password_verify($password, $user['password'])) {
-        echo json_encode([
-            "success" => true,
-            "id" => $user['id'],
-            "name" => $user['name'],
-            "image_url" => $user['image_url'] ?? null
-        ]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Incorrect password."]);
-    }
+// Prepara e executa inserção
+$sql = "INSERT INTO contact_status_logs (contact_id, email, old_status, new_status, user_id)
+        VALUES (?, ?, ?, ?, ?)";
+$stmt = $conn->prepare($sql);
+if (!$stmt) {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Erro na preparação da query."]);
+    exit;
 }
 
+$stmt->bind_param("sssss", $contact_id, $email, $old_status, $new_status, $user_id);
+$success = $stmt->execute();
+
+if ($success) {
+    echo json_encode(["success" => true, "message" => "Log salvo com sucesso."]);
+} else {
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Erro ao salvar log."]);
+}
+
+$stmt->close();
 $conn->close();

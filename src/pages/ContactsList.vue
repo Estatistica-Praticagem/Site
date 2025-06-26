@@ -1,25 +1,62 @@
 <template>
   <section class="section-contacts q-pa-lg">
+    <!-- Título -->
     <div class="text-center q-mb-lg">
       <h2 class="text-h5 text-primary text-weight-bold">Formulários Enviados</h2>
     </div>
 
+    <!-- Barra de filtro -->
+    <div class="row items-center q-col-gutter-md q-mb-md gt-sm">
+      <q-input
+        outlined dense debounce="300"
+        v-model="searchEmail"
+        placeholder="Buscar por e-mail…"
+        clearable
+        class="col"
+      >
+        <template #prepend><q-icon name="search" /></template>
+      </q-input>
+
+      <q-select
+        outlined dense
+        v-model="statusFilter"
+        :options="statusOptionsLabel"
+        label="Status"
+        clearable
+        class="col-3"
+      />
+
+      <q-btn-toggle
+        v-model="orderNewest"
+        spread dense rounded
+        class="bg-grey-2"
+        :options="[
+          {value:true,  slot:'novo'},
+          {value:false, slot:'antigo'}
+        ]"
+      >
+        <template #novo><q-icon name="arrow_downward" /> + Novos</template>
+        <template #antigo><q-icon name="arrow_upward" /> + Antigos</template>
+      </q-btn-toggle>
+    </div>
+
+    <!-- Loading/Erro -->
     <div v-if="loading" class="text-center">
       <q-spinner-dots color="primary" size="40px" />
     </div>
-
     <q-banner v-if="erro" class="bg-red text-white q-mb-md" dense rounded>
       {{ erro }}
     </q-banner>
 
-    <div v-if="contatos.length > 0" class="cards-wrapper">
+    <!-- Cards de contatos filtrados -->
+    <div v-if="filteredContatos.length" class="cards-wrapper">
       <q-card
-        v-for="contato in contatos"
+        v-for="contato in filteredContatos"
         :key="contato.id"
         class="q-mb-md shadow-3 card-contact"
         bordered
       >
-        <!-- Ponto de status mais destacado -->
+        <!-- Dot de status -->
         <div class="status-dot-large" :style="{ background: statusColor(contato.status) }" />
 
         <q-card-section>
@@ -33,7 +70,6 @@
         </q-card-section>
 
         <q-separator />
-
         <q-card-section>
           <div><q-icon name="phone" size="16px" class="q-mr-sm" /> +{{ contato.country_code }} {{ contato.phone }}</div>
           <div><q-icon name="work_outline" size="16px" class="q-mr-sm" /> {{ contato.service }}</div>
@@ -43,20 +79,17 @@
           </div>
         </q-card-section>
 
-        <!-- Ícones de ação NA BASE do card -->
+        <!-- Ações -->
         <q-separator />
         <q-card-actions align="between" class="actions-bottom">
-          <!-- Comentários à esquerda -->
           <q-btn dense round flat icon="chat_bubble" color="teal" @click="abrirComentarios(contato)" />
-
-          <!-- Editar status e excluir à direita -->
           <div>
             <q-btn dense round flat icon="edit" color="primary" @click="abrirMenuStatus(contato)" />
             <q-btn dense round flat icon="delete" color="red" @click="excluirContato(contato.id)" />
           </div>
         </q-card-actions>
 
-        <!-- Seção de comentários -->
+        <!-- Comentários -->
         <q-slide-transition>
           <div v-show="contato._mostrarComentarios" class="q-pa-md bg-grey-2">
             <div class="row items-center q-mb-sm">
@@ -64,16 +97,12 @@
               <q-space />
               <q-btn size="sm" flat icon="close" @click="contato._mostrarComentarios = false" />
             </div>
-            <div v-if="comentarios[contato.id] && comentarios[contato.id].length" class="q-mb-sm">
+            <div v-if="comentarios[contato.id]?.length" class="q-mb-sm">
               <div v-for="coment in comentarios[contato.id]" :key="coment.id" class="comment-box q-mb-xs">
                 <div class="row items-center">
                   <q-avatar size="26px" color="grey-3" text-color="primary" class="q-mr-xs">
-                    <template v-if="coment.image_url">
-                      <img :src="coment.image_url" alt="avatar" />
-                    </template>
-                    <template v-else>
-                      {{ userInitial(coment) }}
-                    </template>
+                    <template v-if="coment.image_url"><img :src="coment.image_url" /></template>
+                    <template v-else>{{ userInitial(coment) }}</template>
                   </q-avatar>
                   <span class="text-caption text-weight-bold q-mr-sm">{{ formatarData(coment.created_at) }}</span>
                   <q-space />
@@ -82,15 +111,11 @@
                 <div>{{ coment.comment }}</div>
               </div>
             </div>
-
             <div v-else class="text-caption text-grey">Nenhum comentário ainda.</div>
             <div class="row items-center q-mt-sm">
               <q-input
-                dense
-                outlined
-                v-model="novoComentario[contato.id]"
-                placeholder="Adicionar um comentário..."
-                class="q-mr-sm"
+                dense outlined v-model="novoComentario[contato.id]" placeholder="Adicionar…"
+                class="col"
               />
               <q-btn size="sm" color="teal" icon="send" @click="adicionarComentario(contato.id)" />
             </div>
@@ -104,7 +129,7 @@
       <div>Nenhum contato encontrado.</div>
     </div>
 
-    <!-- Menu para editar status -->
+    <!-- Dialog para editar status -->
     <q-dialog v-model="menuStatus.visivel">
       <q-card>
         <q-card-section>
@@ -112,7 +137,12 @@
         </q-card-section>
         <q-separator />
         <q-list>
-          <q-item v-for="op in statusOptions" :key="op.value" clickable @click="atualizarStatus(menuStatus.contato, op.value)">
+          <q-item
+            v-for="op in statusOptions"
+            :key="op.value"
+            clickable
+            @click="atualizarStatus(menuStatus.contato, op.value)"
+          >
             <q-item-section avatar>
               <div :style="{ width: '22px', height: '22px', borderRadius: '50%', background: op.color }"></div>
             </q-item-section>
@@ -122,7 +152,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Modal de edição de comentário -->
+    <!-- Modal editar comentário -->
     <q-dialog v-model="editarModal">
       <q-card style="min-width:340px;max-width:95vw">
         <q-card-section>
@@ -150,152 +180,159 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Notify } from 'quasar';
 
+/* --- State --- */
 const contatos = ref([]);
 const erro = ref('');
 const loading = ref(false);
+const searchEmail = ref('');
+const statusFilter = ref(null);
+const orderNewest = ref(true);
 
+/* --- Comentários --- */
+const comentarios = ref({});
+const novoComentario = ref({});
 const editarModal = ref(false);
 const comentarioEditando = ref(null);
 const comentarioEditandoTexto = ref('');
 const contatoEditandoComentario = ref(null);
 
+/* --- Status dialog --- */
 const menuStatus = ref({ visivel: false, contato: null });
 
+/* --- Usuário logado --- */
 const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
 
+/* --- Status --- */
 const statusOptions = [
-  { value: 'Esperando Contato', label: 'Esperando Contato', color: '#757575' }, // cinza
-  { value: 'Contatado', label: 'Contatado', color: '#1976D2' }, // azul
-  { value: 'Aguardando Resposta', label: 'Aguardando Resposta', color: '#FFB300' }, // amarelo
-  { value: 'Em Negociação', label: 'Em Negociação', color: '#FF7043' }, // laranja
-  { value: 'Cliente Ativo', label: 'Cliente Ativo', color: '#43A047' }, // verde
+  { value: 'Esperando Contato', label: 'Esperando Contato', color: '#757575' },
+  { value: 'Contatado', label: 'Contatado', color: '#1976D2' },
+  { value: 'Aguardando Resposta', label: 'Aguardando Resposta', color: '#FFB300' },
+  { value: 'Em Negociação', label: 'Em Negociação', color: '#FF7043' },
+  { value: 'Cliente Ativo', label: 'Cliente Ativo', color: '#43A047' },
 ];
+const statusOptionsLabel = ['Todos', ...statusOptions.map((s) => s.label)];
 
+/* --- Computed: filtro/sort --- */
+const filteredContatos = computed(() => {
+  let arr = [...contatos.value];
+  if (searchEmail.value) {
+    const t = searchEmail.value.toLowerCase();
+    arr = arr.filter((c) => c.email.toLowerCase().includes(t));
+  }
+  if (statusFilter.value && statusFilter.value !== 'Todos') {
+    arr = arr.filter((c) => c.status === statusFilter.value);
+  }
+  arr.sort((a, b) => {
+    const da = new Date(a.created_at).getTime();
+    const db = new Date(b.created_at).getTime();
+    return orderNewest.value ? db - da : da - db;
+  });
+  return arr;
+});
+
+/* --- Funções utilitárias --- */
 function statusColor(status) {
   const found = statusOptions.find((op) => op.value === status);
   return found ? found.color : '#757575';
+}
+function abrirMenuStatus(contato) {
+  menuStatus.value = { visivel: true, contato };
 }
 
 function formatarData(dataStr) {
   const d = new Date(dataStr);
   return d.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }
-
-// Funções para mostrar avatar de usuário nos comentários
 function userInitial(coment) {
   if (coment.user_name) return coment.user_name.charAt(0).toUpperCase();
   return 'U';
 }
-// eslint-disable-next-line no-unused-vars
-function userIcon(coment) {
-  return undefined; // ou personalize conforme desejar
-}
 
+/* --- API URL --- */
+const BASE = 'https://www.meusimulador.com/kevi/backend';
+
+/* --- CRUD principal --- */
 async function carregarContatos() {
   const userId = localStorage.getItem('user_id');
-  if (!userId) {
-    erro.value = 'Usuário não autenticado.';
-    return;
-  }
-
+  if (!userId) { erro.value = 'Usuário não autenticado.'; return; }
   loading.value = true;
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/list_contacts.php', {
+    const r = await fetch(`${BASE}/list_contacts.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId }),
     });
-
-    const data = await response.json();
-
-    if (data.success) {
-      contatos.value = data.data.map((c) => ({
-        ...c,
-        _mostrarComentarios: false,
-      }));
-    } else {
-      erro.value = data.error || 'Erro ao carregar contatos.';
-    }
-  } catch (err) {
-    erro.value = 'Erro de conexão com o servidor.';
-    console.error(err);
-  } finally {
-    loading.value = false;
-  }
+    const d = await r.json();
+    if (d.success) {
+      contatos.value = d.data.map((c) => ({ ...c, _mostrarComentarios: false }));
+    } else erro.value = d.error || 'Erro ao carregar.';
+  } catch (e) { erro.value = 'Falha de conexão.'; } finally { loading.value = false; }
 }
 
 async function excluirContato(id) {
-  const userId = localStorage.getItem('user_id');
   // eslint-disable-next-line no-restricted-globals
-  if (!confirm('Tem certeza que deseja apagar este formulário?')) return;
+  if (!confirm('Tem certeza?')) return;
+  const userId = localStorage.getItem('user_id');
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/delete_contact.php', {
+    const r = await fetch(`${BASE}/delete_contact.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact_id: id, user_id: userId }),
     });
-    const data = await response.json();
-    if (response.ok) {
-      Notify.create({ message: data.message || 'Formulário excluído.', color: 'green' });
-      await carregarContatos();
-    } else {
-      Notify.create({ message: data.message || 'Erro ao excluir.', color: 'red' });
-    }
-  } catch (err) {
-    Notify.create({ message: 'Erro de conexão.', color: 'red' });
-  }
+    const d = await r.json();
+    Notify.create({ message: d.message || 'Removido', color: r.ok ? 'green' : 'red' });
+    if (r.ok) await carregarContatos();
+  } catch (e) { Notify.create({ message: 'Conexão falhou', color: 'red' }); }
 }
 
-function abrirMenuStatus(contato) {
-  menuStatus.value = { visivel: true, contato };
-}
+/* --- Alterar status e LOGAR --- */
 async function atualizarStatus(contato, novoStatus) {
   const userId = localStorage.getItem('user_id');
+  const antigo = contato.status;
   menuStatus.value.visivel = false;
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/update_status.php', {
+    // Atualiza status
+    const r = await fetch(`${BASE}/update_status.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact_id: contato.id, status: novoStatus, user_id: userId }),
     });
-    const data = await response.json();
-    if (response.ok) {
-      Notify.create({ message: data.message || 'Status atualizado.', color: 'green' });
-      await carregarContatos();
-    } else {
-      Notify.create({ message: data.message || 'Erro ao atualizar status.', color: 'red' });
-    }
-  } catch (err) {
-    Notify.create({ message: 'Erro de conexão.', color: 'red' });
-  }
+    const d = await r.json();
+
+    // LOG status change
+    await fetch(`${BASE}/log_status_change.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contact_id: contato.id,
+        email: contato.email,
+        old_status: antigo,
+        new_status: novoStatus,
+        user_id: userId,
+      }),
+    });
+
+    Notify.create({ message: d.message || 'Status atualizado', color: r.ok ? 'green' : 'red' });
+    if (r.ok) await carregarContatos();
+  } catch (e) { Notify.create({ message: 'Falha de conexão', color: 'red' }); }
 }
 
-// Comentários
-const comentarios = ref({});
-const novoComentario = ref({});
-
+/* --- Comentários --- */
 async function abrirComentarios(contato) {
   // eslint-disable-next-line no-underscore-dangle
   contato._mostrarComentarios = !contato._mostrarComentarios;
-  // eslint-disable-next-line no-underscore-dangle
-  if (contato._mostrarComentarios) {
-    // eslint-disable-next-line no-use-before-define
-    await carregarComentarios(contato.id);
-  }
+  // eslint-disable-next-line no-use-before-define, no-underscore-dangle
+  if (contato._mostrarComentarios) await carregarComentarios(contato.id);
 }
 async function carregarComentarios(contactId) {
   const userId = localStorage.getItem('user_id');
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/get_comments.php', {
+    const response = await fetch(`${BASE}/get_comments.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contact_id: contactId, user_id: userId }),
@@ -303,23 +340,16 @@ async function carregarComentarios(contactId) {
     const data = await response.json();
     if (response.ok && data.data) {
       comentarios.value[contactId] = data.data;
-    } else {
-      comentarios.value[contactId] = [];
-    }
-  } catch (err) {
-    comentarios.value[contactId] = [];
-  }
+    } else comentarios.value[contactId] = [];
+  } catch (err) { comentarios.value[contactId] = []; }
 }
 async function adicionarComentario(contactId) {
   const userId = localStorage.getItem('user_id');
   const comment = novoComentario.value[contactId];
   if (!comment) return;
-
-  // Pega a imagem do usuário logado (ou vazio se não existir)
   const imageUrl = usuarioLogado.imageUrl || usuarioLogado.image_url || '';
-
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/add_comment.php', {
+    const response = await fetch(`${BASE}/add_comment.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -341,22 +371,19 @@ async function adicionarComentario(contactId) {
     Notify.create({ message: 'Erro de conexão.', color: 'red' });
   }
 }
-
 function editarComentario(contactId, commentObj) {
   contatoEditandoComentario.value = contactId;
   comentarioEditando.value = commentObj;
   comentarioEditandoTexto.value = commentObj.comment;
   editarModal.value = true;
 }
-
 async function salvarEdicaoComentario() {
   const userId = localStorage.getItem('user_id');
   // eslint-disable-next-line camelcase
   const comment_id = comentarioEditando.value.id;
   const comment = comentarioEditandoTexto.value;
-
   try {
-    const response = await fetch('https://www.meusimulador.com/kevi/backend/update_comment.php', {
+    const response = await fetch(`${BASE}/update_comment.php`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -379,6 +406,7 @@ async function salvarEdicaoComentario() {
   }
 }
 
+/* --- Montagem --- */
 onMounted(() => {
   carregarContatos();
 });
@@ -391,19 +419,16 @@ onMounted(() => {
   background: #fafafa;
   border-radius: 16px;
 }
-
 .cards-wrapper {
   display: flex;
   flex-direction: column;
 }
-
 .card-contact {
   border-radius: 16px;
   background: white;
   position: relative;
   padding-bottom: 8px;
 }
-
 .status-dot-large {
   position: absolute;
   top: 10px;
@@ -415,7 +440,6 @@ onMounted(() => {
   box-shadow: 0 1px 8px 0 rgba(60,60,60,0.18);
   z-index: 2;
 }
-
 .actions-bottom {
   display: flex;
   justify-content: space-between;
@@ -424,7 +448,6 @@ onMounted(() => {
   padding-right: 6px;
   min-height: 48px;
 }
-
 .comment-box {
   background: #fff;
   border-radius: 8px;

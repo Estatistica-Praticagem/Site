@@ -83,9 +83,6 @@
           class="large-textarea"
         />
 
-        <!-- reCAPTCHA invisível -->
-        <div ref="recaptchaEl" class="g-recaptcha" id="recaptcha-bloco" data-gtm="recaptcha-bloco"></div>
-
         <q-btn
           :loading="loading"
           :disable="loading"
@@ -107,6 +104,9 @@
         Mensagem enviada com sucesso! Obrigado por entrar em contato.
       </q-banner>
     </div>
+            <!-- reCAPTCHA invisível -->
+        <div ref="recaptchaEl" class="g-recaptcha recaptcha-fixed" id="recaptcha-bloco" data-gtm="recaptcha-bloco"></div>
+
   </section>
 </template>
 
@@ -249,5 +249,18 @@ onMounted(() => {
 }
 textarea.q-field__native {
   resize: vertical !important;
+}
+</style>
+<style>
+.grecaptcha-badge {
+  position: fixed;
+  bottom: 20;
+  right: 20;
+  z-index: 99;
+  /* transform: scale(0.7); */
+  /* transform-origin: bottom right;
+  margin: 4px !important;
+  opacity: 0.9;
+  pointer-events: auto; */
 }
 </style>
