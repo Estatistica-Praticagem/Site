@@ -212,6 +212,8 @@ const statusOptions = [
   { value: 'Aguardando Resposta', label: 'Aguardando Resposta', color: '#FFB300' },
   { value: 'Em Negociação', label: 'Em Negociação', color: '#FF7043' },
   { value: 'Cliente Ativo', label: 'Cliente Ativo', color: '#43A047' },
+  { value: 'Não respondeu', label: 'Não respondeu', color: '#000000' },
+  { value: 'Inativo', label: 'Inativo', color: '#D32F2F' },
 ];
 const statusOptionsLabel = ['Todos', ...statusOptions.map((s) => s.label)];
 
