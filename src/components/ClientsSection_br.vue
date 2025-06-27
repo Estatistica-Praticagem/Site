@@ -95,12 +95,12 @@ const clientCards = [
   {
     id: 'rg',
     tabLabel: 'Rio Grande',
-    name: 'Porto Internacional do Rio Grande',
-    quote: 'Sistema de marés e correntes em tempo real com IA.',
+    name: 'Rio Grande International Port',
+    quote: 'Real-time tides and currents system with AI.',
     description:
-      'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e implantando modelos de machine learning para prever marés e correntes.',
-    person: 'Capitão Pilot Board',
-    personRole: 'Operações Portuárias',
+      'We developed a complete system to collect climate data from different sources and sensors, training and deploying machine learning models to predict tides and currents.',
+    person: 'Pilot Captain Board',
+    personRole: 'Port Operations',
     img: rgImg,
     icon: rgIcon,
     isVideo: false,
@@ -108,12 +108,12 @@ const clientCards = [
   {
     id: 'unisinos',
     tabLabel: 'Unisinos',
-    name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
-    quote: 'Dashboard em tempo real.',
+    name: 'University of Vale do Rio dos Sinos (Unisinos)',
+    quote: 'Real-time dashboard.',
     description:
-      'Parceria para configurar traqueamento da jornada do cliente, mapeando necessidades e configurando GTM, pixels e dashboards.',
-    person: 'Equipe Unisinos',
-    personRole: 'Marketing & Tecnologia',
+      'Partnership to set up customer journey tracking, mapping needs, and configuring GTM, pixels, and dashboards.',
+    person: 'Unisinos Team',
+    personRole: 'Marketing & Technology',
     img: unisinosImg,
     icon: unisinosImg,
     isVideo: false,
@@ -122,11 +122,11 @@ const clientCards = [
     id: 'vm',
     tabLabel: 'RBA + Via Marte',
     name: 'Via Marte',
-    quote: 'Automação de mídia elevando as vendas em 40%.',
+    quote: 'Media automation boosting sales by 40%.',
     description:
-      'Automatizamos a coleta de dados de mídia e cruzamos com vendas, permitindo decisões ágeis para maximizar retorno.',
+      'We automated media data collection and cross-referenced it with sales, enabling agile decisions to maximize returns.',
     person: '',
-    personRole: 'Marketing Digital',
+    personRole: 'Digital Marketing',
     img: viaMarteImg,
     icon: viaMarteImg,
     isVideo: false,
@@ -135,16 +135,17 @@ const clientCards = [
     id: 'ar',
     tabLabel: 'Agency Rfill',
     name: 'Agency Rfill',
-    quote: 'Leads de imóveis de luxo em tempo real.',
+    quote: 'Real-time luxury property leads.',
     description:
-      'Automatizamos coleta de dados, dashboards e geração de leads para campanhas mais eficazes.',
-    person: 'Diretoria de Vendas',
-    personRole: 'Imobiliário Premium',
+      'We automated data collection, dashboards, and lead generation for more effective campaigns.',
+    person: 'Sales Board',
+    personRole: 'Premium Real Estate',
     img: rfillVideo,
     icon: rfillVideo,
     isVideo: false,
   },
 ];
+
 </script>
 
 <style scoped>

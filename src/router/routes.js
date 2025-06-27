@@ -5,8 +5,15 @@ const routes = [
     children: [
       {
         path: '',
-        // component: () => import('pages/IndexPage.vue'),
-        component: () => import('src/pages/PegoraroConsulting.vue'),
+        component: () => import('src/pages/Route.vue'),
+      },
+      {
+        path: '/en',
+        component: () => import('src/pages/PegoraroConsulting_en.vue'),
+      },
+      {
+        path: '/br',
+        component: () => import('src/pages/PegoraroConsulting_br.vue'),
       },
       {
         path: 'login',
