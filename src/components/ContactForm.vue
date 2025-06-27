@@ -116,6 +116,7 @@ import { Notify } from 'quasar';
 import { contemConteudoProibido } from 'src/utils/InputFilter';
 
 const siteKey = '6Le2FWsrAAAAAB4hzU3lQ5GU1FCSTLBYTlvFaNa7';
+const urlAtual = window.location.href;
 
 const form = ref({
   nome: '',
@@ -124,13 +125,14 @@ const form = ref({
   telefone: '',
   servico: 'Serviços de markting',
   descricao: '',
+  origem_url: urlAtual, // adiciona a origem aqui
 });
+
 const formRef = ref(null);
 const formEnviado = ref(false);
 const loading = ref(false);
 const recaptchaWidgetId = ref(null);
 
-// Agora telefone e ddd são opcionais
 function validarCampos() {
   const camposObrigatorios = ['email', 'servico', 'descricao'];
   // eslint-disable-next-line no-restricted-syntax
@@ -141,11 +143,7 @@ function validarCampos() {
     }
   }
 
-  // Filtro de palavras proibidas
-  if (
-    contemConteudoProibido(form.value.nome)
-    || contemConteudoProibido(form.value.descricao)
-  ) {
+  if (contemConteudoProibido(form.value.nome) || contemConteudoProibido(form.value.descricao)) {
     Notify.create({
       type: 'negative',
       message: 'Seu texto contém termos, links ou palavras proibidas.',
@@ -167,9 +165,22 @@ async function submitForm(token) {
     const data = await response.json();
 
     if (data.success) {
+      if (window.dataLayer) {
+        window.dataLayer.push({
+          event: 'lead_enviado',
+          lead_nome: form.value.nome,
+          lead_email: form.value.email,
+          lead_ddd: form.value.ddd,
+          lead_telefone: form.value.telefone,
+          lead_servico: form.value.servico,
+          lead_descricao: form.value.descricao,
+          lead_origem_url: form.value.origem_url,
+        });
+      }
+
       formEnviado.value = true;
       form.value = {
-        nome: '', email: '', ddd: '', telefone: '', servico: '', descricao: '',
+        nome: '', email: '', ddd: '', telefone: '', servico: '', descricao: '', origem_url: urlAtual,
       };
       formRef.value.resetValidation();
       // eslint-disable-next-line no-return-assign
