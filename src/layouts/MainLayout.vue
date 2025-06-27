@@ -62,11 +62,11 @@
                 <q-list bordered separator>
                   <q-item clickable v-ripple @click="gotoEditProfile">
                     <q-item-section avatar><q-icon name="edit" /></q-item-section>
-                    <q-item-section>Editar Perfil</q-item-section>
+                    <q-item-section>{{ t('profile.edit') }}</q-item-section>
                   </q-item>
                   <q-item clickable v-ripple @click="logout">
                     <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
-                    <q-item-section>Sair</q-item-section>
+                    <q-item-section>{{ t('profile.logout') }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -85,20 +85,36 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
 const router = useRouter();
+const { t, locale } = useI18n();
 
-const sections = [
-  { id: 'clients', label: 'Clientes' },
-  { id: 'services', label: 'Serviços' },
-  { id: 'team', label: 'Equipe' },
-  { id: 'contact', label: 'Contato' },
-];
+// Garante que o idioma do i18n segue o localStorage ao montar
+onMounted(() => {
+  const lang = localStorage.getItem('lang') || 'en';
+  if (locale.value !== lang) {
+    locale.value = lang;
+  }
+  // Opcional: redirecionamento automático pela rota do idioma salvo
+  if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+    router.replace(lang === 'pt' ? '/br' : '/en');
+  }
+});
+
+const sections = computed(() => [
+  { id: 'clients', label: t('navbar.clients') },
+  { id: 'services', label: t('navbar.services') },
+  { id: 'team', label: t('navbar.team') },
+  { id: 'contact', label: t('navbar.contact') },
+]);
 
 const isLoggedIn = computed(() => !!localStorage.getItem('user_id'));
-const mostrarBotoes = computed(() => !['/login', '/contacts', '/editUser', '/registerUser'].includes(route.path));
+const mostrarBotoes = computed(
+  () => !['/login', '/contacts', '/editUser', '/registerUser'].includes(route.path),
+);
 
 function getUserData() {
   const raw = localStorage.getItem('usuarioLogado');
@@ -115,7 +131,8 @@ const userName = computed(() => userData.value.usuario || userData.value.name ||
 const initials = computed(() => {
   const name = userName.value.trim();
   if (!name) return 'U';
-  return name.split(' ')
+  return name
+    .split(' ')
     .map((p) => p[0]?.toUpperCase())
     .join('')
     .slice(0, 2);
