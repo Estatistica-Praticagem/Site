@@ -116,7 +116,8 @@ import { Notify } from 'quasar';
 import { contemConteudoProibido } from 'src/utils/InputFilter';
 
 const siteKey = '6Le2FWsrAAAAAB4hzU3lQ5GU1FCSTLBYTlvFaNa7';
-const urlAtual = window.location.href;
+const urlSalva = localStorage.getItem('utm_full_url');
+const urlAtual = urlSalva || window.location.href;
 
 const form = ref({
   nome: '',

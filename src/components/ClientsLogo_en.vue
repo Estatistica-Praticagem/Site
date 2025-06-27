@@ -41,7 +41,7 @@ import TKESrc from 'src/assets/clients/TKE-logo.png';
 
 const partnerLogos = [
   { src: DreamLandSrc, alt: 'DreamLand', link: 'https://www.dreamland.com.br/gramado' },
-  { src: RfillSrc, alt: 'Rfill', link: 'https://frimoveisdeluxo.com.br' },
+  { src: RfillSrc, alt: 'Rfill', link: 'https://www.rfill.co/' },
   { src: RGPilotsSrc, alt: 'RG Pilots', link: 'https://www.rgpilots.com.br' },
   { src: UnisinosSrc, alt: 'Unisinos', link: 'https://www.unisinos.br' },
   { src: ViaMarteSrc, alt: 'Via Marte', link: 'https://www.viamarte.com.br' },

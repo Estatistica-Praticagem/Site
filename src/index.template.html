@@ -17,6 +17,17 @@
     <link rel="icon" type="image/ico" href="favicon.ico">
   </head>
   <body>
+    <script>
+      // Salva a URL completa com os parâmetros UTM (se existirem)
+      if (window.location.search) {
+        localStorage.setItem('utm_full_url', window.location.href);
+
+        // Opcional: também salva os parâmetros UTM separadamente
+        const params = new URLSearchParams(window.location.search);
+        localStorage.setItem('utm_params', JSON.stringify(Object.fromEntries(params.entries())));
+      }
+    </script>
+
     <!-- DO NOT touch the following DIV -->
     <div id="q-app"></div>
   </body>
