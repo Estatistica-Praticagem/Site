@@ -52,7 +52,9 @@
                 </div>
 
                 <p class="client-quote">"{{ c.quote }}"</p>
-                <p class="client-description">{{ c.description }}</p>
+                <div class="client-description">
+  <p v-for="(paragraph, i) in c.description" :key="i">{{ paragraph }}</p>
+</div>
 
                 <p class="client-person q-mt-md">
                   {{ c.person }}
@@ -99,10 +101,14 @@ const clientCards = [
     id: 'rg',
     tabLabel: 'Rio Grande',
     name: 'Rio Grande International Port',
-    quote: 'Real-time tides and currents system with AI.',
-    description:
-      'We developed a complete system to collect climate data from different sources and sensors, training and deploying machine learning models to predict tides and currents.',
-    person: 'Pilot Captain Board',
+    quote: 'Real-time tide and current system with AI.',
+    description: [
+      'Rio Grande International Port.',
+      'We developed a complete system to collect climate data from different sources and sensors, training and applying machine learning models to predict tides and currents.',
+      'Our system delivers real-time predictions 24/7 to enhance port safety, achieving a high degree of accuracy and reliability.',
+      'Since 2020.',
+    ],
+    person: 'Port Pilotage',
     personRole: 'Port Operations',
     img: rgImg,
     icon: rgIcon,
@@ -113,8 +119,12 @@ const clientCards = [
     tabLabel: 'Unisinos',
     name: 'University of Vale do Rio dos Sinos (Unisinos)',
     quote: 'Real-time dashboard.',
-    description:
-      'Partnership to set up customer journey tracking, mapping needs, and configuring GTM, pixels, and dashboards.',
+    description: [
+      'Horizonte BI established a partnership with Unisinos to set up customer journey tracking from scratch — from clearing old settings, mapping needs, and configuring tools like Google Tag Manager, pixels, tags, and buttons to track user behavior at each step of navigation.',
+      'After organizing and configuring Unisinos’ site tracking ecosystem, we created databases via BigQuery and Google Sheets to process media ads.',
+      'The information was made available through an interactive dashboard using Unisinos’ custom taxonomy.',
+      'The result was a complete ecosystem for tracking, storage, and data analysis to support real-time decision-making.',
+    ],
     person: 'Unisinos Team',
     personRole: 'Marketing & Technology',
     img: unisinosImg,
@@ -126,8 +136,12 @@ const clientCards = [
     tabLabel: 'RBA + Via Marte',
     name: 'Via Marte',
     quote: 'Media automation boosting sales by 40%.',
-    description:
-      'We automated media data collection and cross-referenced it with sales, enabling agile decisions to maximize returns.',
+    description: [
+      'Every e-commerce business needs constant visibility into its data to support decision-making.',
+      'In partnership with RBA+, we developed a Data Warehouse and Dashboard for Via Marte — one of the largest footwear e-commerce platforms in southern Brazil.',
+      'We automated data collection from media platforms, organic traffic, and the site, with visualizations of goals, KPIs, and campaign performance.',
+      'The data is updated daily, enabling continuous analysis and quick decisions to maximize sales.',
+    ],
     person: '',
     personRole: 'Digital Marketing',
     img: viaMarteImg,
@@ -138,11 +152,15 @@ const clientCards = [
     id: 'ar',
     tabLabel: 'Agency Rfill',
     name: 'Agency Rfill',
-    quote: 'Real-time luxury property leads.',
-    description:
-      'We automated data collection, dashboards, and lead generation for more effective campaigns.',
-    person: 'Sales Board',
-    personRole: 'Premium Real Estate',
+    quote: 'Real-time leads for luxury properties.',
+    description: [
+      'Rfill aimed to optimize its digital marketing focused on luxury real estate.',
+      'We automated data collection from paid media platforms and forms, ensuring greater reliability in analyses.',
+      'We created centralized databases with taxonomy for campaigns, channels, creatives, and property types.',
+      'Interactive dashboards focused on lead acquisition helped drive faster and more effective decision-making.',
+    ],
+    person: 'Sales Team',
+    personRole: 'High-End Real Estate Market',
     img: rfillImg,
     icon: rfillIcon,
     isVideo: false,
@@ -183,7 +201,7 @@ const clientCards = [
   --tab-color: #ffd4da;
 }
 .ar-bg {
-  background: linear-gradient(135deg, #1d1d1d -30%, #ffffff 100%);
+  background: linear-gradient(135deg, #1d1d1d -20%, #ffffff 140%);
   --title-color: #ffffff;
   --tab-color: #ffffff;
 }

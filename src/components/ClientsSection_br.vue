@@ -52,7 +52,9 @@
                 </div>
 
                 <p class="client-quote">"{{ c.quote }}"</p>
-                <p class="client-description">{{ c.description }}</p>
+                <div class="client-description">
+  <p v-for="(paragraph, i) in c.description" :key="i">{{ paragraph }}</p>
+</div>
 
                 <p class="client-person q-mt-md">
                   {{ c.person }}
@@ -84,10 +86,13 @@
 <script setup>
 import { ref } from 'vue';
 import rgIcon from 'src/assets/clients/logo-rgpilots.png';
-import rgImg from 'src/assets/clients/pilots.png';
-import viaMarteImg from 'src/assets/clients/viamarte.png';
-import rfillVideo from 'src/assets/clients/rfill.png';
-import unisinosImg from 'src/assets/clients/unisinos.jpeg';
+import viaMarteIcon from 'src/assets/clients/viamarteicon.png';
+import rfillIcon from 'src/assets/clients/rfill.png';
+import unisinosIcon from 'src/assets/clients/unisinos.jpeg';
+import rgImg from 'src/assets/image/pilots.png';
+import viaMarteImg from 'src/assets/image/viamarte.png';
+import rfillImg from 'src/assets/image/Refill_branco.png';
+import unisinosImg from 'src/assets/image/Unisinosfundotrasnparente.png';
 
 const clientTab = ref('rg');
 
@@ -95,12 +100,16 @@ const clientCards = [
   {
     id: 'rg',
     tabLabel: 'Rio Grande',
-    name: 'Rio Grande International Port',
-    quote: 'Real-time tides and currents system with AI.',
-    description:
-      'We developed a complete system to collect climate data from different sources and sensors, training and deploying machine learning models to predict tides and currents.',
-    person: 'Pilot Captain Board',
-    personRole: 'Port Operations',
+    name: 'Porto Internacional do Rio Grande',
+    quote: 'Sistema em tempo real de marés e correntes com IA.',
+    description: [
+      'Porto Internacional do Rio Grande.',
+      'Desenvolvemos um sistema completo para coletar dados climáticos de diferentes fontes e sensores, treinando e aplicando modelos de aprendizado de máquina para prever marés e correntes.',
+      'Nosso sistema entrega previsões em tempo real 24 horas por dia para aumentar a segurança portuária, alcançando alto grau de assertividade e confiabilidade.',
+      'Desde 2020.',
+    ],
+    person: 'Praticagem do Porto',
+    personRole: 'Operações Portuárias',
     img: rgImg,
     icon: rgIcon,
     isVideo: false,
@@ -108,40 +117,52 @@ const clientCards = [
   {
     id: 'unisinos',
     tabLabel: 'Unisinos',
-    name: 'University of Vale do Rio dos Sinos (Unisinos)',
-    quote: 'Real-time dashboard.',
-    description:
-      'Partnership to set up customer journey tracking, mapping needs, and configuring GTM, pixels, and dashboards.',
-    person: 'Unisinos Team',
-    personRole: 'Marketing & Technology',
+    name: 'Universidade do Vale do Rio dos Sinos (Unisinos)',
+    quote: 'Dashboard em tempo real.',
+    description: [
+      'A Horizonte BI firmou uma parceria com a Unisinos para configurar do zero o rastreamento da jornada do cliente, desde a limpeza de configurações antigas, mapeamento das necessidades e configuração de ferramentas como Google Tag Manager, pixels, tags e botões para rastrear o comportamento dos usuários em cada etapa da navegação.',
+      'Após a organização e configuração do ecossistema de mapeamento do site da Unisinos, criamos bases de dados via BigQuery e Google Sheets para manipulação dos anúncios de mídia.',
+      'As informações foram disponibilizadas via dashboard interativo com a taxonomia personalizada da Unisinos.',
+      'O resultado foi um ecossistema completo de rastreamento, armazenamento e análise de dados para tomada de decisão em tempo real.',
+    ],
+    person: 'Equipe Unisinos',
+    personRole: 'Marketing & Tecnologia',
     img: unisinosImg,
-    icon: unisinosImg,
+    icon: unisinosIcon,
     isVideo: false,
   },
   {
     id: 'vm',
     tabLabel: 'RBA + Via Marte',
     name: 'Via Marte',
-    quote: 'Media automation boosting sales by 40%.',
-    description:
-      'We automated media data collection and cross-referenced it with sales, enabling agile decisions to maximize returns.',
+    quote: 'Automação de mídia impulsionando vendas em 40%.',
+    description: [
+      'Todo e-commerce precisa de visibilidade constante dos dados para embasar decisões.',
+      'Em parceria com a RBA+, desenvolvemos um Data Warehouse e Dashboard para a Via Marte — um dos maiores e-commerces de calçados do Sul do Brasil.',
+      'Automatizamos a coleta de dados de plataformas de mídia, tráfego orgânico e do site, com visualizações de metas, KPIs e desempenho de campanhas.',
+      'Os dados são atualizados diariamente, permitindo análises constantes e decisões ágeis para maximizar vendas.',
+    ],
     person: '',
-    personRole: 'Digital Marketing',
+    personRole: 'Marketing Digital',
     img: viaMarteImg,
-    icon: viaMarteImg,
+    icon: viaMarteIcon,
     isVideo: false,
   },
   {
     id: 'ar',
     tabLabel: 'Agency Rfill',
     name: 'Agency Rfill',
-    quote: 'Real-time luxury property leads.',
-    description:
-      'We automated data collection, dashboards, and lead generation for more effective campaigns.',
-    person: 'Sales Board',
-    personRole: 'Premium Real Estate',
-    img: rfillVideo,
-    icon: rfillVideo,
+    quote: 'Leads para imóveis de luxo em tempo real.',
+    description: [
+      'A Rfill buscava otimizar seu marketing digital voltado para imóveis de luxo.',
+      'Automatizamos a coleta de dados de plataformas de mídia paga e formulários, garantindo maior confiabilidade nas análises.',
+      'Criamos bases centralizadas com taxonomia para campanhas, canais, criativos e tipos de imóvel.',
+      'Dashboards interativos com foco na captação de leads ajudaram a tomar decisões mais rápidas e eficientes.',
+    ],
+    person: 'Equipe de Vendas',
+    personRole: 'Mercado Imobiliário de Alto Padrão',
+    img: rfillImg,
+    icon: rfillIcon,
     isVideo: false,
   },
 ];
@@ -175,17 +196,17 @@ const clientCards = [
   --tab-color: #003b73;
 }
 .vm-bg {
-  background: linear-gradient(135deg, #904d92 50%, #000000 100%);
+  background: linear-gradient(135deg, #904d92 50%, #0c0c0c 100%);
   --title-color: #ffd4da;
   --tab-color: #ffd4da;
 }
 .ar-bg {
-  background: linear-gradient(135deg, #1d1d1d -30%, #ffffff 100%);
+  background: linear-gradient(135deg, #1d1d1d -20%, #ffffff 140%);
   --title-color: #ffffff;
   --tab-color: #ffffff;
 }
 .unisinos-bg {
-  background: linear-gradient(135deg, #3e84ca -10%, #7536a1 100%);
+  background: linear-gradient(135deg, #7536a1 0%, #3d3d83 100% );
   --title-color: #e4f0fc;
   --tab-color: #e4f0fc;
 }
