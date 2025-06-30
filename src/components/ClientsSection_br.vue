@@ -170,22 +170,22 @@ const clientCards = [
   color: var(--tab-color, #fff) !important;
 }
 .rg-bg {
-  background: linear-gradient(135deg, #d80622 10%, #f7f8f8 70%);
+  background: linear-gradient(135deg, #f52f49 0%, #f7f8f8 70%);
   --title-color: #f1e9e9;
   --tab-color: #003b73;
 }
 .vm-bg {
-  background: linear-gradient(135deg, #904d92 10%, #000000 100%);
+  background: linear-gradient(135deg, #904d92 50%, #000000 100%);
   --title-color: #ffd4da;
   --tab-color: #ffd4da;
 }
 .ar-bg {
-  background: linear-gradient(135deg, #000000 -20%, #ffffff 100%);
+  background: linear-gradient(135deg, #1d1d1d -30%, #ffffff 100%);
   --title-color: #ffffff;
   --tab-color: #ffffff;
 }
 .unisinos-bg {
-  background: linear-gradient(135deg, #0066cc -10%, #6a0dad 100%);
+  background: linear-gradient(135deg, #3e84ca -10%, #7536a1 100%);
   --title-color: #e4f0fc;
   --tab-color: #e4f0fc;
 }

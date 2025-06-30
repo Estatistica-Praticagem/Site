@@ -84,10 +84,13 @@
 <script setup>
 import { ref } from 'vue';
 import rgIcon from 'src/assets/clients/logo-rgpilots.png';
-import rgImg from 'src/assets/clients/pilots.png';
-import viaMarteImg from 'src/assets/clients/viamarte.png';
-import rfillVideo from 'src/assets/clients/rfill.png';
-import unisinosImg from 'src/assets/clients/unisinos.jpeg';
+import viaMarteIcon from 'src/assets/clients/viamarteicon.png';
+import rfillIcon from 'src/assets/clients/rfill.png';
+import unisinosIcon from 'src/assets/clients/unisinos.jpeg';
+import rgImg from 'src/assets/image/pilots.png';
+import viaMarteImg from 'src/assets/image/viamarte.png';
+import rfillImg from 'src/assets/image/Refillfundotransparente.png';
+import unisinosImg from 'src/assets/image/Unisinosgpt.png';
 
 const clientTab = ref('rg');
 
@@ -115,7 +118,7 @@ const clientCards = [
     person: 'Unisinos Team',
     personRole: 'Marketing & Technology',
     img: unisinosImg,
-    icon: unisinosImg,
+    icon: unisinosIcon,
     isVideo: false,
   },
   {
@@ -128,7 +131,7 @@ const clientCards = [
     person: '',
     personRole: 'Digital Marketing',
     img: viaMarteImg,
-    icon: viaMarteImg,
+    icon: viaMarteIcon,
     isVideo: false,
   },
   {
@@ -140,8 +143,8 @@ const clientCards = [
       'We automated data collection, dashboards, and lead generation for more effective campaigns.',
     person: 'Sales Board',
     personRole: 'Premium Real Estate',
-    img: rfillVideo,
-    icon: rfillVideo,
+    img: rfillImg,
+    icon: rfillIcon,
     isVideo: false,
   },
 ];
@@ -170,22 +173,22 @@ const clientCards = [
   color: var(--tab-color, #fff) !important;
 }
 .rg-bg {
-  background: linear-gradient(135deg, #d80622 10%, #f7f8f8 70%);
+  background: linear-gradient(135deg, #f52f49 0%, #f7f8f8 70%);
   --title-color: #f1e9e9;
   --tab-color: #003b73;
 }
 .vm-bg {
-  background: linear-gradient(135deg, #904d92 10%, #000000 100%);
+  background: linear-gradient(135deg, #904d92 50%, #0c0c0c 100%);
   --title-color: #ffd4da;
   --tab-color: #ffd4da;
 }
 .ar-bg {
-  background: linear-gradient(135deg, #000000 -20%, #ffffff 100%);
+  background: linear-gradient(135deg, #1d1d1d -30%, #ffffff 100%);
   --title-color: #ffffff;
   --tab-color: #ffffff;
 }
 .unisinos-bg {
-  background: linear-gradient(135deg, #0066cc -10%, #6a0dad 100%);
+  background: linear-gradient(135deg, #7536a1 0%, #3d3d83 100% );
   --title-color: #e4f0fc;
   --tab-color: #e4f0fc;
 }
