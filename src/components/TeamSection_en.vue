@@ -63,27 +63,28 @@ const teamMembers = [
     id: 'kevi',
     name: 'Kévi Pegoraro',
     role: 'Data Specialist – USA',
-    bio: 'ETL specialist, data modeling, and predictive analytics.',
+    bio: 'Applied mathematician with 6 years of experience in Business Intelligence. Graduated from Calhoun Community College, Alabama, USA.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/kevi.png'),
   },
   {
     id: 'carol',
     name: 'Carolina Schaefer',
-    role: 'Planning Specialist – BR',
-    bio: 'Strategic planning, CRM, and campaign orchestration.',
+    role: 'Planning Specialist – Brazil',
+    bio: 'Specialist in strategic planning, CRM, and campaign orchestration.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/carol.png'),
   },
   {
     id: 'cristian',
     name: 'Cristian P.',
-    role: 'Full-stack Developer',
-    bio: 'Dashboards, integrations, and full-stack automations.',
+    role: 'Full-stack Developer – Brazil',
+    bio: 'Full-stack developer focused on automations, integrations, and custom system architecture and dashboard development.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/cristian.png'),
   },
 ];
+
 </script>
 
 <style scoped>

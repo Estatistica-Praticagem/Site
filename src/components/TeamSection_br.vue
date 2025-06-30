@@ -57,29 +57,28 @@
 import { ref } from 'vue';
 
 const teamTab = ref('kevi');
-
 const teamMembers = [
   {
     id: 'kevi',
     name: 'Kévi Pegoraro',
-    role: 'Data Specialist – USA',
-    bio: 'Especialista em ETL, modelagem de dados e análise preditiva.',
+    role: 'Especialista em Dados – EUA',
+    bio: 'Matemática aplicada com 6 anos de experiência em Business Intelligence. Formação pelo Calhoun Community College, Alabama, EUA.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/kevi.png'),
   },
   {
     id: 'carol',
     name: 'Carolina Schaefer',
-    role: 'Planning Specialist – BR',
-    bio: 'Planejamento estratégico, CRM e orquestração de campanhas.',
+    role: 'Especialista em Planejamento – Brasil',
+    bio: 'Especialista em planejamento estratégico, CRM e orquestração de campanhas.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/carol.png'),
   },
   {
     id: 'cristian',
     name: 'Cristian P.',
-    role: 'Full-stack Developer',
-    bio: 'Dashboards, integrações e automações full-stack.',
+    role: 'Desenvolvedor Full-stack – Brasil',
+    bio: 'Desenvolvedor full-stack com foco em automações, integrações, construção e arquitetura de sistemas personalizados.',
     // eslint-disable-next-line global-require
     img: require('src/assets/image/cristian.png'),
   },

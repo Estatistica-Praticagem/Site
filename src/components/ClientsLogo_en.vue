@@ -40,11 +40,11 @@ import StihlSrc from 'src/assets/clients/Stihl_logo.png';
 import TKESrc from 'src/assets/clients/TKE-logo.png';
 
 const partnerLogos = [
-  { src: DreamLandSrc, alt: 'DreamLand', link: 'https://www.dreamland.com.br/gramado' },
-  { src: RfillSrc, alt: 'Rfill', link: 'https://www.rfill.co/' },
   { src: RGPilotsSrc, alt: 'RG Pilots', link: 'https://www.rgpilots.com.br' },
+  { src: RfillSrc, alt: 'Rfill', link: 'https://www.rfill.co/' },
   { src: UnisinosSrc, alt: 'Unisinos', link: 'https://www.unisinos.br' },
   { src: ViaMarteSrc, alt: 'Via Marte', link: 'https://www.viamarte.com.br' },
+  { src: DreamLandSrc, alt: 'DreamLand', link: 'https://www.dreamland.com.br/gramado' },
   { src: EdenredSrc, alt: 'Edenred', link: 'https://www.edenred.com' },
   { src: OakberrySrc, alt: 'Oakberry', link: 'https://www.oakberry.com' },
   { src: StihlSrc, alt: 'Stihl', link: 'https://loja.stihl.com.br' },
