@@ -1,5 +1,6 @@
 <template>
   <q-page class="q-pa-md">
+
     <!-- Título e controle de limite -->
     <div class="row items-center justify-between q-mb-md">
       <div>
@@ -45,6 +46,35 @@
         </div>
       </q-card-section>
     </q-card>
+
+<div class="row q-col-gutter-md q-mb-lg">
+  <div
+    v-for="info in correntesInfo"
+    :key="info.key"
+    class="col-12 col-sm-6 col-md-4 col-lg-2"
+  >
+    <q-card class="current-card-gauge text-center">
+      <q-card-section>
+        <div class="text-caption text-grey-7 q-mb-xs">{{ info.label }}</div>
+        <div>
+          valor no JSON: <b>{{ rows.length ? rows[0][info.int] : '-' }}</b> m/s
+        </div>
+        <GaugeRelogio
+          :value="parseFloat(rows.length ? rows[0][info.dir] : 0)"
+          :intensidade="parseFloat(rows.length ? rows[0][info.int] : 0)"
+          :max="maxIntensidade[info.key] || 3"
+        />
+        <div class="row justify-center items-center">
+          <span class="text-bold q-mr-xs" style="font-size:1.2em">{{ parseFloat(rows.length ? rows[0][info.int] : 0).toFixed(2) }}</span>
+          <span class="text-caption text-grey-7">m/s</span>
+        </div>
+        <div class="text-caption text-grey-6" style="font-size:.8em">
+          Dir: <b>{{ parseFloat(rows.length ? rows[0][info.dir] : 0).toFixed(1) }}°</b>
+        </div>
+      </q-card-section>
+    </q-card>
+  </div>
+</div>
 
     <!-- Cards de Gráficos -->
     <div class="row q-col-gutter-lg">
@@ -108,6 +138,40 @@
         </q-card>
       </div>
     </div>
+    <!-- Chuva -->
+    <div class="row q-col-gutter-lg q-mt-lg">
+      <div class="col-12 col-md-6">
+        <q-card class="my-chart-card">
+          <q-card-section>
+            <div class="text-h6">Chuva (INMET)</div>
+            <div class="text-caption q-mb-sm">
+              Precipitação horária registrada em Rio Grande. Fundamental para avaliação das condições de segurança de operação e amarração.
+            </div>
+            <div class="chart-container chart-rain">
+              <canvas ref="rainChartCanvas"></canvas>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+      <!-- Rosa dos ventos -->
+      <div class="col-12 col-md-6">
+        <q-card class="my-chart-card">
+          <q-card-section>
+            <div class="text-h6">Rosa dos Ventos — Direção e Intensidade Atuais</div>
+            <div class="text-caption q-mb-sm">
+              A seta indica a direção instantânea do vento (último registro). Cor e comprimento representam intensidade. Veja todos os quadrantes!
+            </div>
+            <div class="chart-container chart-rose">
+              <WindRose
+                :direction="parseFloat(last('ventonum'))"
+                :intensidade="parseFloat(last('ventointensidade'))"
+                :max="maxIntensidade.wind"
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
 
     <!-- Tabela (com busca, scroll, compacta) -->
     <q-card class="q-mt-xl">
@@ -148,7 +212,11 @@ import {
   CategoryScale, LinearScale, TimeScale, RadialLinearScale, Filler, Tooltip, Legend,
   PolarAreaController, ArcElement,
 } from 'chart.js';
-import 'chartjs-adapter-date-fns';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+import WindRose from 'components/WindRose.vue';
+import GaugeRelogio from 'components/GaugeRelogio.vue';
 
 Chart.register(
   LineController,
@@ -169,6 +237,53 @@ Chart.register(
 
 const $q = useQuasar();
 
+// Dados de correnteza: todas as profundidades!
+const correntesInfo = [
+  {
+    key: 'corr_15m', label: 'Correnteza 15m', dir: 'direcao_15m', int: 'intensidade_15m',
+  },
+  {
+    key: 'corr_13_5m', label: 'Correnteza 13,5m', dir: 'direcao_13_5m', int: 'intensidade_13_5m',
+  },
+  {
+    key: 'corr_12m', label: 'Correnteza 12m', dir: 'direcao_12m', int: 'intensidade_12m',
+  },
+  {
+    key: 'corr_10_5m', label: 'Correnteza 10,5m', dir: 'direcao_10_5m', int: 'intensidade_10_5m',
+  },
+  {
+    key: 'corr_9m', label: 'Correnteza 9m', dir: 'direcao_9m', int: 'intensidade_9m',
+  },
+  {
+    key: 'corr_7_5m', label: 'Correnteza 7,5m', dir: 'direcao_7_5m', int: 'intensidade_7_5m',
+  },
+  {
+    key: 'corr_6m', label: 'Correnteza 6m', dir: 'direcao_6m', int: 'intensidade_6m',
+  },
+  {
+    key: 'corr_3m', label: 'Correnteza 3m', dir: 'direcao_3m', int: 'intensidade_3m',
+  },
+  {
+    key: 'corr_1_5m', label: 'Correnteza 1,5m', dir: 'direcao_1_5m', int: 'intensidade_1_5m',
+  },
+  {
+    key: 'corr_superficie', label: 'Correnteza Sup.', dir: 'direcao_superficie', int: 'intensidade_superficie',
+  },
+];
+const maxIntensidade = {
+  corr_15m: 2.5,
+  corr_13_5m: 2.5,
+  corr_12m: 2.5,
+  corr_10_5m: 2.5,
+  corr_9m: 2.5,
+  corr_7_5m: 2.5,
+  corr_6m: 2.5,
+  corr_3m: 2.5,
+  corr_1_5m: 2.5,
+  corr_superficie: 2.5,
+  wind: 10,
+};
+
 const rows = ref([]);
 const columns = ref([]);
 const loading = ref(true);
@@ -180,11 +295,13 @@ const tideChartCanvas = ref(null);
 const meteoChartCanvas = ref(null);
 const windChartCanvas = ref(null);
 const airChartCanvas = ref(null);
+const rainChartCanvas = ref(null);
 
 let tideChartInstance = null;
 let meteoChartInstance = null;
 let windChartInstance = null;
 let airChartInstance = null;
+let rainChartInstance = null;
 
 function flattenDates(row) {
   const flat = { ...row };
@@ -205,8 +322,6 @@ function buildColumns(sampleRow) {
     sortable: true,
   }));
 }
-
-// Helper para o painel de resumo rápido
 function last(field) {
   if (!rows.value.length) return '--';
   const v = rows.value[0][field];
@@ -218,7 +333,7 @@ function last(field) {
 function renderTideChart(data) {
   if (!tideChartCanvas.value) return;
   if (tideChartInstance) tideChartInstance.destroy();
-  const labels = data.map((r) => r.timestamp_br);
+  const labels = data.map((r) => format(new Date(r.timestamp_br), 'dd/MM HH:mm', { locale: ptBR }));
   tideChartInstance = new Chart(tideChartCanvas.value, {
     type: 'line',
     data: {
@@ -260,7 +375,21 @@ function renderTideChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm' }, title: { display: true, text: 'Hora' } },
+        x: {
+          type: 'category',
+          ticks: {
+            callback: (val, idx, arr) => {
+              const { label } = arr[idx];
+              if (!label) return '';
+              const showMinutes = arr.length <= 48;
+              return showMinutes ? label : `${label.slice(0, 5)}...`;
+            },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 16,
+          },
+          title: { display: true, text: 'Hora' },
+        },
         y: { title: { display: true, text: 'Altura (m)' } },
       },
     },
@@ -271,7 +400,7 @@ function renderTideChart(data) {
 function renderMeteoChart(data) {
   if (!meteoChartCanvas.value) return;
   if (meteoChartInstance) meteoChartInstance.destroy();
-  const labels = data.map((r) => r.timestamp_br);
+  const labels = data.map((r) => format(new Date(r.timestamp_br), 'dd/MM HH:mm', { locale: ptBR }));
   meteoChartInstance = new Chart(meteoChartCanvas.value, {
     type: 'line',
     data: {
@@ -293,7 +422,21 @@ function renderMeteoChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm' }, title: { display: true, text: 'Hora' } },
+        x: {
+          type: 'category',
+          ticks: {
+            callback: (val, idx, arr) => {
+              const { label } = arr[idx];
+              if (!label) return '';
+              const showMinutes = arr.length <= 48;
+              return showMinutes ? label : `${label.slice(0, 5)}...`;
+            },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 16,
+          },
+          title: { display: true, text: 'Hora' },
+        },
         y1: { position: 'left', title: { display: true, text: 'Temperatura' }, grid: { drawOnChartArea: false } },
         y2: { position: 'right', title: { display: true, text: 'Umidade' }, grid: { drawOnChartArea: false } },
         y3: { position: 'right', title: { display: true, text: 'Pressão' }, grid: { drawOnChartArea: false } },
@@ -306,7 +449,7 @@ function renderMeteoChart(data) {
 function renderWindChart(data) {
   if (!windChartCanvas.value) return;
   if (windChartInstance) windChartInstance.destroy();
-  const labels = data.map((r) => r.timestamp_br);
+  const labels = data.map((r) => format(new Date(r.timestamp_br), 'dd/MM HH:mm', { locale: ptBR }));
   windChartInstance = new Chart(windChartCanvas.value, {
     type: 'bar',
     data: {
@@ -334,7 +477,21 @@ function renderWindChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { title: { display: true, text: 'Hora' } },
+        x: {
+          type: 'category',
+          ticks: {
+            callback: (val, idx, arr) => {
+              const { label } = arr[idx];
+              if (!label) return '';
+              const showMinutes = arr.length <= 48;
+              return showMinutes ? label : `${label.slice(0, 5)}...`;
+            },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 16,
+          },
+          title: { display: true, text: 'Hora' },
+        },
         y: { beginAtZero: true, title: { display: true, text: 'Intensidade (m/s)' } },
         y2: {
           position: 'right', beginAtZero: true, title: { display: true, text: 'Direção (°)' }, grid: { drawOnChartArea: false },
@@ -348,7 +505,7 @@ function renderWindChart(data) {
 function renderAirChart(data) {
   if (!airChartCanvas.value) return;
   if (airChartInstance) airChartInstance.destroy();
-  const labels = data.map((r) => r.timestamp_br);
+  const labels = data.map((r) => format(new Date(r.timestamp_br), 'dd/MM HH:mm', { locale: ptBR }));
   airChartInstance = new Chart(airChartCanvas.value, {
     type: 'bar',
     data: {
@@ -370,6 +527,50 @@ function renderAirChart(data) {
   });
 }
 
+// --- Gráfico de Chuva ---
+function renderRainChart(data) {
+  if (!rainChartCanvas.value) return;
+  if (rainChartInstance) rainChartInstance.destroy();
+  const labels = data.map((r) => format(new Date(r.timestamp_br), 'dd/MM HH:mm', { locale: ptBR }));
+  rainChartInstance = new Chart(rainChartCanvas.value, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Chuva (mm/h)',
+          data: data.map((r) => r.chuva_inmet),
+          backgroundColor: '#1565c0b8',
+          borderRadius: 2,
+        },
+      ],
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } },
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: 'category',
+          ticks: {
+            callback: (val, idx, arr) => {
+              const { label } = arr[idx];
+              if (!label) return '';
+              const showMinutes = arr.length <= 48;
+              return showMinutes ? label : `${label.slice(0, 5)}...`;
+            },
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 16,
+          },
+          title: { display: true, text: 'Hora' },
+        },
+        y: { beginAtZero: true, title: { display: true, text: 'mm/h' } },
+      },
+    },
+  });
+}
+
 onMounted(async () => {
   try {
     const response = await fetch(`/kevi/backend/get_table_mestre_hour_tratada_bq.php?limit=${rowsPerPage.value}`);
@@ -383,6 +584,7 @@ onMounted(async () => {
       renderMeteoChart(ordered);
       renderWindChart(ordered);
       renderAirChart(ordered);
+      renderRainChart(ordered);
     } else {
       $q.notify({ type: 'warning', message: 'Nenhum dado retornado.' });
     }
@@ -403,22 +605,30 @@ onMounted(async () => {
 }
 .chart-container {
   width: 100%;
-  height: 240px;        /* altura padrão para todos */
-  min-height: 120px;
-  max-height: 320px;
+  min-height: 150px;
+  max-height: 420px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.chart-tide    { height: 300px; max-width: 98%; }
-.chart-meteo   { height: 400px; max-width: 98%; }
-.chart-wind    { height: 400px; max-width: 98%; }
+.chart-tide    { height: 340px; max-width: 98%; }
+.chart-meteo   { height: 380px; max-width: 98%; }
+.chart-wind    { height: 380px; max-width: 98%; }
 .chart-air     { height: 300px; max-width: 98%; }
-/* Responsividade para mobile */
+.chart-rain    { height: 240px; max-width: 98%; }
+.chart-rose    { height: 260px; max-width: 98%; }
 @media (max-width: 900px) {
-  .chart-container { height: 160px; }
-  .chart-tide, .chart-meteo, .chart-wind, .chart-air { height: 140px; }
+  .chart-container { height: 120px; }
+  .chart-tide, .chart-meteo, .chart-wind, .chart-air, .chart-rain, .chart-rose { height: 120px; }
 }
+.current-card-gauge {
+  background: #f9fafc;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 #bcd6e222;
+  margin-bottom: 12px;
+}
+.gauge-svg { display: block; margin: auto; }
+.rose-svg { display: block; margin: auto; }
 .q-table tbody td {
   padding: 4px 8px;
   font-size: 0.85rem;
