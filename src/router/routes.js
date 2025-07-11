@@ -34,6 +34,10 @@ const routes = [
         component: () => import('src/pages/UserRegisterPage.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: '/mestre-hour',
+        component: () => import('pages/mestreHourTratada.vue'),
+      },
     ],
   },
 
