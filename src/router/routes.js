@@ -36,7 +36,11 @@ const routes = [
       },
       {
         path: '/mestre-hour',
-        component: () => import('pages/mestreHourTratada.vue'),
+        component: () => import('pages/praticagem/mestreHourTratada.vue'),
+      },
+      {
+        path: '/weatherNow',
+        component: () => import('pages/praticagem/weatherNow.vue'),
       },
     ],
   },

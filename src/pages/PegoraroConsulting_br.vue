@@ -39,15 +39,15 @@
 
 <script setup>
 
-import HeroSection from 'src/components/HeroSection_br.vue';
+import HeroSection from 'src/components/orizzontte/HeroSection_br.vue';
 // import SkillsVideoSection from 'src/components/SkillsVideoSection.vue';
 // import DataSection from 'src/components/DataSection.vue';
-import ServicesSection from 'src/components/ServicesSection_br.vue';
-import ClientsSection from 'src/components/ClientsSection_br.vue';
-import TeamSection from 'src/components/TeamSection_br.vue';
-import ContactSection from 'src/components/ContactSection_br.vue';
-import ContactForm from 'src/components/ContactForm_br.vue';
-import ClientsLogo from 'src/components/ClientsLogo_br.vue';
+import ServicesSection from 'src/components/orizzontte/ServicesSection_br.vue';
+import ClientsSection from 'src/components/orizzontte/ClientsSection_br.vue';
+import TeamSection from 'src/components/orizzontte/TeamSection_br.vue';
+import ContactSection from 'src/components/orizzontte/ContactSection_br.vue';
+import ContactForm from 'src/components/orizzontte/ContactForm_br.vue';
+import ClientsLogo from 'src/components/orizzontte/ClientsLogo_br.vue';
 
 </script>
 

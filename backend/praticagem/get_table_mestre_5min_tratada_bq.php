@@ -1,7 +1,9 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+// Se estiver em praticagem/arquivo.php, dirname(__DIR__) volta para a raiz
+
 use Google\Cloud\BigQuery\BigQueryClient;
 
 /* ─────────────── CORS ─────────────────────────────── */
@@ -57,7 +59,7 @@ $bq = new BigQueryClient([
 /* ─────────── Consulta SQL ─────────────────────────── */
 $sql = "
   SELECT *
-  FROM `local-bliss-359814.wherehouse_tratado.mestre_hour_tratada`
+  FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
   ORDER BY timestamp_br DESC
   LIMIT $limit
 ";
