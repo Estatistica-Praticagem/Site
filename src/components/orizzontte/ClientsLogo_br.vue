@@ -1,7 +1,7 @@
 <template>
   <section id="footer" class="section-footer">
     <div class="footer-container">
-      <h2 class="text-h4 text-center q-mb-md">Parceiros</h2>
+      <h2 class="text-h4 text-center q-mb-md" style="color: aliceblue;">Parceiros</h2>
       <div class="footer-social row wrap items-center justify-center">
         <div v-for="logo in partnerLogos" :key="logo.alt" class="footer-card">
           <q-btn

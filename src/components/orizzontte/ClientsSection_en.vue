@@ -6,7 +6,7 @@
     :class="['section-clients', `${clientTab}-bg`]"
   >
     <div class="section-inner">
-      <h2 class="section-title text-center text-h4 q-mb-md">Grandes Clientes</h2>
+      <h2 class="section-title text-center text-h4 q-mb-md">Main Clients</h2>
 
       <q-tabs
         v-model="clientTab"

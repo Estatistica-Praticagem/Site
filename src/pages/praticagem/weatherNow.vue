@@ -1,61 +1,70 @@
 <template>
-  <q-page class="flex flex-center" style="min-height:100vh; background:#fff;">
-    <div class="cond-root">
-      <!-- 1. TÍTULO CENTRALIZADO -->
-      <div class="cond-title-wrap">
-        <span class="cond-title">Condições atuais:</span>
-      </div>
-      <div class="cond-content-row">
-        <!-- 2. BLOCO TABELA -->
-        <div class="cond-tabela-wrap">
-          <div class="cond-tarja">
-            <img src="/icons/station.svg" height="22" style="margin-right:7px;" />
-            ESTAÇÃO METEOROLÓGICA
-          </div>
-          <table class="cond-table">
-            <tr>
-              <th>TEMPERATURA</th>
-              <th>SENSAÇÃO TÉRMICA</th>
-            </tr>
-            <tr>
-              <td>{{ meteo.temperatura ?? '--' }}</td>
-              <td>{{ meteo.sensacaotermica ?? '--' }}</td>
-            </tr>
-            <tr>
-              <th>VENTO</th>
-              <th>PRESSÃO</th>
-            </tr>
-            <tr>
-              <td>{{ meteo.ventointensidade ?? '--' }} kt {{ meteo.ventodirecao ?? '--' }}</td>
-              <td>{{ meteo.pressao ?? '--' }} mb</td>
-            </tr>
-            <tr>
-              <th>UMIDADE</th>
-              <th>LEITURA</th>
-            </tr>
-            <tr>
-              <td>{{ meteo.umidade ?? '--' }}%</td>
-              <td>{{ meteo.leitura ?? '--' }}</td>
-            </tr>
-          </table>
+  <q-page class="flex flex-center" style="min-height: 100vh;">
+    <q-card
+      class="row no-wrap q-pa-none shadow-2"
+      style="background:#f8e3e7;min-height:150px;max-width:750px;width:100%;"
+      v-if="!!meteo"
+    >
+      <!-- Coluna de dados -->
+      <div class="col q-pa-md">
+        <div class="text-h6 q-mb-xs">
+          <q-icon name="cloud" class="q-mr-xs" />Condições atuais:
         </div>
-        <!-- 3. BLOCO RELÓGIO -->
-        <div class="cond-gauge-block">
-          <div class="cond-gauge-outer">
-            <GaugeRelogio
-              :value="Number(meteo.direcao_3m) || 0"
-              :intensidade="Number(meteo.intensidade_3m) || 0"
-              :max="5"
-              style="height:138px;width:138px;"
-            />
+        <div class="text-caption text-grey-7 q-mb-xs">ESTAÇÃO METEOROLÓGICA</div>
+        <div class="row q-gutter-md">
+          <div>
+            <div class="text-caption">TEMPERATURA</div>
+            <div class="text-bold">{{ meteo.temperatura ?? '--' }}°</div>
           </div>
-          <div class="cond-gauge-label">
-            Corrente [3m]
-            <!-- <span class="cond-gauge-knots">({{ meteo.intensidade_3m ?? '--' }} knots)</span> -->
+          <div>
+            <div class="text-caption">SENSAÇÃO TÉRMICA</div>
+            <div class="text-bold">{{ meteo.sensacao ?? '--' }}°</div>
+          </div>
+          <div>
+            <div class="text-caption">VENTO</div>
+            <div class="text-bold">
+              {{ meteo.vento_int ?? '--' }} kt {{ meteo.vento_dir ?? '--' }}
+            </div>
+          </div>
+          <div>
+            <div class="text-caption">PRESSÃO</div>
+            <div class="text-bold">{{ meteo.pressao ?? '--' }} mb</div>
+          </div>
+        </div>
+        <div class="row q-mt-sm">
+          <div class="q-mr-md">
+            <div class="text-caption">UMIDADE</div>
+            <div class="text-bold">{{ meteo.umidade ?? '--' }}%</div>
+          </div>
+          <div>
+            <div class="text-caption">LEITURA</div>
+            <div class="text-bold">{{ meteo.leitura ?? '--' }}</div>
           </div>
         </div>
       </div>
-    </div>
+      <!-- Corrente 3m Gauge -->
+      <div class="col-auto flex flex-center bg-white q-px-lg" style="min-width:220px;">
+        <div class="text-subtitle2 text-grey-7">Corrente [3m]</div>
+        <div>
+          <GaugeRelogio
+            :value="Number(meteo.corrente_dir) || 0"
+            :intensidade="Number(meteo.corrente_int) || 0"
+            :max="5"
+            style="height:110px; width:110px;"
+          />
+          <div class="row justify-between items-center q-mt-sm" style="font-size:1.1em;">
+            <div>
+              <div class="text-caption">Dir09 (deg)</div>
+              <div>{{ meteo.corrente_dir ?? '--' }}</div>
+            </div>
+            <div class="q-ml-lg">
+              <div class="text-caption">Int09 (knots)</div>
+              <div>{{ meteo.corrente_int ?? '--' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </q-card>
     <q-inner-loading :showing="loading" color="pink-5" />
   </q-page>
 </template>
@@ -67,9 +76,10 @@ import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
 
 const $q = useQuasar();
 const loading = ref(true);
-const meteo = ref({});
+const meteo = ref(null);
 
-const ENDPOINT = '/kevi/backend/praticagem/get_table_mestre_hour_tratada_bq.php?limit=1';
+// AJUSTE para seu endpoint real! Pegando só o registro mais recente (limit=1).
+const ENDPOINT = '/kevi/backend/praticagem/get_table_mestre__tratada_bq.php?limit=1';
 
 onMounted(async () => {
   loading.value = true;
@@ -78,24 +88,27 @@ onMounted(async () => {
     const json = await res.json();
     if (json.success && json.data && json.data.length) {
       const row = json.data[0];
+      // Ajuste os campos de acordo com o que o seu backend retorna!
       meteo.value = {
         temperatura: row.temperatura,
-        sensacaotermica: row.sensacaotermica ?? row.sensacao_termica ?? row.sensacao,
-        ventointensidade: row.ventointensidade,
-        ventodirecao: row.ventodirecao ?? row.ventonum,
+        sensacao: row.sensacao_termica ?? row.sensacao, // tente as duas
+        vento_int: row.ventointensidade ?? row.vento_int,
+        vento_dir: row.ventodir ?? row.ventonum ?? row.vento_dir,
         pressao: row.pressao,
         umidade: row.umidade,
-        leitura: row.timestamp_br?.date
-          ? row.timestamp_br.date.replace(' 00:00:00.000000', '')
+        leitura: row.timestamp_br
+          ? new Date(row.timestamp_br).toLocaleString('pt-BR')
           : (row.leitura ?? '--'),
-        direcao_3m: row.direcao_3m,
-        intensidade_3m: row.intensidade_3m,
+        corrente_dir: row.direcao_3m ?? row.corrente_dir,
+        corrente_int: row.intensidade_3m ?? row.corrente_int,
       };
     } else {
+      meteo.value = null;
       $q.notify({ type: 'warning', message: 'Dados não disponíveis.' });
     }
   } catch (e) {
     $q.notify({ type: 'negative', message: 'Erro ao buscar condições atuais.' });
+    meteo.value = null;
     // eslint-disable-next-line
     console.error(e)
   }
@@ -104,120 +117,5 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.cond-root {
-  background: #fff;
-  border-radius: 8px;
-  min-width: 310px;
-  max-width: 740px;
-  box-shadow: 0 1px 8px 0 #e0e0e044;
-  border: 1.5px solid #e0d4d6;
-  padding-bottom: 10px;
-  margin: 0 auto;
-}
-.cond-title-wrap {
-  width: 100%;
-  background: #e2b8c3;
-  padding: 10px 0 8px 0;
-  border-radius: 7px 7px 0 0;
-  text-align: center;
-  margin-bottom: 2px;
-}
-.cond-title {
-  font-size: 1.25em;
-  font-weight: 700;
-  letter-spacing: .01em;
-  color: #31161d;
-  text-align: center;
-}
-.cond-content-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 22px;
-  padding: 16px 18px 6px 18px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.cond-tabela-wrap {
-  width: 255px;
-  flex-shrink: 0;
-}
-.cond-tarja {
-  background: #111;
-  color: #fff;
-  font-size: 1em;
-  font-weight: 600;
-  padding: 2.5px 12px 2.5px 2px;
-  border-radius: 3px;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  letter-spacing: .04em;
-}
-.cond-table {
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 1.02em;
-  background: #fff;
-}
-.cond-table th, .cond-table td {
-  border: 1px solid #c4c3c2;
-  padding: 3.5px 9px;
-  text-align: center;
-  font-weight: 500;
-}
-.cond-table th {
-  background: #f6f6f6;
-  color: #222;
-  font-size: .99em;
-  font-weight: 700;
-}
-.cond-gauge-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-start;
-  background: #fafbfa;
-  border-radius: 12px;
-  box-shadow: 0 1px 5px 0 #bcd6e255;
-  padding: 12px 19px 10px 19px;
-  margin: 0 2px;
-  min-width: 186px;
-  width: 200px;
-}
-.cond-gauge-outer {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.cond-gauge-label {
-  font-size: 1.10em;
-  font-weight: 700;
-  color: #555;
-  margin-top: 7px;
-  margin-right: 2px;
-  letter-spacing: .02em;
-  text-align: right;
-  width: 100%;
-}
-.cond-gauge-knots {
-  font-size: .98em;
-  font-weight: 600;
-  color: #444;
-  margin-left: 8px;
-  opacity: 0.9;
-}
-@media (max-width: 830px) {
-  .cond-root { min-width: 99vw; max-width: 99vw; }
-  .cond-content-row { flex-direction: column; gap: 8px; align-items: center; }
-  .cond-tabela-wrap { width: 98vw; max-width: 500px; margin-bottom: 8px;}
-  .cond-gauge-block { align-items: center; width: 100%; min-width: unset; margin: 0 auto;}
-  .cond-gauge-label { text-align: center; margin-top: 8px;}
-}
-@media (max-width: 450px) {
-  .cond-root { min-width: 100vw; max-width: 100vw; border: none; }
-  .cond-tabela-wrap { max-width: 97vw; }
-  .cond-gauge-block { padding: 8px 2vw 8px 2vw; }
-}
+.text-bold { font-weight: bold; }
 </style>

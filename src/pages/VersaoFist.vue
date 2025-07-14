@@ -214,7 +214,7 @@
         <div class="row justify-center items-center q-gutter-lg">
           <div>
             <q-btn outline color="white" icon="email" label="E-mail" @click="mailto" />
-            <div class="text-caption text-white q-mt-xs">horizontetbi@gmail.com</div>
+            <div class="text-caption text-white q-mt-xs">horizontetbi.contato@gmail.com</div>
           </div>
           <div>
             <q-btn outline color="white" icon="linkedin" label="LinkedIn" @click="linkedin" />
@@ -355,7 +355,7 @@ function abrirFormulario() {
   // eslint-disable-next-line no-use-before-define
   setTimeout(() => scrollTo('contact'), 10);
 }
-function mailto() { window.open('mailto:horizontetbi@gmail.com', '_blank'); }
+function mailto() { window.open('mailto:horizontetbi.contato@gmail.com', '_blank'); }
 function linkedin() { window.open('https://linkedin.com/company/horizontebi', '_blank'); }
 function scrollTo(id) {
   const el = document.getElementById(id);
