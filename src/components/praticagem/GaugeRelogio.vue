@@ -24,7 +24,7 @@
     <text x="55" y="60" text-anchor="middle" font-size="17" fill="#333" font-weight="bold">
       {{ intVal }}
     </text>
-    <text x="55" y="74" text-anchor="middle" font-size="10" fill="#789">m/s</text>
+    <text x="55" y="74" text-anchor="middle" font-size="10" fill="#789">kt</text>
     <text x="55" y="90" text-anchor="middle" font-size="11" fill="#888">{{ grau }}°</text>
     <text x="55" y="15" text-anchor="middle" font-size="9" fill="#1976d2">N</text>
     <text x="55" y="104" text-anchor="middle" font-size="9" fill="#1976d2">S</text>

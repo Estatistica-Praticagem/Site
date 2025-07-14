@@ -1,14 +1,13 @@
 <template>
   <q-page class="flex flex-center" style="min-height:100vh; background:#fff;">
-    <div class="cond-card-root">
-      <!-- Faixa rosa superior com título -->
-      <div class="cond-header">
+    <div class="cond-root">
+      <!-- 1. TÍTULO CENTRALIZADO -->
+      <div class="cond-title-wrap">
         <span class="cond-title">Condições atuais:</span>
       </div>
       <div class="cond-content-row">
-        <!-- Esquerda: tabela de dados -->
+        <!-- 2. BLOCO TABELA -->
         <div class="cond-tabela-wrap">
-          <!-- Tarja preta -->
           <div class="cond-tarja">
             <img src="/icons/station.svg" height="22" style="margin-right:7px;" />
             ESTAÇÃO METEOROLÓGICA
@@ -40,15 +39,20 @@
             </tr>
           </table>
         </div>
-        <!-- Centro: Gauge maior -->
+        <!-- 3. BLOCO RELÓGIO -->
         <div class="cond-gauge-block">
-          <GaugeRelogio
-            :value="Number(meteo.direcao_3m) || 0"
-            :intensidade="Number(meteo.intensidade_3m) || 0"
-            :max="5"
-            style="height:142px;width:142px;"
-          />
-          <div class="cond-gauge-label">Corrente [3m]</div>
+          <div class="cond-gauge-outer">
+            <GaugeRelogio
+              :value="Number(meteo.direcao_3m) || 0"
+              :intensidade="Number(meteo.intensidade_3m) || 0"
+              :max="5"
+              style="height:138px;width:138px;"
+            />
+          </div>
+          <div class="cond-gauge-label">
+            Corrente [3m]
+            <!-- <span class="cond-gauge-knots">({{ meteo.intensidade_3m ?? '--' }} knots)</span> -->
+          </div>
         </div>
       </div>
     </div>
@@ -65,7 +69,6 @@ const $q = useQuasar();
 const loading = ref(true);
 const meteo = ref({});
 
-// Pegue só o dado mais recente!
 const ENDPOINT = '/kevi/backend/praticagem/get_table_mestre_hour_tratada_bq.php?limit=1';
 
 onMounted(async () => {
@@ -77,13 +80,13 @@ onMounted(async () => {
       const row = json.data[0];
       meteo.value = {
         temperatura: row.temperatura,
-        sensacaotermica: row.sensacaotermica ?? row.sensacao_termica ?? row.sensacao, // diferentes nomes possíveis
+        sensacaotermica: row.sensacaotermica ?? row.sensacao_termica ?? row.sensacao,
         ventointensidade: row.ventointensidade,
         ventodirecao: row.ventodirecao ?? row.ventonum,
         pressao: row.pressao,
         umidade: row.umidade,
         leitura: row.timestamp_br?.date
-          ? row.timestamp_br.date.replace(' 00:00:00.000000', '') // limpa microsegundos
+          ? row.timestamp_br.date.replace(' 00:00:00.000000', '')
           : (row.leitura ?? '--'),
         direcao_3m: row.direcao_3m,
         intensidade_3m: row.intensidade_3m,
@@ -101,34 +104,39 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.cond-card-root {
+.cond-root {
   background: #fff;
   border-radius: 8px;
-  min-width: 610px;
+  min-width: 310px;
   max-width: 740px;
   box-shadow: 0 1px 8px 0 #e0e0e044;
   border: 1.5px solid #e0d4d6;
   padding-bottom: 10px;
+  margin: 0 auto;
 }
-.cond-header {
+.cond-title-wrap {
   width: 100%;
   background: #e2b8c3;
-  padding: 8px 18px 4px 13px;
-  border-radius: 6px 6px 0 0;
-  font-size: 1.25em;
-  font-weight: 600;
-  letter-spacing: .01em;
-  color: #31161d;
+  padding: 10px 0 8px 0;
+  border-radius: 7px 7px 0 0;
+  text-align: center;
+  margin-bottom: 2px;
 }
 .cond-title {
-  font-size: 1.22em;
+  font-size: 1.25em;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: #31161d;
+  text-align: center;
 }
 .cond-content-row {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  gap: 16px;
-  padding: 8px 12px 2px 13px;
+  gap: 22px;
+  padding: 16px 18px 6px 18px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .cond-tabela-wrap {
   width: 255px;
@@ -172,22 +180,44 @@ onMounted(async () => {
   background: #fafbfa;
   border-radius: 12px;
   box-shadow: 0 1px 5px 0 #bcd6e255;
-  padding: 6px 15px 8px 15px;
+  padding: 12px 19px 10px 19px;
   margin: 0 2px;
-  min-width: 170px;
+  min-width: 186px;
+  width: 200px;
+}
+.cond-gauge-outer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .cond-gauge-label {
-  font-size: 1.08em;
+  font-size: 1.10em;
   font-weight: 700;
   color: #555;
-  margin-top: 5px;
+  margin-top: 7px;
   margin-right: 2px;
-  letter-spacing: .03em;
+  letter-spacing: .02em;
   text-align: right;
+  width: 100%;
+}
+.cond-gauge-knots {
+  font-size: .98em;
+  font-weight: 600;
+  color: #444;
+  margin-left: 8px;
+  opacity: 0.9;
 }
 @media (max-width: 830px) {
-  .cond-card-root { min-width: 98vw; max-width: 99vw; }
-  .cond-content-row { flex-direction: column; gap: 2px; }
-  .cond-gauge-block { margin: 14px auto 5px; }
+  .cond-root { min-width: 99vw; max-width: 99vw; }
+  .cond-content-row { flex-direction: column; gap: 8px; align-items: center; }
+  .cond-tabela-wrap { width: 98vw; max-width: 500px; margin-bottom: 8px;}
+  .cond-gauge-block { align-items: center; width: 100%; min-width: unset; margin: 0 auto;}
+  .cond-gauge-label { text-align: center; margin-top: 8px;}
+}
+@media (max-width: 450px) {
+  .cond-root { min-width: 100vw; max-width: 100vw; border: none; }
+  .cond-tabela-wrap { max-width: 97vw; }
+  .cond-gauge-block { padding: 8px 2vw 8px 2vw; }
 }
 </style>
