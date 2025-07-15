@@ -28,6 +28,7 @@ module.exports = configure((ctx) => ({
   boot: [
     'i18n',
     'gtm',
+    'pinia',
   ],
 
   // https://v2.quasar.dev/quasar-cli-webpack/quasar-config-js#Property%3A-css
