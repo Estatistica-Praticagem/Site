@@ -71,7 +71,7 @@ onUnmounted(() => window.removeEventListener('resize', updateIsMobile));
 
 // Gráfico responsivo: diminui/tira bolinhas se mobile
 const chartData = computed(() => {
-  const dataset = weatherHistory.value || [];
+  const dataset = (weatherHistory.value || []).slice().reverse();
   const pointRadius = isMobile.value ? 0 : 2; // <-- ajusta tamanho do ponto
   const labels = dataset.map(
     (item) => item.timestamp_br?.date?.slice(11, 16)
