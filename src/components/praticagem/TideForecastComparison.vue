@@ -4,21 +4,39 @@
       <div class="text-h6 text-primary text-weight-bold">
         Comparação de Maré (Marinha x Medida x GA)
       </div>
-      <q-btn-toggle
-        v-model="viewType"
-        spread
-        toggle-color="primary"
-        :options="[
-          { label: 'Gráfico', value: 'chart', icon: 'show_chart' },
-          { label: 'Tabela', value: 'table', icon: 'table_chart' }
-        ]"
-        size="sm"
-        class="tide-toggle"
-      />
+      <div class="row items-center q-gutter-sm">
+        <!-- Radio para mostrar bolinhas -->
+        <q-option-group
+          v-model="showPoints"
+          :options="[
+            { label: 'Com bolinhas', value: true },
+            { label: 'Sem bolinhas', value: false }
+          ]"
+          type="radio"
+          color="primary"
+          inline
+        />
+        <!-- Tipo de visualização -->
+        <q-btn-toggle
+          v-model="viewType"
+          spread
+          toggle-color="primary"
+          :options="[
+            { label: 'Gráfico Linha', value: 'chart', icon: 'show_chart' },
+            { label: 'Gráfico Barras', value: 'bar', icon: 'bar_chart' },
+            { label: 'Tabela', value: 'table', icon: 'table_chart' }
+          ]"
+          size="sm"
+          class="tide-toggle"
+        />
+      </div>
     </div>
 
     <div v-if="viewType === 'chart'" class="tide-chart-container">
       <Line :data="chartData" :options="chartOptions" :height="320"/>
+    </div>
+    <div v-else-if="viewType === 'bar'" class="tide-chart-container">
+      <Bar :data="chartData" :options="barChartOptions" :height="320"/>
     </div>
     <div v-else>
       <q-table
@@ -46,37 +64,34 @@ import {
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
-import { Line } from 'vue-chartjs';
+import { Line, Bar } from 'vue-chartjs';
 import {
-  Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend,
+  Chart, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend,
 } from 'chart.js';
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const store = useWeatherStore();
 const { weatherHistory } = storeToRefs(store);
 
-const viewType = ref('chart');
+const viewType = ref('chart'); // chart (default) or table
+const showPoints = ref(true); // bolinhas no gráfico
 
-// -- Detecta mobile dinamicamente
+// Detecta mobile (mantém pra futuros ajustes se quiser)
 const isMobile = ref(window.innerWidth < 700);
 const updateMobile = () => { isMobile.value = window.innerWidth < 700; };
-onMounted(() => {
-  window.addEventListener('resize', updateMobile);
-});
-onUnmounted(() => {
-  window.removeEventListener('resize', updateMobile);
-});
+onMounted(() => window.addEventListener('resize', updateMobile));
+onUnmounted(() => window.removeEventListener('resize', updateMobile));
 
-// Gráfico
+// Gráfico: usa bolinhas conforme seleção do usuário
 const chartData = computed(() => {
-  const dataset = weatherHistory.value || [];
+  const dataset = (weatherHistory.value || []).slice().reverse();
+  const pointRadius = showPoints.value ? (isMobile.value ? 1 : 2) : 0;
   const labels = dataset.map(
     (item) => item.timestamp_prev?.date?.slice(11, 16)
       || item.timestamp_prev?.slice(11, 16)
       || '',
   );
-  const pointRadius = isMobile.value ? 0 : 2;
   return {
     labels,
     datasets: [
@@ -111,7 +126,7 @@ const chartData = computed(() => {
   };
 });
 
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -134,9 +149,13 @@ const chartOptions = {
       ticks: { autoSkip: true, maxTicksLimit: 20 },
     },
   },
-};
+}));
 
-// TABELA: mostra só de meia em meia hora
+const barChartOptions = computed(() => ({
+  ...chartOptions.value,
+}));
+
+// TABELA: só meia em meia hora
 const tableColumns = [
   {
     name: 'hora', label: 'Hora', field: 'hora', align: 'center', sortable: true,
@@ -186,7 +205,7 @@ const tableRows = computed(() => (weatherHistory.value || [])
   position: relative;
 }
 .tide-toggle {
-  min-width: 160px;
+  min-width: 180px;
 }
 @media (max-width: 700px) {
   .tide-chart-container {
@@ -199,7 +218,7 @@ const tableRows = computed(() => (weatherHistory.value || [])
     padding: 2px !important;
   }
   .tide-toggle {
-    min-width: 80px;
+    min-width: 120px;
   }
 }
 </style>
