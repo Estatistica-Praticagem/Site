@@ -5,7 +5,6 @@
         Comparação de Maré (Marinha x Medida x GA)
       </div>
       <div class="row items-center q-gutter-sm">
-        <!-- Radio para mostrar bolinhas -->
         <q-option-group
           v-model="showPoints"
           :options="[
@@ -16,7 +15,6 @@
           color="primary"
           inline
         />
-        <!-- Tipo de visualização -->
         <q-btn-toggle
           v-model="viewType"
           spread
@@ -72,32 +70,40 @@ import {
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 const store = useWeatherStore();
-const { weatherHistory } = storeToRefs(store);
+const { weatherForecast } = storeToRefs(store);
 
-const viewType = ref('chart'); // chart (default) or table
-const showPoints = ref(true); // bolinhas no gráfico
+const viewType = ref('chart');
+const showPoints = ref(true);
 
-// Detecta mobile (mantém pra futuros ajustes se quiser)
 const isMobile = ref(window.innerWidth < 700);
 const updateMobile = () => { isMobile.value = window.innerWidth < 700; };
-onMounted(() => window.addEventListener('resize', updateMobile));
+
+onMounted(() => {
+  window.addEventListener('resize', updateMobile);
+  store.fetchForecast();
+});
 onUnmounted(() => window.removeEventListener('resize', updateMobile));
 
-// Gráfico: usa bolinhas conforme seleção do usuário
 const chartData = computed(() => {
-  const dataset = (weatherHistory.value || []).slice().reverse();
+  // Exibe do mais antigo para o mais recente
+  const dataset = (weatherForecast.value || [])
+    .slice() // faz uma cópia
+    .filter((item) => item.timestamp_prev && item.altura_prevista != null)
+    .reverse(); // exibe do mais antigo pro mais recente
+
   const pointRadius = showPoints.value ? (isMobile.value ? 1 : 2) : 0;
   const labels = dataset.map(
-    (item) => item.timestamp_prev?.date?.slice(11, 16)
-      || item.timestamp_prev?.slice(11, 16)
-      || '',
+    (item) => item.timestamp_prev?.date?.slice(11, 16) || '',
   );
   return {
     labels,
     datasets: [
       {
         label: 'Marinha',
-        data: dataset.map((item) => Number(item.altura_prev_getmare) || null),
+        // eslint-disable-next-line no-restricted-globals
+        data: dataset.map((item) => (typeof item.altura_prev_getmare === 'number' && !isNaN(item.altura_prev_getmare)
+          ? item.altura_prev_getmare
+          : null)),
         borderColor: '#960d0d',
         backgroundColor: '#960d0d',
         tension: 0.35,
@@ -106,7 +112,10 @@ const chartData = computed(() => {
       },
       {
         label: 'Maré Medida',
-        data: dataset.map((item) => Number(item.altura_real_getmare) || null),
+        // eslint-disable-next-line no-restricted-globals
+        data: dataset.map((item) => (typeof item.altura_real_getmare === 'number' && !isNaN(item.altura_real_getmare)
+          ? item.altura_real_getmare
+          : null)),
         borderColor: '#FFDC66',
         backgroundColor: '#FFDC66',
         tension: 0.32,
@@ -115,7 +124,10 @@ const chartData = computed(() => {
       },
       {
         label: 'Previsão GA',
-        data: dataset.map((item) => Number(item.altura_prevista) || null),
+        // eslint-disable-next-line no-restricted-globals
+        data: dataset.map((item) => (typeof item.altura_prevista === 'number' && !isNaN(item.altura_prevista)
+          ? item.altura_prevista
+          : null)),
         borderColor: '#1e78db',
         backgroundColor: '#1e78db',
         tension: 0.28,
@@ -155,7 +167,6 @@ const barChartOptions = computed(() => ({
   ...chartOptions.value,
 }));
 
-// TABELA: só meia em meia hora
 const tableColumns = [
   {
     name: 'hora', label: 'Hora', field: 'hora', align: 'center', sortable: true,
@@ -170,16 +181,16 @@ const tableColumns = [
     name: 'ga', label: 'Previsão GA', field: 'ga', align: 'center', sortable: true,
   },
 ];
-const tableRows = computed(() => (weatherHistory.value || [])
+
+const tableRows = computed(() => (weatherForecast.value || [])
   .filter((item) => {
-    // Filtra meia em meia hora
-    const dt = item.timestamp_br?.date ?? item.timestamp_br;
+    const dt = item.timestamp_prev?.date ?? item.timestamp_prev;
     if (!dt) return false;
     const min = dt.slice(14, 16);
     return min === '00' || min === '30';
   })
   .map((item) => {
-    const dt = item.timestamp_br?.date ?? item.timestamp_br ?? '';
+    const dt = item.timestamp_prev?.date ?? item.timestamp_prev ?? '';
     const hora = dt.slice(11, 16);
     return {
       hora,

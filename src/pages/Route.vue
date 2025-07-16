@@ -6,6 +6,12 @@ import { onMounted } from 'vue';
 const router = useRouter();
 
 onMounted(() => {
+  // Se estiver no hash #/weatherNow, redireciona para a rota declarada no Vue Router
+  if (window.location.hash === '#/weatherNow') {
+    router.replace('/weatherNow');
+    return;
+  }
+
   // Pega o idioma do navegador, default para 'en' se não existir
   const idiomaRaw = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
   const idioma = idiomaRaw.slice(0, 2); // 'pt', 'en', etc
@@ -17,11 +23,7 @@ onMounted(() => {
   const queryParams = new URLSearchParams(window.location.search);
   const queryObject = Object.fromEntries(queryParams.entries());
 
-  // if (!localStorage.getItem('utm_full_url') && window.location.search) {
-  //   localStorage.setItem('utm_full_url', window.location.href);
-  // }
-
-  // Se estiver na página inicial, redireciona com os parâmetros preservados
+  // Redireciona se estiver na raiz
   if (
     window.location.pathname === '/'
     || window.location.pathname === '/index.html'

@@ -5,6 +5,7 @@ export const useWeatherStore = defineStore('weather', {
   state: () => ({
     weatherLast: null,
     weatherHistory: [],
+    weatherForecast: [],
     loading: false,
     error: null,
   }),
@@ -13,7 +14,7 @@ export const useWeatherStore = defineStore('weather', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await fetch('/kevi/backend/praticagem/get_table_mestre_5min_tratada_bq.php?limit=1');
+        const res = await fetch('https://www.meusimulador.com/kevi/backend/praticagem/get_table_mestre_5min_tratada_bq.php?limit=1');
         const json = await res.json();
         if (json.success && json.data && json.data.length) {
           // eslint-disable-next-line prefer-destructuring
@@ -27,11 +28,12 @@ export const useWeatherStore = defineStore('weather', {
       }
       this.loading = false;
     },
+
     async fetchHistory() {
       this.loading = true;
       this.error = null;
       try {
-        const res = await fetch('/kevi/backend/praticagem/get_table_mestre_5min_tratada_bq.php?limit=100');
+        const res = await fetch('https://www.meusimulador.com/kevi/backend/praticagem/get_table_mestre_5min_tratada_bq.php?limit=100');
         const json = await res.json();
         if (json.success && json.data) {
           this.weatherHistory = json.data;
@@ -44,6 +46,23 @@ export const useWeatherStore = defineStore('weather', {
       }
       this.loading = false;
     },
-    // Pode adicionar outras actions se precisar...
+
+    async fetchForecast() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch('https://www.meusimulador.com/kevi/backend/praticagem/get_prev_table_mestre_5min_tratada_bq.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          this.weatherForecast = json.data;
+        } else {
+          this.weatherForecast = [];
+        }
+      } catch (err) {
+        this.error = 'Erro ao buscar previsão.';
+        this.weatherForecast = [];
+      }
+      this.loading = false;
+    },
   },
 });

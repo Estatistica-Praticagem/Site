@@ -38,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-
 /* ─────────── Credencial local ─────────────────────── */
 $credFile = __DIR__ . '/local-bliss-359814-77f4ec3f5fce.json';
 if (!is_readable($credFile)) {
@@ -71,7 +70,7 @@ $bq = new BigQueryClient([
 $sql = "
   SELECT *
   FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
-  ORDER BY timestamp_br DESC
+  ORDER BY timestamp_prev DESC
   LIMIT $limit
 ";
 

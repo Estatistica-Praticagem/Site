@@ -7,22 +7,32 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 use Google\Cloud\BigQuery\BigQueryClient;
 
 /* ─────────────── CORS ─────────────────────────────── */
-$allowedOrigins = [
+
+$allowed_origins = [
     'https://www.meusimulador.com',
-    'https://www.orizzonttebi.com'
+    'https://meusimulador.com',
+    'https://www.orizzonttebi.com',
+    'https://orizzonttebi.com'
 ];
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (in_array($origin, $allowedOrigins, true)) {
+// Normaliza: remove barra no final, se existir
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? rtrim($_SERVER['HTTP_ORIGIN'], '/') : '';
+
+// Verifica se a origem está na lista permitida
+if (in_array($origin, $allowed_origins, true)) {
     header("Access-Control-Allow-Origin: $origin");
 } else {
-    // Fallback (bloqueia tudo que não for permitido)
-    header("Access-Control-Allow-Origin: https://www.meusimulador.com");
-}
-header('Access-Control-Allow-Methods: GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json');
+    // Você pode logar aqui se quiser saber de onde veio
+    // file_put_contents(__DIR__.'/debug_origin.txt', "Bloqueado: $origin\n", FILE_APPEND);
 
+    header("Access-Control-Allow-Origin: https://www.meusimulador.com"); // fallback seguro
+}
+
+// Cabeçalhos obrigatórios para CORS
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+// Responde as requisições OPTIONS (pré-flight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;

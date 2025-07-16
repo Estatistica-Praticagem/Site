@@ -91,7 +91,7 @@
 
 <script setup>
 function mailto() {
-  window.open('mailto:horizontetbi.contato@gmail.com', '_blank');
+  window.open('mailto:horizontebi.contato@gmail.com', '_blank');
 }
 
 const partnerLogos = [
