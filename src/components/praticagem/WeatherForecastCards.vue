@@ -9,20 +9,32 @@
       <q-spinner color="primary" size="50px" />
     </div>
     <div v-else>
-      <template v-for="(group, dia) in groupedByDay" :key="dia">
-        <div class="mt-6 mb-2 text-lg font-semibold flex items-center gap-2">
-          <q-icon name="calendar_today" size="20px" />
-          {{ formatDay(dia) }}
-        </div>
+      <!-- Seletor de dias -->
+      <div class="flex gap-2 items-center justify-center mb-6">
+        <q-btn-group push>
+          <q-btn
+            v-for="dia in availableDays"
+            :key="dia"
+            :label="formatDay(dia)"
+            :color="selectedDay === dia ? 'primary' : 'grey-5'"
+            :text-color="selectedDay === dia ? 'white' : 'primary'"
+            unelevated
+            class="text-weight-bold"
+            @click="selectedDay = dia"
+          />
+        </q-btn-group>
+      </div>
+
+      <div v-if="groupedByDay[selectedDay]">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-2">
           <q-card
-            v-for="item in group"
+            v-for="item in groupedByDay[selectedDay]"
             :key="item.dt_txt"
             class="p-3 bg-white/80 hover:bg-blue-100 transition rounded-xl flex flex-col gap-2 shadow cursor-pointer"
           >
             <div class="flex items-center gap-2">
               <img
-                :src="`https://openweathermap.org/img/wn/${item.weather_icon || item.weather_icon}@2x.png`"
+                :src="`https://openweathermap.org/img/wn/${item.weather_icon || '01d'}@2x.png`"
                 :alt="item.weather_description"
                 class="w-10 h-10"
               />
@@ -47,20 +59,28 @@
             </div>
           </q-card>
         </div>
-        <q-separator spaced="md" color="blue-200" />
-      </template>
+      </div>
+      <div v-else class="q-mt-lg text-grey-7 text-center">
+        Nenhum dado para o dia selecionado.
+      </div>
     </div>
   </q-card>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import {
+  computed, onMounted, ref, watch,
+} from 'vue';
 import { useWeatherStore } from 'src/stores/weather';
 
 const store = useWeatherStore();
+const selectedDay = ref(null);
 
-onMounted(() => {
-  store.fetchOpenWeatherForecast(); // Troque para o método correto!
+onMounted(async () => {
+  await store.fetchOpenWeatherForecast();
+  // Inicializa o dia selecionado para o primeiro disponível
+  // eslint-disable-next-line no-use-before-define, prefer-destructuring
+  if (availableDays.value.length > 0) selectedDay.value = availableDays.value[0];
 });
 
 const loading = computed(() => store.loading);
@@ -76,6 +96,16 @@ const groupedByDay = computed(() => {
   }, {});
 });
 
+// Lista de dias disponíveis (ordenados)
+const availableDays = computed(() => Object.keys(groupedByDay.value).sort());
+
+// Quando mudar os dados, sempre mantém um dia selecionado válido
+watch(groupedByDay, (val) => {
+  if (!selectedDay.value || !val[selectedDay.value]) {
+    selectedDay.value = availableDays.value[0] || null;
+  }
+});
+
 function formatDay(dia) {
   const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const d = new Date(dia);
@@ -84,3 +114,7 @@ function formatDay(dia) {
   return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')} (${dias[d.getDay()]})`;
 }
 </script>
+
+<style scoped>
+/* Responsivo e clean para desktop/mobile */
+</style>
