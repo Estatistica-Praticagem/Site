@@ -64,5 +64,22 @@ export const useWeatherStore = defineStore('weather', {
       }
       this.loading = false;
     },
+    async fetchOpenWeatherForecast() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const res = await fetch('https://www.meusimulador.com/kevi/backend/praticagem/get_prev_openweather_forecast_bq.php');
+        const json = await res.json();
+        if (json.success && json.data) {
+          this.openWeatherForecast = json.data;
+        } else {
+          this.openWeatherForecast = [];
+        }
+      } catch (err) {
+        this.error = 'Erro ao buscar previsão OpenWeather.';
+        this.openWeatherForecast = [];
+      }
+      this.loading = false;
+    },
   },
 });

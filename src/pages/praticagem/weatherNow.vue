@@ -4,10 +4,12 @@
     <WeatherView />
     <div style="height:22px"></div>
     <WeatherDetails />
-     <div style="height:22px"></div>
+    <div style="height:22px"></div>
     <TideForecastComparison />
-     <div style="height:22px"></div>
+    <div style="height:22px"></div>
     <CurrentForecastComparison/>
+    <div style="height:22px"></div>
+    <OpenWeatherForecast/>
   </q-page>
 </template>
 
@@ -18,6 +20,7 @@ import WeatherView from 'src/components/praticagem/WeatherView.vue';
 import WeatherDetails from 'src/components/praticagem/WeatherDetails.vue';
 import TideForecastComparison from 'src/components/praticagem/TideForecastComparison.vue';
 import CurrentForecastComparison from 'src/components/praticagem/CurrentForecastComparison.vue';
+import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastCards.vue';
 
 const store = useWeatherStore();
 
@@ -25,5 +28,6 @@ onMounted(() => {
   store.fetchLast();
   store.fetchHistory();
   store.fetchForecast();
+  store.fetchOpenWeatherForecast();
 });
 </script>
