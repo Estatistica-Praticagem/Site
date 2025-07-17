@@ -1,8 +1,6 @@
 <template>
   <q-page class="bg-grey-2 q-pa-none" style="min-height:unset;padding:0;max-width:1200px;margin:auto;">
     <div style="height:22px"></div>
-    <OpenWeatherForecast/>
-    <div style="height:22px"></div>
     <WeatherView />
     <div style="height:22px"></div>
     <WeatherDetails />
@@ -10,6 +8,8 @@
     <TideForecastComparison />
     <div style="height:22px"></div>
     <CurrentForecastComparison/>
+    <div style="height:22px"></div>
+    <OpenWeatherForecast/>
   </q-page>
 </template>
 

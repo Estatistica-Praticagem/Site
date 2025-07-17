@@ -77,14 +77,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import WindMiniClock from 'src/components/praticagem/WindMiniClock.vue';
 
 // Props: recebe os dados já filtrados do dia escolhido
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({ rows: { type: Array, default: () => [] } });
 
-// Colunas (mantendo o padrão)
+// Debug: Loga sempre que rows mudar!
+watchEffect(() => {
+  // Mostra quantos dados chegaram, lista os horários disponíveis:
+  // (você pode remover depois do debug)
+  console.log('[WeatherForecastTable] rows length:', props.rows.length);
+  console.log('[WeatherForecastTable] horários:', props.rows.map((x) => x.dt_txt));
+});
+
 const columns = [
   {
     name: 'hour', label: 'Hora', field: 'dt_txt', align: 'center', sortable: false,
@@ -112,7 +119,6 @@ const columns = [
   },
 ];
 
-// Utilidades
 function windDir(deg) {
   if (deg == null) return '';
   const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
@@ -140,7 +146,6 @@ function showDetails(row) {
 </script>
 
 <style scoped>
-/* Usa o mesmo padrão do seu pai para as linhas de chuva */
 .rain-red { background: linear-gradient(90deg, #ffebee, #ffcccb 65%, #ff5252 100%) !important; }
 .rain-yellow { background: linear-gradient(90deg, #fffde7, #fff9c4 65%, #ffe082 100%) !important; }
 .rain-blue { background: linear-gradient(90deg, #e3f2fd, #bbdefb 60%, #4fc3f7 100%) !important; }

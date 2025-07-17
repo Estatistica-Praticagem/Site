@@ -36,16 +36,16 @@
     </div>
 
     <!-- Renderiza visualização selecionada -->
-    <WeatherForecastTable v-if="viewMode === 'table'" :rows="groupedByDay[selectedDay] || []" />
-    <WeatherForecastCards v-else-if="viewMode === 'cards'" :rows="groupedByDay[selectedDay] || []" />
-    <WeatherForecastBar v-else-if="viewMode === 'bar'" :rows="groupedByDay[selectedDay] || []" />
-    <WeatherForecastGrid v-else-if="viewMode === 'grid'"
+    <WeatherForecastGrid v-if="viewMode === 'grid'"
       :day="selectedDay"
       :groupedByDay="groupedByDay"
       :cityLabel="cityLabel"
       :availableDays="availableDays"
       @update:day="selectedDay = $event"
     />
+    <WeatherForecastTable v-else-if="viewMode === 'table'" :rows="groupedByDay[selectedDay] || []" />
+    <WeatherForecastCards v-else-if="viewMode === 'cards'" :rows="groupedByDay[selectedDay] || []" />
+    <WeatherForecastBar v-else-if="viewMode === 'bar'" :rows="groupedByDay[selectedDay] || []" />
   </q-card>
 </template>
 
