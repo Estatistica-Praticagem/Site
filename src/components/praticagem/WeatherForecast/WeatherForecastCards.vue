@@ -78,7 +78,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import WindMiniClock from 'src/components/praticagem/WindMiniClock.vue';
+import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
 
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({ rows: { type: Array, default: () => [] } });

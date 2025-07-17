@@ -78,7 +78,7 @@
 
 <script setup>
 import { ref, watchEffect } from 'vue';
-import WindMiniClock from 'src/components/praticagem/WindMiniClock.vue';
+import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
 
 // Props: recebe os dados já filtrados do dia escolhido
 // eslint-disable-next-line no-unused-vars

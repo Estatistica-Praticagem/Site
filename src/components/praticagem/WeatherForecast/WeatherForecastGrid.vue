@@ -21,15 +21,10 @@
     </div>
     <div class="overflow-x-auto grid-table-wrap">
       <table class="forecast-grid-table w-full">
-        <!-- Linha de horas -->
         <thead>
           <tr>
             <th class="left-th bg-transparent border-none"></th>
-            <th
-              v-for="item in hoursList"
-              :key="item.dt_txt"
-              class="text-center th-hour"
-            >
+            <th v-for="item in hoursList" :key="item.dt_txt" class="text-center th-hour">
               {{ item.dt_txt.slice(11, 16) }}
             </th>
           </tr>
@@ -42,7 +37,7 @@
             </td>
             <td v-for="item in hoursList" :key="item.dt_txt" class="cell-val" :class="row.bg ? row.bg(item) : ''">
               <template v-if="row.renderComp">
-                <component :is="row.renderComp" :item="item" />
+                <component :is="row.renderComp" :deg="item.wind_deg" :speed="item.wind_speed" />
               </template>
               <template v-else-if="row.renderFn">
                 <span v-html="row.renderFn(item)"></span>
@@ -60,7 +55,7 @@
 
 <script setup>
 import { computed, defineProps, defineEmits } from 'vue';
-import WindMiniClock from 'src/components/praticagem/WindMiniClock.vue';
+import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
 
 const props = defineProps({
   day: String,
@@ -70,12 +65,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['update:day']);
-
 const selectedDay = computed(() => props.day);
 const hoursList = computed(() => props.groupedByDay[props.day] || []);
 function emitDay(dia) { emit('update:day', dia); }
 
-// Funções utilitárias para visual
 function formatDayShort(dia) {
   const d = new Date(dia);
   // eslint-disable-next-line no-restricted-globals
@@ -83,13 +76,14 @@ function formatDayShort(dia) {
   return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
 }
 
-// Lista das linhas do grid, usando renderização real de componentes ou função HTML (para % chuva)
+// Renderização dos relógios igual aos outros componentes!
 const variables = [
   {
     key: 'vento_dir',
     label: 'Direção do vento',
     icon: 'explore',
     color: 'blue-7',
+    // Passa as props que o componente espera
     renderComp: WindMiniClock,
   },
   {
@@ -156,7 +150,6 @@ const variables = [
     color: 'blue',
     field: 'humidity',
   },
-  // ...adicione mais linhas conforme desejar
 ];
 </script>
 

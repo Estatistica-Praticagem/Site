@@ -10,10 +10,10 @@
       <q-btn-toggle
         v-model="viewMode"
         :options="[
+          { label: 'Grade', value: 'grid', icon: 'grid_on' },
           { label: 'Tabela', value: 'table', icon: 'table_chart' },
           { label: 'Cartões', value: 'cards', icon: 'view_module' },
           { label: 'Linha', value: 'bar', icon: 'horizontal_split' },
-          { label: 'Grade', value: 'grid', icon: 'grid_on' }
         ]"
         color="primary"
         spread
@@ -61,7 +61,7 @@ import WeatherForecastGrid from 'src/components/praticagem/WeatherForecast/Weath
 
 const store = useWeatherStore();
 const selectedDay = ref(null);
-const viewMode = ref('table');
+const viewMode = ref('grid');
 
 onMounted(async () => {
   await store.fetchOpenWeatherForecast();

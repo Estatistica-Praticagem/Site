@@ -19,9 +19,9 @@
       />
     </g>
     <!-- Texto intensidade -->
-    <text x="18" y="33" font-size="9" text-anchor="middle" fill="#1976d2" font-weight="bold">
+    <!-- <text x="18" y="33" font-size="9" text-anchor="middle" fill="#1976d2" font-weight="bold">
       {{ speed ? speed + ' km/h' : '' }}
-    </text>
+    </text> -->
   </svg>
 </template>
 
