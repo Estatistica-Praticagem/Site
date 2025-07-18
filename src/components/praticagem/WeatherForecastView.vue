@@ -11,7 +11,7 @@
         v-model="viewMode"
         :options="[
           { label: 'Grade', value: 'grid', icon: 'grid_on' },
-          { label: 'Tabela', value: 'table', icon: 'table_chart' },
+          // { label: 'Tabela', value: 'table', icon: 'table_chart' },
           { label: 'Cartões', value: 'cards', icon: 'view_module' },
           { label: 'Linha', value: 'bar', icon: 'horizontal_split' },
         ]"
