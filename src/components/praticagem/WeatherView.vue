@@ -26,7 +26,7 @@
           <div>
             <div class="text-caption">VENTO</div>
             <div class="text-bold">
-              {{ weather.ventointensidade ?? weather.vento_int ?? '--' }} kt {{ windDirLabel }}
+              {{ ventoKts }} kt {{ windDirLabel }}
             </div>
           </div>
           <div>
@@ -72,11 +72,11 @@
       <div class="weather-col-gauges">
         <div class="gauge-group">
           <div class="gauge-title" :style="{ color: statusStyle.text }">Correnteza 3m</div>
-          <CurrentGauge3m
-            :direcao="weather.direcao_3m ?? weather.corrente_dir"
-            :intensidade="weather.intensidade_3m ?? weather.corrente_int"
-            :max="2"
-            :unidade="'m/s'"
+          <GaugeRelogio
+            :value="correntezaDir"
+            :intensidade="correntezaKts"
+            :max="4"
+            :unidade="'kt'"
             colorMain="#1976D2"
             colorSecondary="#43A047"
             colorBg="#E3F2FD"
@@ -86,9 +86,10 @@
         <div class="gauge-group">
           <div class="gauge-title" :style="{ color: statusStyle.text }">Vento</div>
           <WindRose
-            :direcao="parseFloat(weather.ventodir ?? weather.ventonum ?? weather.vento_dir ?? 0)"
-            :intensidade="parseFloat(weather.ventointensidade ?? weather.vento_int ?? 0)"
+            :direcao="ventoDir"
+            :intensidade="ventoKts"
             :max="40"
+            :unidade="'kt'"
             size="90"
           />
         </div>
@@ -100,39 +101,39 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
-import CurrentGauge3m from 'components/praticagem/GaugeRelogio.vue';
+import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
 import WindRose from 'components/praticagem/WindRose.vue';
 import { computed } from 'vue';
 
-const store = useWeatherStore();
-const { weatherLast: weather } = storeToRefs(store);
+// Pegando o último registro do weather
+const { weatherLast: weather } = storeToRefs(useWeatherStore());
 
-// --- Mapa status -> cores (fundo, texto, badge, caption, icone) ---
+// Mapa de cores por status
 const statusColorMap = {
   PRATICAVEL: {
-    bg: '#E9F7EF', // verde claro
-    text: '#145A32', // verde escuro
+    bg: '#E9F7EF',
+    text: '#145A32',
     badge: 'blue-7',
     caption: '#31708F',
     icon: '#145A32',
   },
   'IMPRATICAVEL TOTAL': {
-    bg: '#E0F7FA', // ciano claro
-    text: '#006064', // ciano escuro
+    bg: '#E0F7FA',
+    text: '#006064',
     badge: 'cyan-6',
     caption: '#006064',
     icon: '#006064',
   },
   'PRATICABILIDADE EM ANALISE': {
-    bg: '#FFF8E1', // amarelo claro
-    text: '#6D4C00', // amarelo escuro
+    bg: '#FFF8E1',
+    text: '#6D4C00',
     badge: 'amber-7',
     caption: '#6D4C00',
     icon: '#6D4C00',
   },
   'PARCIALMENTE IMPRATICAVEL': {
-    bg: '#FCE4EC', // rosa claro
-    text: '#880E4F', // rosa escuro
+    bg: '#FCE4EC',
+    text: '#880E4F',
     badge: 'pink-5',
     caption: '#880E4F',
     icon: '#880E4F',
@@ -167,20 +168,46 @@ const statusColorMap = {
   },
 };
 
-const statusText = computed(() => String(weather.value?.status || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+// Normaliza status do painel para usar como chave do mapa
+const statusText = computed(() => String(weather.value?.status || '')
+  .toUpperCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, ''));
 
 const statusStyle = computed(() => statusColorMap[statusText.value] || statusColorMap.DEFAULT);
 
-// --- Label de direção do vento ---
+// Correnteza 3m (em knots), agora igual aos relógios do grid:
+const correntezaDir = computed(() => parseFloat(weather.value?.direcao_3m ?? 0));
+const correntezaKts = computed(() => {
+  const val = parseFloat(weather.value?.intensidade_3m ?? 0);
+  // eslint-disable-next-line no-restricted-globals
+  return isNaN(val) ? 0 : +val.toFixed(2);
+});
+
+// Vento em knots (converte m/s caso valor baixo)
+const ventoDir = computed(() =>
+  // cobre as principais variantes do seu dataset
+  // eslint-disable-next-line implicit-arrow-linebreak
+  parseFloat(
+    weather.value?.ventodir
+    ?? weather.value?.ventodirecao
+    ?? weather.value?.ventonum
+    ?? weather.value?.vento_dir
+    ?? 0,
+  ));
+const ventoKts = computed(() => {
+  const val = parseFloat(weather.value?.ventointensidade ?? weather.value?.vento_int ?? 0);
+  // eslint-disable-next-line no-restricted-globals
+  return isNaN(val) ? 0 : +val.toFixed(2);
+});
+
+// Direção do vento para label brasileiro
 function getWindDirLabel(deg) {
   if (deg == null || deg === '--') return '--';
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+  const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
   return dirs[Math.round((deg % 360) / 45)];
 }
-const windDirLabel = computed(() => {
-  const deg = weather.value?.ventodir ?? weather.value?.ventonum ?? weather.value?.vento_dir ?? null;
-  return getWindDirLabel(deg);
-});
+const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
 </script>
 
 <style scoped>
@@ -223,7 +250,6 @@ const windDirLabel = computed(() => {
   letter-spacing: .01em;
 }
 .text-bold { font-weight: bold; }
-/* Responsivo */
 @media (max-width: 650px) {
   .weather-main-card {
     flex-direction: column;
