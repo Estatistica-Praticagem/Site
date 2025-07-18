@@ -35,7 +35,7 @@
         </div>
         <div class="weather-id-row">
           <q-tooltip anchor="bottom middle">
-            Código dominante: <b>{{ day.weather_id }}</b>
+            <!-- Código dominante: <b>{{ day.weather_id }}</b> -->
           </q-tooltip>
           <span class="weather-id">#{{ day.weather_id }}</span>
         </div>

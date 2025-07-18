@@ -1,21 +1,66 @@
 <template>
-  <svg width="160" height="160" viewBox="0 0 160 160" class="rose-svg">
+  <svg
+    width="160"
+    height="160"
+    viewBox="0 0 160 160"
+    class="rose-svg"
+    :style="{ background: 'transparent' }"
+  >
+    <!-- Gradiente circular -->
     <defs>
       <radialGradient id="grad2" cx="50%" cy="50%" r="60%">
-        <stop offset="0%" stop-color="#eaf2fd" />
-        <stop offset="100%" stop-color="#90caf9" />
+        <stop offset="0%" stop-color="#fafdff" />
+        <stop offset="98%" stop-color="#90caf9" />
       </radialGradient>
+      <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#90caf9" flood-opacity="0.11" />
+      </filter>
     </defs>
-    <circle cx="80" cy="80" r="78" fill="url(#grad2)" stroke="#b3e5fc" stroke-width="3" />
+
+    <!-- Círculo externo -->
+    <circle
+      cx="80" cy="80" r="77"
+      fill="url(#grad2)"
+      stroke="#b3e5fc"
+      stroke-width="3"
+      filter="url(#shadow)"
+    />
+
+    <!-- Linhas Norte-Sul, Leste-Oeste -->
     <g>
-      <line x1="80" y1="20" x2="80" y2="140" stroke="#bbb" stroke-width="3" />
-      <line x1="20" y1="80" x2="140" y2="80" stroke="#bbb" stroke-width="3" />
+      <line x1="80" y1="17" x2="80" y2="143" stroke="#bbccdd" stroke-width="2.5" />
+      <line x1="17" y1="80" x2="143" y2="80" stroke="#bbccdd" stroke-width="2.5" />
+      <!-- Diagonais para sofisticação -->
+      <line x1="33" y1="33" x2="127" y2="127" stroke="#e1e8ee" stroke-width="1.3" />
+      <line x1="33" y1="127" x2="127" y2="33" stroke="#e1e8ee" stroke-width="1.3" />
     </g>
-    <!-- Ponteiro direção -->
+
+    <!-- Letra das direções -->
+    <text x="80" y="36" text-anchor="middle" font-size="15" fill="#1976d2" font-weight="bold">N</text>
+    <text x="80" y="153" text-anchor="middle" font-size="15" fill="#1976d2" font-weight="bold">S</text>
+    <text x="20" y="87" text-anchor="middle" font-size="15" fill="#1976d2" font-weight="bold">O</text>
+    <text x="140" y="87" text-anchor="middle" font-size="15" fill="#1976d2" font-weight="bold">L</text>
+    <text x="42" y="48" text-anchor="middle" font-size="11" fill="#64b5f6">NO</text>
+    <text x="120" y="48" text-anchor="middle" font-size="11" fill="#64b5f6">NL</text>
+    <text x="42" y="133" text-anchor="middle" font-size="11" fill="#64b5f6">SO</text>
+    <text x="120" y="133" text-anchor="middle" font-size="11" fill="#64b5f6">SL</text>
+
+    <!-- Ponteiro (grupo animado) -->
     <g :style="pointerStyle">
+      <!-- Sombra do ponteiro -->
+      <polygon
+        :points="polygonPoints"
+        fill="#90caf9"
+        opacity="0.28"
+        filter="url(#shadow)"
+      />
+      <!-- Ponteiro principal -->
       <polygon
         :points="polygonPoints"
         :fill="pointerColor"
+        stroke="#1976d2"
+        stroke-width="2"
+        style="transition: fill .3s;"
       />
       <line
         x1="80"
@@ -23,30 +68,38 @@
         :x2="80"
         :y2="80 - len"
         :stroke="pointerColor"
-        stroke-width="5"
+        stroke-width="6"
         stroke-linecap="round"
+        opacity="0.6"
       />
     </g>
+
     <!-- Centro -->
-    <circle cx="80" cy="80" r="27" fill="#fff" stroke="#90caf9" stroke-width="2" />
-    <text x="80" y="92" text-anchor="middle" font-size="24" fill="#1565c0" font-weight="bold">{{ intVal }}</text>
-    <text x="80" y="110" text-anchor="middle" font-size="11" fill="#666">m/s</text>
-    <text x="80" y="42" text-anchor="middle" font-size="12" fill="#1976d2">N</text>
-    <text x="80" y="156" text-anchor="middle" font-size="12" fill="#1976d2">S</text>
-    <text x="24" y="86" text-anchor="middle" font-size="12" fill="#1976d2">O</text>
-    <text x="146" y="86" text-anchor="middle" font-size="12" fill="#1976d2">L</text>
+    <circle cx="80" cy="80" r="27" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
+    <text
+      x="80"
+      y="92"
+      text-anchor="middle"
+      font-size="27"
+      fill="#1565c0"
+      font-weight="bold"
+      style="font-variant-numeric: tabular-nums;"
+    >{{ intVal }}</text>
+    <text x="80" y="111" text-anchor="middle" font-size="12" fill="#666">m/s</text>
   </svg>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 
+// Props
 const props = defineProps({
-  direction: { type: Number, default: 0 },
-  intensidade: { type: Number, default: 0 },
-  max: { type: Number, default: 10 },
+  direction: { type: Number, default: 0 }, // Graus meteorológicos
+  intensidade: { type: Number, default: 0 }, // Valor (m/s)
+  max: { type: Number, default: 20 }, // Para cor/escala do ponteiro
 });
 
+// Cor do ponteiro conforme intensidade
 function color(val, max) {
   if (val < max * 0.33) return '#43a047';
   if (val < max * 0.66) return '#1976d2';
@@ -54,19 +107,41 @@ function color(val, max) {
   return '#e53935';
 }
 
-const pointerAngle = computed(() => (props.direction % 360) - 90);
-const len = computed(() => 40 + 30 * Math.min(props.intensidade / props.max, 1));
+// Lógica visual
+const pointerAngle = computed(() => ((props.direction || 0) % 360) - 90); // Ajuste SVG
+const len = computed(() => 42 + 29 * Math.min((props.intensidade || 0) / props.max, 1));
 // eslint-disable-next-line no-restricted-globals
 const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(2)));
 const pointerColor = computed(() => color(props.intensidade, props.max));
 
+// Ponteiro animado (rotate)
 const pointerStyle = computed(() => ({
   transform: `rotate(${pointerAngle.value}deg)`,
   transformOrigin: '80px 80px',
+  transition: 'transform .28s cubic-bezier(.65,.05,.36,1), filter .25s',
 }));
 
 const polygonPoints = computed(() => {
+  // Triângulo com base no centro
   const l = len.value;
-  return `80,80 80,${80 - l} 86,${80 - l + 16} 74,${80 - l + 16}`;
+  // Formato flecha: ponta + lados + base arredondada
+  return `
+    80,${80 - l}
+    84,${80 - l + 19}
+    80,${80 - l + 12}
+    76,${80 - l + 19}
+  `;
 });
 </script>
+
+<style scoped>
+.rose-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 50%;
+  box-shadow: 0 2px 12px #90caf92e;
+  background: transparent;
+  user-select: none;
+}
+</style>

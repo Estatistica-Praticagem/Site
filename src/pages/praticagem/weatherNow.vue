@@ -12,6 +12,8 @@
     <OpenWeatherForecast/>
     <div style="height:22px"></div>
     <WeatherForecastVisibility/>
+    <div style="height:22px"></div>
+    <FooterPraticagem/>
   </q-page>
 </template>
 
@@ -24,6 +26,7 @@ import TideForecastComparison from 'src/components/praticagem/TideForecastCompar
 import CurrentForecastComparison from 'src/components/praticagem/CurrentForecastComparison.vue';
 import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastView.vue';
 import WeatherForecastVisibility from 'src/components/praticagem/WeatherForecastVisibility.vue';
+import FooterPraticagem from 'src/components/praticagem/FooterPraticagem.vue';
 
 const store = useWeatherStore();
 

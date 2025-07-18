@@ -25,7 +25,7 @@
             </td>
             <td>
               <q-tooltip>
-                {{ phenomenonInfo(row).name }}<br>Código: {{ row.weather_id }}
+                <!-- {{ phenomenonInfo(row).name }}<br>Código: {{ row.weather_id }} -->
               </q-tooltip>
               <div class="flex items-center gap-2 justify-center rounded-xl px-2 py-1"
                 :class="phenomenonInfo(row).color"

@@ -3,80 +3,92 @@
     <q-header elevated class="bg-white shadow-header">
       <q-toolbar class="q-py-xs q-px-lg flex flex-center" style="min-height: 58px;">
         <div class="row items-center justify-between full-width">
-
-          <!-- Logo + Nome -->
-          <div class="row items-center no-wrap">
-            <q-img
-              src="~assets/icons/icon.png"
-              alt="Logo Horizonte BI"
-              class="q-mr-md"
-              style="width:86px;height:76px;"
-              spinner-color="primary"
-              fit="contain"
-            />
-            <div>
-              <div class="text-h6 text-primary q-mb-xs" style="letter-spacing:1px;">Horizonte BI</div>
-              <div class="text-caption text-grey-8" style="margin-top:-4px;">Global Solutions, Local Results</div>
+          <!-- Header especial RG Pilots -->
+          <template v-if="isWeatherNow">
+            <div class="row items-center no-wrap justify-center full-width">
+              <q-img
+                :src="logoSrc"
+                alt="Logo RG Pilots"
+                style="width:86px;height:76px;"
+                spinner-color="primary"
+                fit="contain"
+                class="q-mr-md"
+              />
+              <div>
+                <div class="text-h6 text-primary q-mb-xs" style="letter-spacing:1px;">RG Pilots</div>
+              </div>
             </div>
-          </div>
-
-          <!-- Barra de Navegação com data-gtm -->
-          <div v-if="mostrarBotoes" class="row items-center no-wrap q-ml-xl">
-            <q-btn
-              v-for="section in sections"
-              :key="section.id"
-              :id="`btn-${section.id}`"
-              :data-gtm="`btn-${section.id}`"
-              flat dense
-              color="primary"
-              :label="section.label"
-              @click="handleClick(section.id)"
-              class="q-mx-xs text-body1"
-            />
-          </div>
-
-          <!-- Avatar do Usuário -->
-          <div v-if="isLoggedIn" class="row items-center">
-            <q-btn dense flat round class="q-ml-md" size="lg" style="padding:0;">
-              <q-avatar size="38px">
-                <template v-if="userImageUrl">
-                  <img :src="userImageUrl" :alt="userName" />
-                </template>
-                <template v-else>
-                  <span class="avatar-initials">{{ initials }}</span>
-                </template>
-              </q-avatar>
-              <q-menu anchor="bottom right" self="top right">
-                <div class="column items-center q-pa-md">
-                  <q-avatar size="68px" class="q-mb-xs">
-                    <template v-if="userImageUrl">
-                      <img :src="userImageUrl" :alt="userName" />
-                    </template>
-                    <template v-else>
-                      <span class="avatar-initials-big">{{ initials }}</span>
-                    </template>
-                  </q-avatar>
-                  <div class="text-bold">{{ userName }}</div>
-                </div>
-                <q-separator />
-                <q-list bordered separator>
-                  <q-item clickable v-ripple @click="gotoEditProfile">
-                    <q-item-section avatar><q-icon name="edit" /></q-item-section>
-                    <q-item-section>{{ t('profile.edit') }}</q-item-section>
-                  </q-item>
-                  <q-item clickable v-ripple @click="logout">
-                    <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
-                    <q-item-section>{{ t('profile.logout') }}</q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
-            </q-btn>
-          </div>
-
+          </template>
+          <!-- Header padrão Horizonte BI -->
+          <template v-else>
+            <div class="row items-center no-wrap">
+              <q-img
+                :src="logoSrc"
+                :alt="logoAlt"
+                class="q-mr-md"
+                style="width:86px;height:76px;"
+                spinner-color="primary"
+                fit="contain"
+              />
+              <div>
+                <div class="text-h6 text-primary q-mb-xs" style="letter-spacing:1px;">Horizonte BI</div>
+                <div class="text-caption text-grey-8" style="margin-top:-4px;">Global Solutions, Local Results</div>
+              </div>
+            </div>
+            <!-- Menus e avatar só fora do weatherNow -->
+            <div v-if="mostrarBotoes" class="row items-center no-wrap q-ml-xl">
+              <q-btn
+                v-for="section in sections"
+                :key="section.id"
+                :id="`btn-${section.id}`"
+                :data-gtm="`btn-${section.id}`"
+                flat dense
+                color="primary"
+                :label="section.label"
+                @click="handleClick(section.id)"
+                class="q-mx-xs text-body1"
+              />
+            </div>
+            <div v-if="isLoggedIn" class="row items-center">
+              <q-btn dense flat round class="q-ml-md" size="lg" style="padding:0;">
+                <q-avatar size="38px">
+                  <template v-if="userImageUrl">
+                    <img :src="userImageUrl" :alt="userName" />
+                  </template>
+                  <template v-else>
+                    <span class="avatar-initials">{{ initials }}</span>
+                  </template>
+                </q-avatar>
+                <q-menu anchor="bottom right" self="top right">
+                  <div class="column items-center q-pa-md">
+                    <q-avatar size="68px" class="q-mb-xs">
+                      <template v-if="userImageUrl">
+                        <img :src="userImageUrl" :alt="userName" />
+                      </template>
+                      <template v-else>
+                        <span class="avatar-initials-big">{{ initials }}</span>
+                      </template>
+                    </q-avatar>
+                    <div class="text-bold">{{ userName }}</div>
+                  </div>
+                  <q-separator />
+                  <q-list bordered separator>
+                    <q-item clickable v-ripple @click="gotoEditProfile">
+                      <q-item-section avatar><q-icon name="edit" /></q-item-section>
+                      <q-item-section>{{ t('profile.edit') }}</q-item-section>
+                    </q-item>
+                    <q-item clickable v-ripple @click="logout">
+                      <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
+                      <q-item-section>{{ t('profile.logout') }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </div>
+          </template>
         </div>
       </q-toolbar>
     </q-header>
-
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -87,22 +99,28 @@
 import { useRoute, useRouter } from 'vue-router';
 import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import RGPilotsSrc from 'src/assets/clients/logo-rgpilots.png';
 
 const route = useRoute();
 const router = useRouter();
 const { t, locale } = useI18n();
 
-// Garante que o idioma do i18n segue o localStorage ao montar
 onMounted(() => {
   const lang = localStorage.getItem('lang') || 'en';
   if (locale.value !== lang) {
     locale.value = lang;
   }
-  // Opcional: redirecionamento automático pela rota do idioma salvo
   if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
     router.replace(lang === 'pt' ? '/br' : '/en');
   }
 });
+
+const isWeatherNow = computed(() => route.path === '/weatherNow');
+const logoSrc = computed(() => (isWeatherNow.value
+  ? RGPilotsSrc
+  // eslint-disable-next-line global-require
+  : require('src/assets/icons/icon.png')));
+const logoAlt = computed(() => (isWeatherNow.value ? 'Logo RG Pilots' : 'Logo Horizonte BI'));
 
 const sections = computed(() => [
   { id: 'clients', label: t('navbar.clients') },
@@ -110,12 +128,12 @@ const sections = computed(() => [
   { id: 'team', label: t('navbar.team') },
   { id: 'contact', label: t('navbar.contact') },
 ]);
-
 const isLoggedIn = computed(() => !!localStorage.getItem('user_id'));
 const mostrarBotoes = computed(
   () => !['/login', '/contacts', '/editUser', '/registerUser'].includes(route.path),
 );
 
+// Usuário
 function getUserData() {
   const raw = localStorage.getItem('usuarioLogado');
   try {
@@ -127,15 +145,10 @@ function getUserData() {
 const userData = computed(() => getUserData());
 const userImageUrl = computed(() => userData.value.imageUrl || userData.value.image_url || '');
 const userName = computed(() => userData.value.usuario || userData.value.name || 'Usuário');
-
 const initials = computed(() => {
   const name = userName.value.trim();
   if (!name) return 'U';
-  return name
-    .split(' ')
-    .map((p) => p[0]?.toUpperCase())
-    .join('')
-    .slice(0, 2);
+  return name.split(' ').map((p) => p[0]?.toUpperCase()).join('').slice(0, 2);
 });
 
 function handleClick(id) {
@@ -149,11 +162,9 @@ function handleClick(id) {
     });
   }
 }
-
 function gotoEditProfile() {
   router.push('/editUser');
 }
-
 function logout() {
   localStorage.removeItem('user_id');
   localStorage.removeItem('user_name');

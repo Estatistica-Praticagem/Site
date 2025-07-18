@@ -1,7 +1,7 @@
 <template>
   <div style="margin-bottom:0;">
     <!-- Resumo principal -->
-    <q-card class="q-pa-md q-mb-md bg-white shadow-3" style="border-radius:18px;max-width:1200px;margin:auto;">
+    <!-- <q-card class="q-pa-md q-mb-md bg-white shadow-3" style="border-radius:18px;max-width:1200px;margin:auto;">
       <q-table
         dense flat
         :rows="[{
@@ -34,10 +34,30 @@
           </div>
         </div>
       </div>
-    </q-card>
+    </q-card> -->
 
-    <!-- Tabela Vazante/Enchente -->
-    <q-card flat class="bg-white shadow-2 q-pa-sm q-mb-md" style="border-radius:12px; max-width:520px;margin:auto;">
+    <!-- SELETOR: Tabela ou Relógios -->
+    <div class="q-mb-md flex items-center gap-3 justify-center">
+      <q-btn-toggle
+        v-model="viewMode"
+        unelevated
+        toggle-color="primary"
+        color="white"
+        text-color="primary"
+        :options="[
+          { label: 'Relógios', value: 'gauges' },
+          { label: 'Tabela', value: 'table' }
+        ]"
+      />
+    </div>
+
+    <!-- TABELA Vazante/Enchente (visível só se selecionado) -->
+    <q-card
+      v-if="viewMode === 'table'"
+      flat
+      class="bg-white shadow-2 q-pa-sm q-mb-md"
+      style="border-radius:12px; max-width:520px;margin:auto;"
+    >
       <div class="text-bold q-mb-xs" style="color:#1976D2;font-size:1.09em;">ADCP Vazante/Ajustada (kts)</div>
       <q-table
         dense flat hide-bottom
@@ -52,9 +72,9 @@
       />
     </q-card>
 
-    <!-- ADCP níveis resumidos -->
-    <div class="text-h6 text-weight-medium q-mb-xs" style="color:#0267C1">ADCP - Correntezas (m/s)</div>
-    <div class="row relogio-grid">
+    <!-- RELÓGIOS (visível só se selecionado) -->
+    <div v-else class="text-h6 text-weight-medium q-mb-xs" style="color:#0267C1">ADCP - Correntezas (m/s)</div>
+    <div v-if="viewMode === 'gauges'" class="row relogio-grid">
       <div
         v-for="info in correnteCampos"
         :key="info.label"
@@ -93,9 +113,12 @@
 <script setup>
 import { storeToRefs } from 'pinia';
 import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
-import { useWeatherStore } from 'src/stores/weather'; // ajuste o path se necessário
+import { useWeatherStore } from 'src/stores/weather';
+import { ref, computed } from 'vue';
 
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
+
+const viewMode = ref('gauges'); // Ou 'table' para começar pela tabela
 
 const correnteCampos = [
   {
@@ -127,8 +150,6 @@ const correnteCampos = [
   },
 ];
 
-import { computed } from 'vue';
-
 const adcpVazanteRows = computed(() => {
   if (!weather.value) return [];
   return correnteCampos.map((info) => {
@@ -147,7 +168,6 @@ const adcpVazanteRows = computed(() => {
 </script>
 
 <style scoped>
-/* Grid compacto para relogios */
 .relogio-grid {
   display: flex;
   flex-wrap: wrap;
@@ -185,9 +205,7 @@ const adcpVazanteRows = computed(() => {
   color: #1565c0;
 }
 @media (max-width: 1100px) {
-  .relogio-grid {
-    max-width: 100vw;
-  }
+  .relogio-grid { max-width: 100vw; }
 }
 @media (max-width: 850px) {
   .relogio-grid { gap: 0.3rem 0.2rem; }
