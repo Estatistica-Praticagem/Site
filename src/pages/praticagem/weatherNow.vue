@@ -10,6 +10,8 @@
     <CurrentForecastComparison/>
     <div style="height:22px"></div>
     <OpenWeatherForecast/>
+    <div style="height:22px"></div>
+    <WeatherForecastVisibility/>
   </q-page>
 </template>
 
@@ -21,6 +23,7 @@ import WeatherDetails from 'src/components/praticagem/WeatherDetails.vue';
 import TideForecastComparison from 'src/components/praticagem/TideForecastComparison.vue';
 import CurrentForecastComparison from 'src/components/praticagem/CurrentForecastComparison.vue';
 import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastView.vue';
+import WeatherForecastVisibility from 'src/components/praticagem/WeatherForecastVisibility.vue';
 
 const store = useWeatherStore();
 

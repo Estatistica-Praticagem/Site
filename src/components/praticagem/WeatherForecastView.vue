@@ -47,6 +47,7 @@
     <WeatherForecastCards v-else-if="viewMode === 'cards'" :rows="groupedByDay[selectedDay] || []" />
     <WeatherForecastBar v-else-if="viewMode === 'bar'" :rows="groupedByDay[selectedDay] || []" />
   </q-card>
+
 </template>
 
 <script setup>

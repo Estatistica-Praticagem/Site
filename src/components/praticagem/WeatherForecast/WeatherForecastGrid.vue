@@ -4,21 +4,6 @@
       <q-icon name="waves" class="text-blue-8" />
       <span class="text-lg font-bold">{{ cityLabel }} — Grade de Previsão</span>
     </div>
-    <!-- Seletor de dia -->
-    <div class="flex gap-2 mb-2">
-      <q-btn
-        v-for="dia in availableDays"
-        :key="dia"
-        size="sm"
-        :label="formatDayShort(dia)"
-        :color="selectedDay === dia ? 'primary' : 'white'"
-        :text-color="selectedDay === dia ? 'white' : 'primary'"
-        flat
-        rounded
-        class="shadow"
-        @click="emitDay(dia)"
-      />
-    </div>
     <div class="overflow-x-auto grid-table-wrap">
       <table class="forecast-grid-table w-full">
         <thead>
@@ -35,7 +20,12 @@
               <q-icon :name="row.icon" class="mr-1" :color="row.color" size="18px"/>
               {{ row.label }}
             </td>
-            <td v-for="item in hoursList" :key="item.dt_txt" class="cell-val" :class="row.bg ? row.bg(item) : ''">
+            <td
+              v-for="item in hoursList"
+              :key="item.dt_txt + '-' + row.key"
+              class="cell-val"
+              :class="row.bg ? row.bg(item) : ''"
+            >
               <template v-if="row.renderComp">
                 <component :is="row.renderComp" :deg="item.wind_deg" :speed="item.wind_speed" />
               </template>
@@ -54,52 +44,43 @@
 </template>
 
 <script setup>
-import { computed, defineProps, defineEmits } from 'vue';
+import { computed, defineProps } from 'vue';
 import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
 
 const props = defineProps({
   day: String,
   groupedByDay: Object,
   cityLabel: String,
-  availableDays: Array,
 });
 
-const emit = defineEmits(['update:day']);
-const selectedDay = computed(() => props.day);
 const hoursList = computed(() => props.groupedByDay[props.day] || []);
-function emitDay(dia) { emit('update:day', dia); }
 
-function formatDayShort(dia) {
-  const d = new Date(dia);
-  // eslint-disable-next-line no-restricted-globals
-  if (isNaN(d)) return dia;
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-}
+// Função para converter m/s para knots (nós)
+const toKnots = (ms) => (ms != null ? (ms * 1.94384).toFixed(1) : '--');
 
-// Renderização dos relógios igual aos outros componentes!
+// Lista das linhas do grid, com ajustes de knots
 const variables = [
   {
     key: 'vento_dir',
     label: 'Direção do vento',
     icon: 'explore',
     color: 'blue-7',
-    // Passa as props que o componente espera
     renderComp: WindMiniClock,
   },
   {
     key: 'vento_vel',
-    label: 'Velocidade do vento (km/h)',
+    label: 'Velocidade do vento (knots)',
     icon: 'air',
     color: 'indigo',
-    field: 'wind_speed',
-    bg: (item) => (item.wind_speed >= 30 ? 'bg-red-1' : item.wind_speed >= 15 ? 'bg-yellow-1' : ''),
+    renderFn: (item) => toKnots(item.wind_speed),
+    bg: (item) => (item.wind_speed >= 8.3 ? 'bg-red-1' : item.wind_speed >= 4.2 ? 'bg-yellow-1' : ''),
   },
   {
     key: 'gust',
-    label: 'Rajadas (km/h)',
+    label: 'Rajadas (knots)',
     icon: 'whatshot',
     color: 'orange',
-    field: 'wind_gust',
+    renderFn: (item) => toKnots(item.wind_gust),
   },
   {
     key: 'temp',
