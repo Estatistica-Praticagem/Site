@@ -1,4 +1,3 @@
-<!-- eslint-disable no-use-before-define -->
 <template>
   <div>
     <!-- TOGGLE DE MODO -->
@@ -31,8 +30,8 @@
           size="sm"
         >
           <div class="flex flex-col items-center">
-            <span class="text-base">{{ opt.label.split(',')[0] }}</span>
-            <span class="text-xs text-grey-6">{{ opt.label.split(',')[1] }}</span>
+            <span class="text-base">{{ formatDayShort(opt.value) }}</span>
+            <span class="text-xs text-grey-6">{{ getWeekdayLabel(opt.value) }}</span>
           </div>
         </q-btn>
       </div>
@@ -59,15 +58,14 @@ import { useWeatherStore } from 'src/stores/weather';
 import WeatherForecastCompact from 'src/components/praticagem/WeatherForecastVisibility/WeatherForecastCompact.vue';
 import ForecastGrid from 'src/components/praticagem/WeatherForecastVisibility/WeatherForecastGrid.vue';
 
-// STORE
 const store = useWeatherStore();
 const forecast = computed(() => store.openWeatherForecast || []);
 
-// Agrupa por dia
+// Agrupa por dia: PEGA O DIA DO JSON EXATAMENTE COMO VEM!
 const groupedByDay = computed(() => {
   const res = {};
   forecast.value.forEach((item) => {
-    const day = item.dt_txt?.slice(0, 10);
+    const day = item.dt_txt?.slice(0, 10); // ex: '2025-07-26'
     if (!day) return;
     res[day] = res[day] || [];
     res[day].push(item);
@@ -75,89 +73,43 @@ const groupedByDay = computed(() => {
   return res;
 });
 
-// Cards dos dias
-const weatherPhenomena = {
-  800: { name: 'Céu limpo', svgIcon: '☀️', color: 'phenomenon-sun' },
-  801: { name: 'Poucas nuvens', svgIcon: '🌤️', color: 'phenomenon-fewclouds' },
-  802: { name: 'Nuvens dispersas', svgIcon: '⛅', color: 'phenomenon-scattered' },
-  // eslint-disable-next-line no-use-before-define
-  803: { name: 'Nuvens fragmentadas', svgIcon: sunBehindCloudsSVG(), color: 'phenomenon-broken' },
-  // eslint-disable-next-line no-use-before-define
-  804: { name: 'Céu encoberto', svgIcon: cloudSVG(), color: 'phenomenon-overcast' },
-  // eslint-disable-next-line no-use-before-define
-  741: { name: 'Nevoeiro', svgIcon: fogSVG(), color: 'phenomenon-fog' },
-  // eslint-disable-next-line no-use-before-define
-  701: { name: 'Névoa', svgIcon: mistSVG(), color: 'phenomenon-mist' },
-  // eslint-disable-next-line no-use-before-define
-  721: { name: 'Neblina seca', svgIcon: hazeSVG(), color: 'phenomenon-haze' },
-  // eslint-disable-next-line no-use-before-define
-  711: { name: 'Fumaça', svgIcon: fireSVG(), color: 'phenomenon-smoke' },
-};
-function getDayFogProb(arr) {
-  // eslint-disable-next-line eqeqeq
-  if (arr.some((x) => x.weather_id == 741)) return 100;
-  let maxProb = 0;
-  arr.forEach((x) => {
-    let prob = 0;
-    // eslint-disable-next-line eqeqeq
-    if (x.weather_id == 741) prob = 100;
-    else if (x.humidity >= 90 && x.visibility <= 4000) prob = 60;
-    else if (x.humidity >= 85 && x.visibility <= 8000) prob = 30;
-    if (prob > maxProb) maxProb = prob;
-  });
-  return maxProb;
-}
-const days = computed(() => {
-  const byDate = {};
-  forecast.value.forEach((row) => {
-    const day = row.dt_txt?.slice(0, 10);
-    if (!day) return;
-    byDate[day] = byDate[day] || [];
-    byDate[day].push(row);
-  });
-  return Object.entries(byDate)
-    .slice(0, 5)
-    .map(([date, arr]) => {
-      const dominant = arr.map((r) => r.weather_id)
-        .reduce((acc, v) => { acc[v] = (acc[v] || 0) + 1; return acc; }, {});
-      // eslint-disable-next-line camelcase
-      const [weather_id] = Object.entries(dominant).sort((a, b) => b[1] - a[1])[0] || [800];
-      // eslint-disable-next-line camelcase
-      const phenomenon = weatherPhenomena[weather_id] || { name: 'Desconhecido', svgIcon: '❓', color: 'phenomenon-unknown' };
-      // eslint-disable-next-line camelcase
-      const temp_max = Math.max(...arr.map((x) => Number(x.temp_max) || 0));
-      // eslint-disable-next-line camelcase
-      const temp_min = Math.min(...arr.map((x) => Number(x.temp_min) || 0));
-      // eslint-disable-next-line camelcase
-      const humidity_avg = Math.round(arr.reduce((s, x) => s + (Number(x.humidity) || 0), 0) / arr.length);
-      const fogProb = getDayFogProb(arr);
-      const dt = new Date(`${date}T12:00:00`);
-      const dateLabel = dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
-      return {
-        // eslint-disable-next-line camelcase
-        date, dateLabel, weather_id, phenomenon, temp_max, temp_min, humidity_avg, fogProb,
-      };
-    });
-});
-const availableDays = computed(() => days.value.map((d) => ({
-  label: d.dateLabel,
-  value: d.date,
-})));
-const mode = ref('detailed'); // Começa detalhado!
+const availableDays = computed(() => Object.keys(groupedByDay.value)
+  .sort()
+  .map((date) => ({ value: date })));
+
+const mode = ref('detailed');
 const selectedDay = ref('');
 watchEffect(() => {
-  if (!selectedDay.value && days.value[0]) selectedDay.value = days.value[0].date;
+  if (!selectedDay.value && availableDays.value.length) selectedDay.value = availableDays.value[0].value;
 });
 
-// SVG functions (mantenha os mesmos, já conhecidos do projeto)
-function cloudSVG() { return '<svg width="24".../svg>'; }
-function fogSVG() { return '<svg width="24".../svg>'; }
-function mistSVG() { return '<svg width="24".../svg>'; }
-function hazeSVG() { return '<svg width="24".../svg>'; }
-function sunBehindCloudsSVG() { return '<svg width="24".../svg>'; }
-function fireSVG() { return '<svg width="24".../svg>'; }
+// Helpers para formatar labels
+function formatDayShort(dia) {
+  // '2025-07-26' => '26/07'
+  if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) return dia;
+  // eslint-disable-next-line no-unused-vars
+  const [yyyy, mm, dd] = dia.split('-');
+  return `${dd}/${mm}`;
+}
+function formatDay(dia) {
+  if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) return dia;
+  const [yyyy, mm, dd] = dia.split('-');
+  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const dow = new Date(`${yyyy}-${mm}-${dd}T12:00:00-03:00`).getDay();
+  return `${dd}/${mm} (${dias[dow]})`;
+}
+function getWeekdayLabel(dia) {
+  const m = formatDay(dia).match(/\((\w+)\)/);
+  return m ? m[1] : '';
+}
+
+// Os dias para o modo compacto (um resumo por dia):
+const days = computed(() => Object.entries(groupedByDay.value).map(([date, arr]) => ({
+  date,
+  arr,
+})));
 </script>
 
 <style scoped>
-/* Seus estilos existentes dos cards e botões podem ficar aqui. */
+/* Seus estilos dos cards e botões aqui (opcional) */
 </style>

@@ -10,7 +10,7 @@
           <tr>
             <th class="left-th bg-transparent border-none"></th>
             <th v-for="item in hoursList" :key="item.dt_txt" class="text-center th-hour">
-              {{ item.dt_txt.slice(11, 16) }}
+              {{ formatHourBR(item.dt_txt) }}
             </th>
           </tr>
         </thead>
@@ -54,6 +54,19 @@ const props = defineProps({
 });
 
 const hoursList = computed(() => props.groupedByDay[props.day] || []);
+
+// Função para converter string UTC (dt_txt) para hora local (UTC-3) "HH:mm"
+// eslint-disable-next-line camelcase
+function formatHourBR(dt_txt) {
+  // eslint-disable-next-line camelcase
+  if (!dt_txt) return '--';
+  // Cria objeto Date UTC a partir da string da API
+  // eslint-disable-next-line camelcase
+  const utcDate = new Date(`${dt_txt.replace(' ', 'T')}Z`);
+  // Subtrai 3 horas para UTC-3
+  const brDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+  return brDate.toISOString().slice(11, 16);
+}
 
 // Função para converter m/s para knots (nós)
 const toKnots = (ms) => (ms != null ? (ms * 1.94384).toFixed(1) : '--');

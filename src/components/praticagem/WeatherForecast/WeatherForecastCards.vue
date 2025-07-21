@@ -18,7 +18,9 @@
         </div>
         <div class="ml-auto flex flex-col items-end text-right">
           <span class="flex items-center gap-1 text-sm">
-            <q-icon name="access_time" size="16px" /> {{ item.dt_txt?.slice(11, 16) }}
+            <q-icon name="access_time" size="16px" />
+            <!-- Ajuste AQUI para hora em UTC-3 -->
+            {{ formatHourBR(item.dt_txt) }}
             <!-- Botão para detalhes -->
             <q-btn
               size="xs"
@@ -82,6 +84,17 @@ import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClo
 
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({ rows: { type: Array, default: () => [] } });
+
+// Função para exibir a hora ajustada para UTC-3
+// eslint-disable-next-line camelcase
+function formatHourBR(dt_txt) {
+  // eslint-disable-next-line camelcase
+  if (!dt_txt) return '--';
+  // eslint-disable-next-line camelcase
+  const utcDate = new Date(`${dt_txt.replace(' ', 'T')}Z`);
+  const brDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+  return brDate.toISOString().slice(11, 16);
+}
 
 function windDir(deg) {
   if (deg == null) return '';

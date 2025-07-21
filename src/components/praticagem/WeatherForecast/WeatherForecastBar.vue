@@ -8,7 +8,8 @@
     >
       <div class="flex items-center gap-2 flex-1 px-2">
         <q-icon name="access_time" size="18px" />
-        {{ item.dt_txt?.slice(11, 16) }}
+        <!-- Ajuste para mostrar hora UTC-3 -->
+        {{ formatHourBR(item.dt_txt) }}
         <WindMiniClock :deg="item.wind_deg" :speed="item.wind_speed" class="ml-2" />
       </div>
       <div class="flex-1 flex items-center gap-2">
@@ -63,6 +64,17 @@ import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClo
 
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({ rows: { type: Array, default: () => [] } });
+
+// Função para mostrar a hora ajustada para UTC-3
+// eslint-disable-next-line camelcase
+function formatHourBR(dt_txt) {
+  // eslint-disable-next-line camelcase
+  if (!dt_txt) return '--';
+  // eslint-disable-next-line camelcase
+  const utcDate = new Date(`${dt_txt.replace(' ', 'T')}Z`);
+  const brDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+  return brDate.toISOString().slice(11, 16);
+}
 
 function rainBarColor(item) {
   if (!item.pop) return 'rain-none-bar';

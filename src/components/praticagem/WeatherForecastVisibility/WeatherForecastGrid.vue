@@ -95,26 +95,82 @@ function rainRowColor(row) {
   return 'rain-none';
 }
 
-// Função para retornar info do fenômeno
 function phenomenonInfo(row) {
-  // Os mesmos ids/fenômenos do seu pai (se quiser, pode passar como prop também)
+  // Lista completa dos principais fenômenos meteorológicos por ID da OpenWeather
   const weatherPhenomena = {
+    // Thunderstorm
+    200: { name: 'Trovoada com chuva leve', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    201: { name: 'Trovoada com chuva', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    202: { name: 'Trovoada com chuva forte', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    210: { name: 'Trovoada leve', svgIcon: '🌩️', color: 'phenomenon-thunderstorm' },
+    211: { name: 'Trovoada', svgIcon: '🌩️', color: 'phenomenon-thunderstorm' },
+    212: { name: 'Trovoada forte', svgIcon: '🌩️', color: 'phenomenon-thunderstorm' },
+    221: { name: 'Trovoada irregular', svgIcon: '🌩️', color: 'phenomenon-thunderstorm' },
+    230: { name: 'Trovoada com garoa leve', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    231: { name: 'Trovoada com garoa', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    232: { name: 'Trovoada com garoa forte', svgIcon: '⛈️', color: 'phenomenon-thunderstorm' },
+    // Drizzle
+    300: { name: 'Garoa leve', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    301: { name: 'Garoa', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    302: { name: 'Garoa forte', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    310: { name: 'Chuvisco leve', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    311: { name: 'Chuvisco', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    312: { name: 'Chuvisco forte', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    313: { name: 'Garoa com chuva', svgIcon: '🌧️', color: 'phenomenon-drizzle' },
+    314: { name: 'Garoa forte com chuva', svgIcon: '🌧️', color: 'phenomenon-drizzle' },
+    321: { name: 'Chuvisco', svgIcon: '🌦️', color: 'phenomenon-drizzle' },
+    // Rain
+    500: { name: 'Chuva leve', svgIcon: '🌧️', color: 'phenomenon-rain' },
+    501: { name: 'Chuva moderada', svgIcon: '🌧️', color: 'phenomenon-rain' },
+    502: { name: 'Chuva forte', svgIcon: '🌧️', color: 'phenomenon-rain' },
+    503: { name: 'Chuva muito forte', svgIcon: '🌧️', color: 'phenomenon-rain' },
+    504: { name: 'Chuva extrema', svgIcon: '🌧️', color: 'phenomenon-rain' },
+    511: { name: 'Chuva congelante', svgIcon: '🧊', color: 'phenomenon-rain' },
+    520: { name: 'Aguaceiro leve', svgIcon: '🌦️', color: 'phenomenon-rain' },
+    521: { name: 'Aguaceiro', svgIcon: '🌦️', color: 'phenomenon-rain' },
+    522: { name: 'Aguaceiro forte', svgIcon: '🌦️', color: 'phenomenon-rain' },
+    531: { name: 'Aguaceiro irregular', svgIcon: '🌦️', color: 'phenomenon-rain' },
+    // Snow
+    600: { name: 'Neve leve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    601: { name: 'Neve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    602: { name: 'Neve forte', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    611: { name: 'Aguanieve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    612: { name: 'Aguanieve leve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    613: { name: 'Aguanieve intensa', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    615: { name: 'Chuva leve com neve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    616: { name: 'Chuva com neve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    620: { name: 'Nevasca leve', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    621: { name: 'Nevasca', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    622: { name: 'Nevasca forte', svgIcon: '🌨️', color: 'phenomenon-snow' },
+    // Atmosphere
+    701: { name: 'Névoa', svgIcon: '🌫️', color: 'phenomenon-mist' },
+    711: { name: 'Fumaça', svgIcon: '🔥', color: 'phenomenon-smoke' },
+    721: { name: 'Neblina seca', svgIcon: '🌫️', color: 'phenomenon-haze' },
+    731: { name: 'Redemoinho de areia', svgIcon: '🌪️', color: 'phenomenon-dust' },
+    741: { name: 'Nevoeiro', svgIcon: '🌁', color: 'phenomenon-fog' },
+    751: { name: 'Areia', svgIcon: '🏜️', color: 'phenomenon-sand' },
+    761: { name: 'Poeira', svgIcon: '🏜️', color: 'phenomenon-dust' },
+    762: { name: 'Cinzas vulcânicas', svgIcon: '🌋', color: 'phenomenon-ash' },
+    771: { name: 'Rajadas de vento', svgIcon: '💨', color: 'phenomenon-squall' },
+    781: { name: 'Tornado', svgIcon: '🌪️', color: 'phenomenon-tornado' },
+    // Clear
     800: { name: 'Céu limpo', svgIcon: '☀️', color: 'phenomenon-sun' },
+    // Clouds
     801: { name: 'Poucas nuvens', svgIcon: '🌤️', color: 'phenomenon-fewclouds' },
     802: { name: 'Nuvens dispersas', svgIcon: '⛅', color: 'phenomenon-scattered' },
-    // eslint-disable-next-line no-use-before-define
-    803: { name: 'Nuvens fragmentadas', svgIcon: sunBehindCloudsSVG(), color: 'phenomenon-broken' },
-    // eslint-disable-next-line no-use-before-define
-    804: { name: 'Céu encoberto', svgIcon: cloudSVG(), color: 'phenomenon-overcast' },
-    // eslint-disable-next-line no-use-before-define
-    741: { name: 'Nevoeiro', svgIcon: fogSVG(), color: 'phenomenon-fog' },
-    // eslint-disable-next-line no-use-before-define
-    701: { name: 'Névoa', svgIcon: mistSVG(), color: 'phenomenon-mist' },
-    // eslint-disable-next-line no-use-before-define
-    721: { name: 'Neblina seca', svgIcon: hazeSVG(), color: 'phenomenon-haze' },
-    // eslint-disable-next-line no-use-before-define
-    711: { name: 'Fumaça', svgIcon: fireSVG(), color: 'phenomenon-smoke' },
+    803: { name: 'Nuvens fragmentadas', svgIcon: '🌥️', color: 'phenomenon-broken' },
+    804: { name: 'Céu encoberto', svgIcon: '☁️', color: 'phenomenon-overcast' },
+    // Extreme (casos raros, categoria adicional)
+    900: { name: 'Tornado', svgIcon: '🌪️', color: 'phenomenon-tornado' },
+    901: { name: 'Tempestade tropical', svgIcon: '🌀', color: 'phenomenon-tropical' },
+    902: { name: 'Furacão', svgIcon: '🌀', color: 'phenomenon-hurricane' },
+    903: { name: 'Frio extremo', svgIcon: '🥶', color: 'phenomenon-cold' },
+    904: { name: 'Calor extremo', svgIcon: '🥵', color: 'phenomenon-hot' },
+    905: { name: 'Ventos fortes', svgIcon: '💨', color: 'phenomenon-windy' },
+    906: { name: 'Granizo', svgIcon: '🌨️', color: 'phenomenon-hail' },
+    // Nota: códigos a partir de 950 são variações do vento e geralmente não aparecem na forecast da API comum
   };
+
   return weatherPhenomena[row.weather_id] || { name: 'Desconhecido', svgIcon: '❓', color: 'phenomenon-unknown' };
 }
 
@@ -144,25 +200,6 @@ function windDir(deg) {
 // Filtra as linhas desse dia selecionado
 const rows = computed(() => props.groupedByDay[props.day] || []);
 
-// SVGs inline para manter visual do fenômeno (se quiser pode importar de um arquivo separado)
-function cloudSVG() {
-  return '<svg width="24" height="24" fill="none"><ellipse cx="12" cy="15" rx="8" ry="6" fill="#b0bec5"/><ellipse cx="8" cy="14" rx="4" ry="3" fill="#e3eaf0"/><ellipse cx="17" cy="15" rx="3" ry="2.3" fill="#90a4ae"/></svg>';
-}
-function fogSVG() {
-  return '<svg width="24" height="24" fill="none"><ellipse cx="12" cy="16" rx="8" ry="5" fill="#cfd8dc"/><rect x="4" y="18" width="16" height="2" rx="1" fill="#90a4ae"/><rect x="6" y="21" width="12" height="1.5" rx="0.7" fill="#b0bec5"/></svg>';
-}
-function mistSVG() {
-  return '<svg width="24" height="24" fill="none"><ellipse cx="12" cy="15" rx="7" ry="4" fill="#cfd8dc"/><rect x="5" y="19" width="14" height="1.5" rx="0.7" fill="#b0bec5"/></svg>';
-}
-function hazeSVG() {
-  return '<svg width="24" height="24" fill="none"><ellipse cx="12" cy="15" rx="8" ry="4.5" fill="#fff9c4"/><ellipse cx="12" cy="20" rx="8" ry="2" fill="#ffe082" opacity="0.4"/><rect x="6" y="21" width="12" height="1" rx="0.5" fill="#fffde7"/></svg>';
-}
-function sunBehindCloudsSVG() {
-  return '<svg width="24" height="24" fill="none"><circle cx="8" cy="13" r="4" fill="#ffe082"/><ellipse cx="15" cy="15" rx="7" ry="5" fill="#b0bec5"/><ellipse cx="19" cy="16" rx="3" ry="2" fill="#e3eaf0"/></svg>';
-}
-function fireSVG() {
-  return '<svg width="24" height="24" fill="none"><path d="M12 22c4-3 7-7.1 2-13 0 2-2 3-2 7-2-2-2-6 0-8-5 3-6 9-2 14z" fill="#ffb300"/><path d="M12 19c2-2 4-5 1-9 0 1-1 1-1 4-1-1-1-4 0-5-3 2-4 6-1 10z" fill="#ff7043"/></svg>';
-}
 </script>
 
 <style scoped>

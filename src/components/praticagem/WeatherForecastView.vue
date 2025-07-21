@@ -47,14 +47,12 @@
     <WeatherForecastCards v-else-if="viewMode === 'cards'" :rows="groupedByDay[selectedDay] || []" />
     <WeatherForecastBar v-else-if="viewMode === 'bar'" :rows="groupedByDay[selectedDay] || []" />
   </q-card>
-
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useWeatherStore } from 'src/stores/weather';
 
-// Importando os componentes de visualização:
 import WeatherForecastTable from 'src/components/praticagem/WeatherForecast/WeatherForecastTable.vue';
 import WeatherForecastCards from 'src/components/praticagem/WeatherForecast/WeatherForecastCards.vue';
 import WeatherForecastBar from 'src/components/praticagem/WeatherForecast/WeatherForecastBar.vue';
@@ -64,39 +62,50 @@ const store = useWeatherStore();
 const selectedDay = ref(null);
 const viewMode = ref('grid');
 
-onMounted(async () => {
-  await store.fetchOpenWeatherForecast();
-  // eslint-disable-next-line prefer-destructuring, no-use-before-define
-  if (availableDays.value.length) selectedDay.value = availableDays.value[0];
+// Não faz mais ajuste para UTC-3 no agrupamento, usa dt_txt "cru"
+const groupedByDay = computed(() => {
+  const res = {};
+  (store.openWeatherForecast || []).forEach((item) => {
+    if (!item.dt_txt) return;
+    const dateStr = item.dt_txt.slice(0, 10); // 'YYYY-MM-DD'
+    if (!res[dateStr]) res[dateStr] = [];
+    res[dateStr].push(item);
+  });
+  return res;
 });
 
-const groupedByDay = computed(() => {
-  if (!Array.isArray(store.openWeatherForecast)) return {};
-  return store.openWeatherForecast.reduce((acc, item) => {
-    const dia = item.dt_txt ? item.dt_txt.slice(0, 10) : 'Indefinido';
-    if (!acc[dia]) acc[dia] = [];
-    acc[dia].push(item);
-    return acc;
-  }, {});
-});
+// Os dias disponíveis para o seletor, exatamente como vêm da API
 const availableDays = computed(() => Object.keys(groupedByDay.value).sort());
+
+// Cidade
 const cityLabel = computed(() => {
   const first = store.openWeatherForecast?.[0]?.city_name;
   return first ? `${first} - RS` : '';
 });
-function formatDay(dia) {
-  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  const d = new Date(dia);
-  // eslint-disable-next-line no-restricted-globals
-  if (isNaN(d)) return dia;
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')} (${dias[d.getDay()]})`;
-}
+
+// Formatações só pra visualização
 function formatDayShort(dia) {
-  const d = new Date(dia);
-  // eslint-disable-next-line no-restricted-globals
-  if (isNaN(d)) return dia;
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+  // Exemplo: '2025-07-21' -> '21/07'
+  if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) return dia;
+  // eslint-disable-next-line no-unused-vars
+  const [yyyy, mm, dd] = dia.split('-');
+  return `${dd}/${mm}`;
 }
+
+function formatDay(dia) {
+  if (!dia || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) return dia;
+  const [yyyy, mm, dd] = dia.split('-');
+  const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const dow = new Date(`${yyyy}-${mm}-${dd}T12:00:00-03:00`).getDay();
+  return `${dd}/${mm} (${dias[dow]})`;
+}
+
+// Inicializa o primeiro dia disponível
+onMounted(async () => {
+  await store.fetchOpenWeatherForecast();
+  // eslint-disable-next-line prefer-destructuring
+  if (availableDays.value.length) selectedDay.value = availableDays.value[0];
+});
 </script>
 
 <style scoped>

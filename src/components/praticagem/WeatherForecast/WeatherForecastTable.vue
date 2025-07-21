@@ -14,7 +14,8 @@
       <q-tr :props="props" :class="rainRowColor(props.row)">
         <q-td key="hour" class="flex items-center gap-2">
           <q-icon name="access_time" color="grey-7" size="18px"/>
-          {{ props.row.dt_txt?.slice(11, 16) }}
+          <!-- Hora já ajustada para UTC-3 -->
+          {{ formatHourBR(props.row.dt_txt) }}
         </q-td>
         <q-td key="icon">
           <img
@@ -80,14 +81,9 @@
 import { ref, watchEffect } from 'vue';
 import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
 
-// Props: recebe os dados já filtrados do dia escolhido
-// eslint-disable-next-line no-unused-vars
 const props = defineProps({ rows: { type: Array, default: () => [] } });
 
-// Debug: Loga sempre que rows mudar!
 watchEffect(() => {
-  // Mostra quantos dados chegaram, lista os horários disponíveis:
-  // (você pode remover depois do debug)
   console.log('[WeatherForecastTable] rows length:', props.rows.length);
   console.log('[WeatherForecastTable] horários:', props.rows.map((x) => x.dt_txt));
 });
@@ -118,6 +114,16 @@ const columns = [
     name: 'more', label: '', field: '', align: 'center', sortable: false,
   },
 ];
+
+// eslint-disable-next-line camelcase
+function formatHourBR(dt_txt) {
+  // eslint-disable-next-line camelcase
+  if (!dt_txt) return '--';
+  // eslint-disable-next-line camelcase
+  const utcDate = new Date(`${dt_txt.replace(' ', 'T')}Z`);
+  const brDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+  return brDate.toISOString().slice(11, 16);
+}
 
 function windDir(deg) {
   if (deg == null) return '';
