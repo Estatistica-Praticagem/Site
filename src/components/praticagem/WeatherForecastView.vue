@@ -62,14 +62,22 @@ const store = useWeatherStore();
 const selectedDay = ref(null);
 const viewMode = ref('grid');
 
-// Não faz mais ajuste para UTC-3 no agrupamento, usa dt_txt "cru"
 const groupedByDay = computed(() => {
   const res = {};
   (store.openWeatherForecast || []).forEach((item) => {
     if (!item.dt_txt) return;
-    const dateStr = item.dt_txt.slice(0, 10); // 'YYYY-MM-DD'
+    // Cria um Date em UTC
+    const utcDate = new Date(`${item.dt_txt.replace(' ', 'T')}Z`);
+    // Ajusta para UTC-3 (Brasília)
+    const brDate = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000);
+    // Agrupa pelo dia local
+    const dateStr = brDate.toISOString().slice(0, 10);
     if (!res[dateStr]) res[dateStr] = [];
-    res[dateStr].push(item);
+    // Se quiser, já pode adicionar um campo com a hora local formatada:
+    res[dateStr].push({
+      ...item,
+      local_time: brDate.toISOString().slice(11, 16),
+    });
   });
   return res;
 });

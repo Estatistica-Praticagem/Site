@@ -61,12 +61,12 @@ import ForecastGrid from 'src/components/praticagem/WeatherForecastVisibility/We
 const store = useWeatherStore();
 const forecast = computed(() => store.openWeatherForecast || []);
 
-// Agrupa por dia: PEGA O DIA DO JSON EXATAMENTE COMO VEM!
 const groupedByDay = computed(() => {
   const res = {};
   forecast.value.forEach((item) => {
-    const day = item.dt_txt?.slice(0, 10); // ex: '2025-07-26'
-    if (!day) return;
+    if (!item.dt_txt) return;
+    // NÃO precisa mexer em timezone
+    const day = item.dt_txt.slice(0, 10); // pega YYYY-MM-DD
     res[day] = res[day] || [];
     res[day].push(item);
   });

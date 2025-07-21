@@ -12,21 +12,27 @@
             <th class="text-center">Fenômeno</th>
             <th class="text-center">Prob. Nevoeiro</th>
             <th class="text-center">Temp.</th>
-            <th class="text-center">Descrição</th>
+            <th class="text-center">Sensação</th>
+            <th class="text-center">Pressão</th>
+            <th class="text-center">Umidade</th>
+            <th class="text-center">Visibilidade</th>
             <th class="text-center">Vento</th>
+            <!-- <th class="text-center">Rajada</th>
             <th class="text-center">Chuva</th>
+            <th class="text-center">Nuvens</th>
+            <th class="text-center">Descrição</th> -->
+            <!-- <th class="text-center">Ícone</th> -->
           </tr>
         </thead>
         <tbody>
           <tr v-for="row in rows" :key="row.dt_txt" :class="rainRowColor(row)">
+            <!-- Hora -->
             <td class="flex items-center gap-2 justify-center">
               <q-icon name="access_time" color="grey-7" size="18px"/>
               {{ row.dt_txt?.slice(11, 16) }}
             </td>
+            <!-- Fenômeno -->
             <td>
-              <q-tooltip>
-                <!-- {{ phenomenonInfo(row).name }}<br>Código: {{ row.weather_id }} -->
-              </q-tooltip>
               <div class="flex items-center gap-2 justify-center rounded-xl px-2 py-1"
                 :class="phenomenonInfo(row).color"
                 style="min-width:90px;">
@@ -37,6 +43,7 @@
                 </span>
               </div>
             </td>
+            <!-- Prob. Nevoeiro -->
             <td>
               <div class="flex items-center gap-1 justify-center">
                 <q-icon name="waves" color="purple-7" size="18px" />
@@ -45,30 +52,71 @@
                 </span>
               </div>
             </td>
+            <!-- Temperatura -->
             <td>
-              <span class="text-lg font-bold">{{ row.temp?.toFixed(0) }}°</span>
-              <span class="text-grey-6 text-xs block">Sens. {{ row.feels_like?.toFixed(0) }}°</span>
+              <span class="text-lg font-bold">{{ row.temp?.toFixed(1) }}°</span>
             </td>
+            <!-- Sensação térmica -->
             <td>
-              <span style="text-transform: capitalize">{{ row.weather_description }}</span>
+              <span class="text-blue-7 font-bold">{{ row.feels_like?.toFixed(1) }}°</span>
             </td>
+            <!-- Pressão -->
+            <td>
+              <span class="font-mono">{{ row.pressure ? row.pressure + ' hPa' : '--' }}</span>
+            </td>
+            <!-- Umidade -->
+            <td>
+              <span class="font-mono">{{ row.humidity ? row.humidity + '%' : '--' }}</span>
+            </td>
+            <!-- Visibilidade -->
+            <td>
+              <span>{{ row.visibility != null ? (row.visibility/1000).toFixed(1) + ' km' : '--' }}</span>
+            </td>
+            <!-- Vento (em knots) -->
             <td>
               <span class="flex items-center gap-2">
                 <WindMiniClock :deg="row.wind_deg" :speed="row.wind_speed" />
                 {{ windDir(row.wind_deg) }}
-                <span class="text-blue-8 text-weight-medium">{{ row.wind_speed }} km/h</span>
+                <span class="text-blue-8 text-weight-medium">
+                  {{ row.wind_speed_knots != null ? row.wind_speed_knots.toFixed(1) + ' kt' : '--' }}
+                </span>
               </span>
             </td>
+            <!-- Rajada de vento (em knots)
             <td>
+              <span>
+                {{ row.wind_gust_knots != null ? row.wind_gust_knots.toFixed(1) + ' kt' : '--' }}
+              </span>
+            </td>
+            Chuva
+             <td>
               <span v-if="typeof row.pop === 'number'">
                 <q-icon name="water_drop" color="blue-6" size="18px"/>
                 <span :class="row.pop >= 0.7 ? 'text-red' : 'text-blue-8'">
                   {{ Math.round(row.pop * 100) }}%
                 </span>
-                <span v-if="row.rain_3h" class="text-grey-7">({{ row.rain_3h }}mm)</span>
+                <span v-if="row.rain_3h" class="text-grey-7">({{ row.rain_3h }}mm/3h)</span>
+                <span v-else-if="row.rain_1h" class="text-grey-7">({{ row.rain_1h }}mm/1h)</span>
               </span>
               <span v-else>--</span>
             </td>
+            Nuvens
+            <td>
+              <span>{{ row.clouds != null ? row.clouds + '%' : '--' }}</span>
+            </td>
+             Descrição -->
+            <!-- <td>
+              <span style="text-transform: capitalize">{{ row.weather_description }}</span>
+            </td>  -->
+            <!-- Ícone openweather -->
+            <!-- <td>
+              <img
+                v-if="row.weather_icon"
+                :src="`https://openweathermap.org/img/wn/${row.weather_icon}@2x.png`"
+                :alt="row.weather_description"
+                style="width: 38px; height: 38px;"
+              >
+            </td> -->
           </tr>
         </tbody>
       </table>
@@ -86,7 +134,13 @@ const props = defineProps({
   cityLabel: { type: String, required: false, default: '' },
 });
 
-// Função para cor de linha baseada na precipitação
+// Converte m/s para knots (nós)
+function msToKnots(ms) {
+  if (typeof ms !== 'number') return null;
+  return ms * 1.94384;
+}
+
+// Cor de linha baseada na precipitação
 function rainRowColor(row) {
   if (!row.pop) return '';
   if (row.pop >= 0.8) return 'rain-red';
@@ -94,6 +148,36 @@ function rainRowColor(row) {
   if (row.pop >= 0.2) return 'rain-blue';
   return 'rain-none';
 }
+const rows = computed(() => (props.groupedByDay[props.day] || []).map((item) => {
+  // eslint-disable-next-line camelcase
+  const wind_speed_ms = item.wind_speed ?? item.wind?.speed;
+  // eslint-disable-next-line camelcase
+  const wind_gust_ms = item.wind_gust ?? item.wind?.gust;
+  return {
+    ...item,
+    temp: item.temp ?? item.main?.temp,
+    feels_like: item.feels_like ?? item.main?.feels_like,
+    pressure: item.pressure ?? item.main?.pressure,
+    humidity: item.humidity ?? item.main?.humidity,
+    clouds: item.clouds?.all ?? item.clouds,
+    // eslint-disable-next-line camelcase
+    wind_speed: wind_speed_ms,
+    // eslint-disable-next-line camelcase
+    wind_speed_knots: wind_speed_ms != null ? msToKnots(wind_speed_ms) : null,
+    wind_deg: item.wind_deg ?? item.wind?.deg,
+    // eslint-disable-next-line camelcase
+    wind_gust: wind_gust_ms,
+    // eslint-disable-next-line camelcase
+    wind_gust_knots: wind_gust_ms != null ? msToKnots(wind_gust_ms) : null,
+    pop: item.pop,
+    rain_1h: item.rain?.['1h'],
+    rain_3h: item.rain?.['3h'],
+    weather_id: item.weather_id ?? item.weather?.[0]?.id,
+    weather_description: item.weather_description ?? item.weather?.[0]?.description,
+    weather_icon: item.weather_icon ?? item.weather?.[0]?.icon,
+    visibility: item.visibility,
+  };
+}));
 
 function phenomenonInfo(row) {
   // Lista completa dos principais fenômenos meteorológicos por ID da OpenWeather
@@ -182,23 +266,17 @@ function fogProb(row) {
   if (row.humidity >= 85 && row.visibility <= 8000) return 30;
   return 0;
 }
-// Cores para probabilidade de nevoeiro
 function fogProbColor(prob) {
   if (prob >= 80) return 'text-purple-8';
   if (prob >= 50) return 'text-purple-6';
   if (prob > 0) return 'text-blue-7';
   return 'text-grey-6';
 }
-
-// Direção do vento
 function windDir(deg) {
   if (deg == null) return '';
   const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
   return dirs[Math.round((deg % 360) / 45)];
 }
-
-// Filtra as linhas desse dia selecionado
-const rows = computed(() => props.groupedByDay[props.day] || []);
 
 </script>
 
@@ -209,13 +287,21 @@ const rows = computed(() => props.groupedByDay[props.day] || []);
 .grid-table-wrap {
   overflow-x: auto;
 }
-.forecast-grid-table {
-  min-width: 800px;
-  background: rgba(255,255,255,0.98);
-  border-radius: 1em;
-  box-shadow: 0 4px 32px #b0bec515, 0 1px 4px #2d37481a;
-  margin-top: 10px;
+.forecast-grid-table tr,
+.forecast-grid-table td {
+  color: #111 !important;   /* Preto forte */
+  background: #fff !important; /* Fundo branco, opcional */
+  border-bottom: 1px solid #e0e0e0; /* Opcional, para visual divisão */
 }
+
+/* Tira qualquer cor de linha de chuva ou gradiente */
+.rain-red,
+.rain-yellow,
+.rain-blue,
+.rain-none {
+  background: #fff !important;
+}
+
 .rain-red    { background: linear-gradient(90deg, #ffebee, #ffcccb 65%, #ff5252 100%) !important; }
 .rain-yellow { background: linear-gradient(90deg, #fffde7, #fff9c4 65%, #ffe082 100%) !important; }
 .rain-blue   { background: linear-gradient(90deg, #e3f2fd, #bbdefb 60%, #4fc3f7 100%) !important; }
