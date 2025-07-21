@@ -3,17 +3,14 @@
     <q-card
       class="weather-main-card q-pa-none shadow-2"
       v-if="!!weather"
-      :style="{
-        background: statusStyle.bg,
-        color: statusStyle.text,
-      }"
+      :class="statusClass"
     >
       <!-- Infos -->
-      <div class="weather-col-info q-pa-md" :style="{ color: statusStyle.text }">
+      <div class="weather-col-info">
         <div class="text-h6 q-mb-xs flex items-center gap-1">
-          <q-icon name="cloud" class="q-mr-xs" :style="{ color: statusStyle.icon }"/>Condições atuais:
+          <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
         </div>
-        <div class="text-caption q-mb-xs" :style="{ color: statusStyle.caption }">ESTAÇÃO METEOROLÓGICA</div>
+        <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
         <div class="row q-gutter-md">
           <div>
             <div class="text-caption">TEMPERATURA</div>
@@ -71,7 +68,7 @@
       <!-- Blocos: Gauge Correnteza 3m e Rosa do Vento -->
       <div class="weather-col-gauges">
         <div class="gauge-group">
-          <div class="gauge-title" :style="{ color: statusStyle.text }">Correnteza 3m</div>
+          <div class="gauge-title">Correnteza 3m</div>
           <GaugeRelogio
             :value="correntezaDir"
             :intensidade="correntezaKts"
@@ -84,7 +81,7 @@
           />
         </div>
         <div class="gauge-group">
-          <div class="gauge-title" :style="{ color: statusStyle.text }">Vento</div>
+          <div class="gauge-title">Vento</div>
           <WindRose
             :direcao="ventoDir"
             :intensidade="ventoKts"
@@ -108,75 +105,34 @@ import { computed } from 'vue';
 // Pegando o último registro do weather
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
 
-// Mapa de cores por status
-const statusColorMap = {
-  PRATICAVEL: {
-    bg: '#E9F7EF',
-    text: '#145A32',
-    badge: 'blue-7',
-    caption: '#31708F',
-    icon: '#145A32',
-  },
-  'IMPRATICAVEL TOTAL': {
-    bg: '#E0F7FA',
-    text: '#006064',
-    badge: 'cyan-6',
-    caption: '#006064',
-    icon: '#006064',
-  },
-  'PRATICABILIDADE EM ANALISE': {
-    bg: '#FFF8E1',
-    text: '#6D4C00',
-    badge: 'amber-7',
-    caption: '#6D4C00',
-    icon: '#6D4C00',
-  },
-  'PARCIALMENTE IMPRATICAVEL': {
-    bg: '#FCE4EC',
-    text: '#880E4F',
-    badge: 'pink-5',
-    caption: '#880E4F',
-    icon: '#880E4F',
-  },
-  'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': {
-    bg: '#FFFDE7',
-    text: '#7E5109',
-    badge: 'amber-6',
-    caption: '#7E5109',
-    icon: '#7E5109',
-  },
-  'IMPRATICABILIDADE EM ANALISE': {
-    bg: '#F1F8E9',
-    text: '#33691E',
-    badge: 'light-green-7',
-    caption: '#33691E',
-    icon: '#33691E',
-  },
-  'EM NORMALIZACAO': {
-    bg: '#EDE7F6',
-    text: '#4527A0',
-    badge: 'deep-purple-6',
-    caption: '#4527A0',
-    icon: '#4527A0',
-  },
-  DEFAULT: {
-    bg: '#f9f9f9',
-    text: '#333',
-    badge: 'grey-5',
-    caption: '#666',
-    icon: '#222',
-  },
-};
-
-// Normaliza status do painel para usar como chave do mapa
 const statusText = computed(() => String(weather.value?.status || '')
   .toUpperCase()
   .normalize('NFD')
   .replace(/[\u0300-\u036f]/g, ''));
 
-const statusStyle = computed(() => statusColorMap[statusText.value] || statusColorMap.DEFAULT);
+const statusClass = computed(() => {
+  switch (statusText.value) {
+    case 'PRATICAVEL': return 'weather-status-praticavel';
+    case 'IMPRATICAVEL TOTAL': return 'weather-status-impraticavel-total';
+    case 'PRATICABILIDADE EM ANALISE': return 'weather-status-analise';
+    case 'PARCIALMENTE IMPRATICAVEL': return 'weather-status-parcial';
+    case 'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': return 'weather-status-impossibilitada';
+    case 'EM NORMALIZACAO': return 'weather-status-normalizacao';
+    default: return 'weather-status-default';
+  }
+});
 
-// Correnteza 3m (em knots), agora igual aos relógios do grid:
+const statusStyle = computed(() => ({
+  badge: {
+    PRATICAVEL: 'blue-7',
+    'IMPRATICAVEL TOTAL': 'cyan-6',
+    'PRATICABILIDADE EM ANALISE': 'amber-7',
+    'PARCIALMENTE IMPRATICAVEL': 'pink-5',
+    'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': 'amber-6',
+    'EM NORMALIZACAO': 'deep-purple-6',
+  }[statusText.value] || 'grey-5',
+}));
+
 const correntezaDir = computed(() => parseFloat(weather.value?.direcao_3m ?? 0));
 const correntezaKts = computed(() => {
   const val = parseFloat(weather.value?.intensidade_3m ?? 0);
@@ -184,24 +140,19 @@ const correntezaKts = computed(() => {
   return isNaN(val) ? 0 : +val.toFixed(2);
 });
 
-// Vento em knots (converte m/s caso valor baixo)
-const ventoDir = computed(() =>
-  // cobre as principais variantes do seu dataset
-  // eslint-disable-next-line implicit-arrow-linebreak
-  parseFloat(
-    weather.value?.ventodir
+const ventoDir = computed(() => parseFloat(
+  weather.value?.ventodir
     ?? weather.value?.ventodirecao
     ?? weather.value?.ventonum
     ?? weather.value?.vento_dir
     ?? 0,
-  ));
+));
 const ventoKts = computed(() => {
   const val = parseFloat(weather.value?.ventointensidade ?? weather.value?.vento_int ?? 0);
   // eslint-disable-next-line no-restricted-globals
   return isNaN(val) ? 0 : +val.toFixed(2);
 });
 
-// Direção do vento para label brasileiro
 function getWindDirLabel(deg) {
   if (deg == null || deg === '--') return '--';
   const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
@@ -211,6 +162,51 @@ const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
 </script>
 
 <style scoped>
+/* ===== CORES POR STATUS ===== */
+.weather-status-praticavel {
+  --weather-bg: #e7fbe9;
+  --weather-text: #146634;
+  --weather-caption: #249682;
+  --weather-icon: #177d42;
+}
+.weather-status-impraticavel-total {
+  --weather-bg: #e0f8fa;
+  --weather-text: #045d64;
+  --weather-caption: #2595a3;
+  --weather-icon: #01707a;
+}
+.weather-status-analise {
+  --weather-bg: #fff9e3;
+  --weather-text: #755100;
+  --weather-caption: #997d2e;
+  --weather-icon: #a68710;
+}
+.weather-status-parcial {
+  --weather-bg: #fde5f0;
+  --weather-text: #89034a;
+  --weather-caption: #be4584;
+  --weather-icon: #ba0f5e;
+}
+.weather-status-impossibilitada {
+  --weather-bg: #fffce6;
+  --weather-text: #7e6507;
+  --weather-caption: #eab600;
+  --weather-icon: #eab600;
+}
+.weather-status-normalizacao {
+  --weather-bg: #efe8fa;
+  --weather-text: #4527a0;
+  --weather-caption: #7654b7;
+  --weather-icon: #4527a0;
+}
+.weather-status-default {
+  --weather-bg: #f9f9f9;
+  --weather-text: #222;
+  --weather-caption: #666;
+  --weather-icon: #333;
+}
+
+/* ======= COMPONENTE PRINCIPAL ====== */
 .weather-main-card {
   display: flex;
   flex-direction: row;
@@ -219,12 +215,27 @@ const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
   width: 100%;
   margin: 0 auto 12px auto;
   border-radius: 18px;
+  background: var(--weather-bg) !important;
+  color: var(--weather-text) !important;
   transition: background .22s, color .18s;
 }
 .weather-col-info {
   flex: 1 1 0;
   min-width: 0;
   padding-bottom: 12px;
+}
+.weather-main-card,
+.weather-col-info,
+.weather-main-card .text-h6,
+.weather-main-card .text-bold {
+  color: var(--weather-text) !important;
+}
+.weather-main-card .text-caption,
+.weather-main-card .station-label {
+  color: var(--weather-caption) !important;
+}
+.weather-main-card .q-icon {
+  color: var(--weather-icon) !important;
 }
 .weather-col-gauges {
   display: flex;
@@ -250,6 +261,7 @@ const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
   letter-spacing: .01em;
 }
 .text-bold { font-weight: bold; }
+
 @media (max-width: 650px) {
   .weather-main-card {
     flex-direction: column;

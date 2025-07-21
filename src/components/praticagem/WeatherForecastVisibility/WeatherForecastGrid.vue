@@ -39,7 +39,7 @@
                 <span class="text-xl" v-html="phenomenonInfo(row).svgIcon"></span>
                 <span class="font-bold">{{ phenomenonInfo(row).name }}</span>
                 <span class="text-xs ml-1 px-1 py-0.5 rounded bg-white/30 text-grey-8 border font-mono">
-                  {{ row.weather_id }}
+                  <!-- {{ row.weather_id }} -->
                 </span>
               </div>
             </td>

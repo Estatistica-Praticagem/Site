@@ -25,14 +25,16 @@
           :key="dia"
           size="sm"
           :label="formatDayShort(dia)"
-          :color="selectedDay === dia ? 'primary' : 'white'"
-          :text-color="selectedDay === dia ? 'white' : 'primary'"
+          :color="'white'"
+          :text-color="'primary'"
           flat
           rounded
-          class="shadow"
+          class="shadow btn-dia-custom"
+          :class="{ 'btn-dia-ativo': selectedDay === dia }"
           @click="selectedDay = dia"
         />
       </div>
+
     </div>
 
     <!-- Renderiza visualização selecionada -->
@@ -124,4 +126,30 @@ onMounted(async () => {
   position: relative;
   box-shadow: 0 4px 24px #0e579e11;
 }
+.btn-dia-custom {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  font-weight: bold;
+  transition: box-shadow .16s, background .14s;
+}
+.btn-dia-ativo {
+  color: #1976d2 !important; /* Ou seu primary */
+  background: none !important;
+}
+.btn-dia-ativo::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  background: radial-gradient(circle, #e0edff 65%, #b3d8ff 100%);
+  border-radius: 50%;
+  z-index: -1;
+  box-shadow: 0 0 0 2px #90caf9, 0 2px 8px #1976d230;
+  transition: background .14s;
+  /* Ajuste o tamanho para seu gosto */
+}
+
 </style>
