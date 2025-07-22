@@ -30,6 +30,29 @@
       </div>
     </div>
 
+    <!-- Seletor temporal -->
+    <div
+      v-if="viewType !== 'table'"
+      class="row items-center q-mb-sm"
+      style="justify-content:left;"
+    >
+      <q-btn
+        dense flat icon="chevron_left"
+        @click="prevWindow"
+        :disable="cursor <= 0"
+        class="q-mr-xs"
+      />
+      <span class="text-caption">
+        {{ windowLabel }}
+      </span>
+      <q-btn
+        dense flat icon="chevron_right"
+        @click="nextWindow"
+        :disable="cursor >= maxCursor"
+        class="q-ml-xs"
+      />
+    </div>
+
     <div v-if="viewType === 'chart'" class="tide-chart-container">
       <Line :data="chartData" :options="chartOptions" :height="320"/>
     </div>
@@ -58,7 +81,7 @@
 
 <script setup>
 import {
-  ref, computed, onMounted, onUnmounted,
+  ref, computed, onMounted, onUnmounted, watch,
 } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
@@ -73,7 +96,7 @@ const store = useWeatherStore();
 const { weatherForecast } = storeToRefs(store);
 
 const viewType = ref('chart');
-const showPoints = ref(true);
+const showPoints = ref(false);
 
 const isMobile = ref(window.innerWidth < 700);
 const updateMobile = () => { isMobile.value = window.innerWidth < 700; };
@@ -84,15 +107,42 @@ onMounted(() => {
 });
 onUnmounted(() => window.removeEventListener('resize', updateMobile));
 
-const chartData = computed(() => {
-  // Exibe do mais antigo para o mais recente
-  const dataset = (weatherForecast.value || [])
-    .slice() // faz uma cópia
-    .filter((item) => item.timestamp_prev && item.altura_prevista != null)
-    .reverse(); // exibe do mais antigo pro mais recente
+// --------- NAVEGAÇÃO TEMPORAL ---------
+const windowSize = 144; // 144 pontos de 5min = 12 horas
+const stepSize = 72; // Avança 6 horas (72 pontos × 5min)
 
+const dataset = computed(() => {
+  const all = (weatherForecast.value || [])
+    .filter((item) => item.timestamp_prev && item.altura_prevista != null);
+  return all.slice().reverse(); // Do mais antigo para o mais recente
+});
+const maxCursor = computed(() => Math.max(0, dataset.value.length - windowSize));
+
+// Cursor começa mostrando os dados mais recentes
+const cursor = ref(maxCursor.value);
+
+// Sempre que os dados mudarem, reposiciona para o mais recente
+watch(maxCursor, (max) => {
+  cursor.value = max;
+});
+
+function prevWindow() {
+  cursor.value = Math.max(0, cursor.value - stepSize);
+}
+function nextWindow() {
+  cursor.value = Math.min(maxCursor.value, cursor.value + stepSize);
+}
+const dataSlice = computed(() => dataset.value.slice(cursor.value, cursor.value + windowSize));
+const windowLabel = computed(() => {
+  const ini = dataSlice.value[0]?.timestamp_prev?.date?.slice(11, 16) || '';
+  const fim = dataSlice.value[dataSlice.value.length - 1]?.timestamp_prev?.date?.slice(11, 16) || '';
+  return ini && fim ? `${ini} – ${fim}` : '';
+});
+// --------------------------------------
+
+const chartData = computed(() => {
   const pointRadius = showPoints.value ? (isMobile.value ? 1 : 2) : 0;
-  const labels = dataset.map(
+  const labels = dataSlice.value.map(
     (item) => item.timestamp_prev?.date?.slice(11, 16) || '',
   );
   return {
@@ -101,7 +151,7 @@ const chartData = computed(() => {
       {
         label: 'Marinha',
         // eslint-disable-next-line no-restricted-globals
-        data: dataset.map((item) => (typeof item.altura_prev_getmare === 'number' && !isNaN(item.altura_prev_getmare)
+        data: dataSlice.value.map((item) => (typeof item.altura_prev_getmare === 'number' && !isNaN(item.altura_prev_getmare)
           ? item.altura_prev_getmare
           : null)),
         borderColor: '#960d0d',
@@ -113,7 +163,7 @@ const chartData = computed(() => {
       {
         label: 'Maré Medida',
         // eslint-disable-next-line no-restricted-globals
-        data: dataset.map((item) => (typeof item.altura_real_getmare === 'number' && !isNaN(item.altura_real_getmare)
+        data: dataSlice.value.map((item) => (typeof item.altura_real_getmare === 'number' && !isNaN(item.altura_real_getmare)
           ? item.altura_real_getmare
           : null)),
         borderColor: '#FFDC66',
@@ -125,7 +175,7 @@ const chartData = computed(() => {
       {
         label: 'Previsão GA',
         // eslint-disable-next-line no-restricted-globals
-        data: dataset.map((item) => (typeof item.altura_prevista === 'number' && !isNaN(item.altura_prevista)
+        data: dataSlice.value.map((item) => (typeof item.altura_prevista === 'number' && !isNaN(item.altura_prevista)
           ? item.altura_prevista
           : null)),
         borderColor: '#1e78db',
@@ -182,7 +232,7 @@ const tableColumns = [
   },
 ];
 
-const tableRows = computed(() => (weatherForecast.value || [])
+const tableRows = computed(() => dataSlice.value
   .filter((item) => {
     const dt = item.timestamp_prev?.date ?? item.timestamp_prev;
     if (!dt) return false;
