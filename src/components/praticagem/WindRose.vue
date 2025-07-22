@@ -106,8 +106,11 @@ function color(val) {
   return '#e53935'; // Vermelho
 }
 
-// Lógica visual (0º = ponteiro para cima = Norte, 90º = direita = Leste, etc)
-const pointerAngle = computed(() => ((props.direction || 0) % 360) - 90); // -90 ajusta SVG: 0º para cima
+// Correção do ângulo: meteorológico 0° = Norte (cima do SVG)
+const pointerAngle = computed(() => (90 - (props.direction || 0)) % 360);
+
+// Se inverter, use +90. Mas o padrão meteorológico SVG geralmente é -90!
+
 const len = computed(() => 42 + 29 * Math.min((props.intensidade || 0) / props.max, 1));
 // eslint-disable-next-line no-restricted-globals
 const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(2)));

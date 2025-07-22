@@ -105,6 +105,28 @@ import { computed, onMounted } from 'vue';
 // Pega o último registro do weather
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
 
+// Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
+const ventoDirCardinal = computed(() => weather.value?.ventodirecao || weather.value?.vento_dir || null);
+
+// GRAU para a flecha SEMPRE: usa ventonum do backend se válido, senão tenta converter a sigla
+const ventoDir = computed(() => {
+  const vnum = weather.value?.ventonum;
+  // eslint-disable-next-line no-restricted-globals
+  if (typeof vnum === 'number' && !isNaN(vnum)) return vnum;
+  // eslint-disable-next-line no-use-before-define
+  return cardinalToDegree(ventoDirCardinal.value);
+});
+
+// Mostra sempre a sigla do backend (exata), fallback para cardinal se só veio grau
+const windDirLabel = computed(() => (
+  ventoDirCardinal.value
+    ? ` ${ventoDirCardinal.value.toUpperCase()}`
+    : (typeof weather.value?.ventonum === 'number'
+      // eslint-disable-next-line no-use-before-define
+      ? degreeToCardinal(weather.value.ventonum)
+      : '')
+));
+
 // Função universal para converter cardinal para graus meteorológicos
 function cardinalToDegree(cardinal) {
   if (!cardinal || typeof cardinal !== 'string') return 0;
@@ -158,28 +180,7 @@ function cardinalToDegree(cardinal) {
   return 0;
 }
 
-// Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
-const ventoDirCardinal = computed(() => weather.value?.ventodirecao || weather.value?.vento_dir || null);
-
-// Mostra sempre a sigla do backend (exata), fallback para cardinal se só veio grau
-const windDirLabel = computed(() => (
-  ventoDirCardinal.value
-    ? ` ${ventoDirCardinal.value.toUpperCase()}`
-    // eslint-disable-next-line no-use-before-define
-    : (typeof weather.value?.ventonum === 'number' ? degreeToCardinal(weather.value.ventonum) : '')
-));
-
-// Usado para o ponteiro do WindRose (vai sempre em GRAUS, do campo ventonum se existir, se não da sigla)
-const ventoDir = computed(() => {
-  const vnum = weather.value?.ventonum;
-  // Usa sempre ventonum se for válido
-  // eslint-disable-next-line no-restricted-globals
-  if (typeof vnum === 'number' && !isNaN(vnum)) return vnum;
-  // Se não veio ventonum, tenta converter a sigla para grau
-  return cardinalToDegree(ventoDirCardinal.value);
-});
-
-// Fallback para grau para cardinal visual
+// Fallback: grau para cardinal
 function degreeToCardinal(deg) {
   if (deg == null || deg === '--') return '--';
   const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
