@@ -95,8 +95,10 @@
               :max="40"
               :unidade="'kts'"
               :size="settings.sizeVento"
+              :lang="settings.siglaEN ? 'en' : 'pt'"
             />
           </div>
+
         </div>
       </q-card>
       <!-- Painel de Configurações -->
@@ -112,8 +114,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
-import GaugeRelogio from 'src/components/praticagem/GaugeRelogio.vue';
-import WindRose from 'src/components/praticagem/WindRose.vue';
+import GaugeRelogio from 'src/components/praticagem/watch/GaugeRelogio.vue';
+import WindRose from 'src/components/praticagem/watch/WindRose.vue';
 import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
 
 const showConfig = ref(false);
@@ -252,16 +254,31 @@ const statusClass = computed(() => {
   }
 });
 
-const statusStyle = computed(() => ({
-  badge: {
+const statusStyle = computed(() => {
+  // Padrão original Quasar
+  const padrao = {
     PRATICAVEL: 'blue-7',
     'IMPRATICAVEL TOTAL': 'cyan-6',
     'PRATICABILIDADE EM ANALISE': 'amber-7',
     'PARCIALMENTE IMPRATICAVEL': 'pink-5',
     'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': 'amber-6',
     'EM NORMALIZACAO': 'deep-purple-6',
-  }[statusText.value] || 'grey-5',
-}));
+  };
+  // Seu personalizado
+  const custom = {
+    PRATICAVEL: 'green',
+    'IMPRATICAVEL TOTAL': 'red',
+    'PRATICABILIDADE EM ANALISE': 'amber',
+    'PARCIALMENTE IMPRATICAVEL': 'amber',
+    'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': 'amber',
+    'IMPRATICABILIDADE EM ANALISE': 'amber',
+    'EM NORMALIZACAO': 'amber',
+  };
+  const tipo = settings.value.statusColors || 'custom';
+  return {
+    badge: (tipo === 'custom' ? custom : padrao)[statusText.value] || 'grey-5',
+  };
+});
 
 const correntezaDir = computed(() => parseFloat(weather.value?.direcao_3m ?? 0));
 const correntezakts = computed(() => {

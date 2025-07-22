@@ -31,6 +31,19 @@
           <q-checkbox v-model="settings.showUmidade" label="Umidade" @update:model-value="saveConfig"/>
           <q-checkbox v-model="settings.showMare" label="Altura Real da Maré" @update:model-value="saveConfig"/>
         </div>
+        <!-- Tipo de Cores dos Status -->
+        <div class="q-mt-md">
+          <q-option-group
+            v-model="settings.statusColors"
+            :options="[
+              { label: 'Padrão', value: 'padrao' },
+              { label: 'Personalizado', value: 'custom' }
+            ]"
+            color="primary"
+            inline
+            @update:model-value="saveConfig"
+          />
+        </div>
       </q-card-section>
     </q-card>
   </q-dialog>
@@ -46,7 +59,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue', 'update:settings']);
 
-// v-model padrão Vue 3 (com "model" para o dialog)
 const model = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
@@ -62,11 +74,11 @@ const defaultSettings = {
   showPressao: true,
   showUmidade: true,
   showMare: true,
+  statusColors: 'custom', // <-- Novo campo (default "custom" se quiser)
 };
 
 const settings = ref({ ...defaultSettings });
 
-// Sempre emite as configurações para o pai
 function saveConfig() {
   localStorage.setItem('weatherPanelConfig', JSON.stringify(settings.value));
   emit('update:settings', { ...settings.value });

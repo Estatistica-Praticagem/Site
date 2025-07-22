@@ -215,8 +215,8 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-import WindRose from 'components/praticagem/WindRose.vue';
-import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
+import WindRose from 'src/components/praticagem/watch/WindRose.vue';
+import GaugeRelogio from 'src/components/praticagem/watch/GaugeRelogio.vue';
 
 Chart.register(
   LineController,

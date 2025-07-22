@@ -103,7 +103,7 @@
 import { storeToRefs } from 'pinia';
 import { ref, computed } from 'vue';
 // import WindGauge from 'components/praticagem/WindGauge.vue';
-import CurrentGauge from 'components/praticagem/GaugeRelogio.vue';
+import CurrentGauge from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import { useWeatherStore } from 'src/stores/weather';
 
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
