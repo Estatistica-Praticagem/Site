@@ -1,8 +1,21 @@
 <template>
   <div class="cbp-wrap">
-    <div class="cbp-card">
+    <div
+      class="cbp-card"
+      :style="{
+        width: `${cardBaseWidth * settings.scale}px`,
+        minWidth: `${cardBaseMinWidth * settings.scale}px`,
+        maxWidth: `${cardBaseMaxWidth * settings.scale}px`,
+        fontSize: `${1 * settings.scale}em`,
+        padding: `${24 * settings.scale}px ${34 * settings.scale}px ${18 * settings.scale}px ${34 * settings.scale}px`,
+        transition: 'all 0.18s',
+      }"
+    >
       <div class="cbp-header row items-center justify-between">
-        <span class="cbp-title">Perfil de Correnteza por Profundidade</span>
+        <span
+          class="cbp-title"
+          :style="{ fontSize: `${1.12 * settings.scale}em` }"
+        >Perfil de Correnteza por Profundidade</span>
         <q-btn dense flat round icon="more_vert" @click="showConfig = true" />
       </div>
 
@@ -19,75 +32,91 @@
         />
       </div>
 
-      <!-- VISOR PADRÃO: BARRAS (default) -->
-      <div v-if="settings.view === 'bars'" class="cbp-graph-ct" :style="{ transform: `scale(${settings.scale})` }">
+      <!-- VISOR PADRÃO: BARRAS -->
+      <div v-if="settings.view === 'bars'" class="cbp-graph-ct">
         <div class="cbp-bars">
           <div
             v-for="d in shownDepths"
             :key="d.key"
             class="cbp-bar-row"
           >
-            <span class="cbp-bar-label">{{ d.label }}</span>
-            <div class="cbp-bar-line">
+            <span
+              class="cbp-bar-label"
+              :style="{ fontSize: `${1 * settings.scale}em`, width: `${72 * settings.scale}px` }"
+            >{{ d.label }}</span>
+            <div
+              class="cbp-bar-line"
+              :style="{ width: `${180 * settings.scale}px`, height: `${18 * settings.scale}px` }"
+            >
               <div
                 v-if="getBarVal(d.key) < 0"
                 class="cbp-bar cbp-bar-enchente"
-                :style="{ width: barWidth(getBarVal(d.key)) + 'px' }"
+                :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
               ></div>
               <div
                 v-if="getBarVal(d.key) > 0"
                 class="cbp-bar cbp-bar-vazante"
-                :style="{ width: barWidth(getBarVal(d.key)) + 'px' }"
+                :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
               ></div>
               <span
                 v-if="getBarVal(d.key) !== 0"
                 class="cbp-bar-value"
-                :style="{ left: getBarVal(d.key) < 0 ? '0' : '', right: getBarVal(d.key) > 0 ? '0' : '' }"
+                :style="{
+                  left: getBarVal(d.key) < 0 ? '0' : '',
+                  right: getBarVal(d.key) > 0 ? '0' : '',
+                  fontSize: `${0.97 * settings.scale}em`,
+                  top: `${-22 * settings.scale}px`
+                }"
               >
                 {{ Math.abs(getBarVal(d.key)).toFixed(2) }} kts
               </span>
             </div>
           </div>
         </div>
-        <div class="cbp-legend row items-center">
-          <span class="cbp-leg-enchente"></span> Enchente
-          <span class="cbp-leg-vazante"></span> Vazante
-          <span class="cbp-leg-label"> Intensidade (kts)</span>
+        <div class="cbp-legend row items-center" :style="{ fontSize: `${0.97 * settings.scale}em` }">
+          <span class="cbp-leg-enchente" :style="{ width: `${18 * settings.scale}px`, height: `${10 * settings.scale}px` }"></span> Enchente
+          <span class="cbp-leg-vazante" :style="{ width: `${18 * settings.scale}px`, height: `${10 * settings.scale}px` }"></span> Vazante
+          <span class="cbp-leg-label" :style="{ marginLeft: `${16 * settings.scale}px` }"> Intensidade (kts)</span>
         </div>
       </div>
 
       <!-- VISOR NOVO: SVG (current-graph) -->
       <div v-if="settings.view === 'current-graph'" class="cbp-current-svg-ct">
         <div class="current-bars-graph">
-          <svg :width="width" :height="height">
-            <line :x1="xZero" y1="20" :x2="xZero" :y2="height-10" stroke="#bbb" stroke-width="2"/>
+          <svg :width="width * settings.scale" :height="height * settings.scale" :style="{ display: 'block', margin: '0 auto' }">
+            <line
+              :x1="xZero * settings.scale"
+              :y1="20 * settings.scale"
+              :x2="xZero * settings.scale"
+              :y2="(height - 10) * settings.scale"
+              stroke="#bbb"
+              :stroke-width="2 * settings.scale"
+            />
             <g v-for="(row, idx) in currentBarData" :key="row.label">
               <rect
-                :x="row.value >= 0 ? xZero : xZero + scale(row.value)"
-                :y="yScale(idx)"
-                :width="Math.abs(scale(row.value))"
-                :height="barHeight"
+                :x="row.value >= 0 ? xZero * settings.scale : (xZero + scale(row.value)) * settings.scale"
+                :y="yScale(idx) * settings.scale"
+                :width="Math.abs(scale(row.value)) * settings.scale"
+                :height="barHeight * settings.scale"
                 :fill="row.value >= 0 ? '#e57373' : '#1976d2'"
               />
               <text
-                :x="row.value >= 0 ? xZero + Math.abs(scale(row.value)) + 4 : xZero + scale(row.value) - 38"
-                :y="yScale(idx) + barHeight/2 + 5"
-                font-size="12"
+                :x="row.value >= 0
+                  ? xZero * settings.scale + Math.abs(scale(row.value)) * settings.scale + 4 * settings.scale
+                  : xZero * settings.scale + scale(row.value) * settings.scale - 38 * settings.scale"
+                :y="yScale(idx) * settings.scale + barHeight * settings.scale / 2 + 5 * settings.scale"
+                :font-size="12 * settings.scale"
                 fill="#222"
-              >
-                {{ row.value.toFixed(2) }} kts
-              </text>
+              >{{ Math.abs(row.value).toFixed(2) }} kts</text>
               <text
-                x="12"
-                :y="yScale(idx) + barHeight/2 + 5"
-                font-size="14"
+                :x="12 * settings.scale"
+                :y="yScale(idx) * settings.scale + barHeight * settings.scale / 2 + 5 * settings.scale"
+                :font-size="14 * settings.scale"
                 fill="#222"
-              >
-                {{ row.label }}
-              </text>
+              >{{ row.label }}</text>
             </g>
           </svg>
-          <div style="margin-top:8px; font-size:13px; color:#888;">
+          <div :style="{ marginTop: `${8 * settings.scale}px`, fontSize: `${13 * settings.scale}px`, color: '#888' }">
             <span style="color:#1976d2;">⬅ Enchente</span>
             &nbsp; Intensidade (kts) &nbsp;
             <span style="color:#e57373;">Vazante ➡</span>
@@ -118,52 +147,55 @@
           </tbody>
         </table>
       </div>
-    </div>
 
-    <!-- PAINEL DE CONFIGURAÇÃO -->
-    <q-dialog v-model="showConfig">
-      <q-card style="min-width:320px;max-width:94vw;">
-        <q-card-section>
-          <div class="text-h6">Configurações do Gráfico</div>
-        </q-card-section>
-        <q-separator />
-        <q-card-section>
-          <q-slider
-            v-model="settings.scale"
-            :min="0.7" :max="1.5" step="0.01"
-            label="Escala do Gráfico"
-            :label-value="`${Math.round(settings.scale * 100)}%`"
-            label-always
-            class="q-mb-md"
-          />
-          <div class="q-mb-sm text-caption">Profundidades Visíveis</div>
-          <div class="row q-gutter-xs q-mb-md">
-            <q-checkbox
-              v-for="d in allDepths"
-              :key="d.key"
-              v-model="settings.selectedDepths"
-              :label="d.label"
-              :val="d.key"
-              dense
+      <!-- PAINEL DE CONFIGURAÇÃO -->
+      <q-dialog v-model="showConfig">
+        <q-card style="min-width:320px;max-width:94vw;">
+          <q-card-section>
+            <div class="text-h6">Configurações do Gráfico</div>
+          </q-card-section>
+          <q-separator />
+          <q-card-section>
+            <div class="q-mb-sm text-caption">Tamanho do Gráfico</div>
+            <q-slider
+              v-model="settings.scale"
+              :min="0.7"
+              :max="1.6"
+              step="0.01"
+              label="Tamanho do Gráfico"
+              :label-value="`${Math.round(settings.scale * 100)}%`"
+              label-always
+              class="q-mb-md"
             />
-          </div>
-          <div class="text-caption">Modo de Visualização</div>
-          <q-btn-toggle
-            v-model="settings.view"
-            :options="viewOptions"
-            unelevated
-            color="primary"
-            size="sm"
-            toggle-color="blue-7"
-            dense
-            class="q-mt-xs"
-          />
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Fechar" v-close-popup/>
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+            <div class="q-mb-sm text-caption">Profundidades Visíveis</div>
+            <div class="row q-gutter-xs q-mb-md">
+              <q-checkbox
+                v-for="d in allDepths"
+                :key="d.key"
+                v-model="settings.selectedDepths"
+                :label="d.label"
+                :val="d.key"
+                dense
+              />
+            </div>
+            <div class="text-caption">Modo de Visualização</div>
+            <q-btn-toggle
+              v-model="settings.view"
+              :options="viewOptions"
+              unelevated
+              color="primary"
+              size="sm"
+              toggle-color="blue-7"
+              dense
+              class="q-mt-xs"
+            />
+          </q-card-section>
+          <q-card-actions align="right">
+            <q-btn flat label="Fechar" v-close-popup/>
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+    </div>
   </div>
 </template>
 
@@ -172,7 +204,11 @@ import {
   ref, computed, onMounted, watch,
 } from 'vue';
 
-// Simulação (troque por props/store/api real)
+// BASES PARA ESCALA
+const cardBaseWidth = 490;
+const cardBaseMinWidth = 350;
+const cardBaseMaxWidth = 490;
+
 const profileData = {
   superficie: 0.5,
   '1_5m': 0.7,
@@ -200,7 +236,7 @@ const viewOptions = [
 const defaultSettings = {
   scale: 1,
   selectedDepths: ['superficie', '3m', '6m'],
-  view: 'bars', // <-- Default visor é o barras
+  view: 'bars',
 };
 
 const showConfig = ref(false);
@@ -226,7 +262,7 @@ function barWidth(val) {
   return Math.abs(val) / max * 180;
 }
 
-// --- NOVO SVG --- //
+// NOVO SVG
 const width = 390;
 const height = 180;
 const barHeight = 22;
@@ -246,47 +282,41 @@ const currentBarData = computed(() => shownDepths.value.map((d) => ({
 .cbp-wrap {
   min-height: 60vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow: auto;
+  padding: 16px 0;
 }
 .cbp-card {
   background: #f9fbfc;
   border-radius: 14px;
   box-shadow: 0 2px 13px 2px #d6e4ef42;
-  padding: 24px 34px 18px 34px;
-  min-width: 350px;
-  max-width: 490px;
-  width: 100%;
   margin: 0 auto;
-  transition: box-shadow 0.18s;
+  transition: all 0.18s;
 }
 .cbp-header { margin-bottom: 12px; }
 .cbp-title { font-weight: 600; font-size: 1.2em; letter-spacing: 0.02em; }
 .cbp-view-select { margin-bottom: 8px; justify-content: flex-end; }
-.cbp-graph-ct { margin-bottom: 18px; min-width: 100%; will-change: transform; transition: transform 0.2s cubic-bezier(.44,1.9,.59,.93);}
+.cbp-graph-ct, .cbp-table-ct, .cbp-current-svg-ct { min-width: 100%; }
 .cbp-bars { display: flex; flex-direction: column; align-items: flex-start; gap: 13px; }
 .cbp-bar-row { display: flex; align-items: center; min-height: 26px; }
-.cbp-bar-label { width: 72px; font-size: 1em; color: #333; margin-right: 5px; text-align: right; font-weight: 500; }
-.cbp-bar-line { position: relative; width: 180px; height: 18px; background: #e9eef5; border-radius: 8px; margin-left: 10px; margin-right: 10px; display: flex; align-items: center; overflow: visible; }
-.cbp-bar { position: absolute; height: 18px; border-radius: 8px; transition: width .2s; }
+.cbp-bar-label { font-size: 1em; color: #333; margin-right: 5px; text-align: right; font-weight: 500; }
+.cbp-bar-line { position: relative; background: #e9eef5; border-radius: 8px; margin-left: 10px; margin-right: 10px; display: flex; align-items: center; overflow: visible; }
+.cbp-bar { position: absolute; border-radius: 8px; transition: width .2s, height .2s; }
 .cbp-bar-enchente { left: 0; background: #1976d2; }
 .cbp-bar-vazante { right: 0; background: #e57373; }
-.cbp-bar-value { position: absolute; top: -22px; font-size: .97em; font-weight: 500; color: #333; white-space: nowrap; }
-.cbp-legend { font-size: .97em; margin-top: 6px; gap: 16px; }
-.cbp-leg-enchente { width: 18px; height: 10px; background: #1976d2; display: inline-block; border-radius: 5px; margin-right: 3px; }
-.cbp-leg-vazante { width: 18px; height: 10px; background: #e57373; display: inline-block; border-radius: 5px; margin-left: 10px; margin-right: 3px; }
-.cbp-leg-label { color: #888; margin-left: 16px; }
-.cbp-table-ct, .cbp-current-svg-ct { min-height: 170px; display: flex; align-items: center; justify-content: center; }
+.cbp-bar-value { position: absolute; font-weight: 500; color: #333; white-space: nowrap; }
+.cbp-legend { margin-top: 6px; gap: 16px; }
+.cbp-leg-enchente { background: #1976d2; display: inline-block; border-radius: 5px; margin-right: 3px; }
+.cbp-leg-vazante { background: #e57373; display: inline-block; border-radius: 5px; margin-left: 10px; margin-right: 3px; }
+.cbp-leg-label { color: #888; }
 .cbp-table { width: 100%; border-collapse: collapse; }
 .cbp-table th, .cbp-table td { padding: 7px 12px; text-align: left; font-size: .97em; color: #222; }
 .cbp-table th { font-weight: bold; background: #f3f7fa; border-bottom: 1px solid #e2e7ee; }
 .cbp-table td { border-bottom: 1px solid #f0f1f3; }
 @media (max-width: 650px) {
-  .cbp-card { min-width: 94vw; padding: 10vw 2vw 6vw 2vw; }
-  .cbp-bar-label { width: 48px; }
-  .cbp-bar-line { width: 100px; }
+  .cbp-card { min-width: 94vw !important; padding: 10vw 2vw 6vw 2vw !important; }
 }
-/* SVG gráfico novo */
 .current-bars-graph {
   background: #fafcfd;
   border-radius: 14px;
