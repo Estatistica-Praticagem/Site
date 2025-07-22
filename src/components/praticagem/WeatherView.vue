@@ -1,108 +1,152 @@
 <template>
   <div style="margin-bottom:0;">
-    <q-card
-      class="weather-main-card q-pa-none shadow-2"
-      v-if="!!weather"
-      :class="statusClass"
-    >
-      <!-- Infos -->
-      <div class="weather-col-info">
-        <div class="text-h6 q-mb-xs flex items-center gap-1">
-          <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
-        </div>
-        <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
-        <div class="row q-gutter-md">
-          <div>
-            <div class="text-caption">TEMPERATURA</div>
-            <div class="text-bold">{{ weather.temperatura ?? '--' }}°</div>
+    <div style="position: relative;">
+      <!-- Botão de três pontinhos no canto superior direito -->
+      <q-btn
+        dense flat round
+        icon="more_vert"
+        style="position: absolute; top: 6px; right: 6px; z-index:2;"
+        @click="showConfig = true"
+      />
+      <!-- Card principal do tempo -->
+      <q-card
+        class="weather-main-card q-pa-none shadow-2"
+        v-if="!!weather"
+        :class="statusClass"
+      >
+        <!-- Infos -->
+        <div class="weather-col-info">
+          <div class="text-h6 q-mb-xs flex items-center gap-1">
+            <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
           </div>
-          <div>
-            <div class="text-caption">SENSAÇÃO TÉRMICA</div>
-            <div class="text-bold">{{ weather.sensacaotermica ?? weather.sensacao ?? '--' }}°</div>
-          </div>
-          <div>
-            <div class="text-caption">VENTO</div>
-            <div class="text-bold">
-              {{ ventokts }}kts {{ windDirLabel }}
+          <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
+          <div class="row q-gutter-md">
+            <div v-if="settings.showTemp">
+              <div class="text-caption">TEMPERATURA</div>
+              <div class="text-bold">{{ weather.temperatura ?? '--' }}°</div>
+            </div>
+            <div v-if="settings.showTemp">
+              <div class="text-caption">SENSAÇÃO TÉRMICA</div>
+              <div class="text-bold">{{ weather.sensacaotermica ?? weather.sensacao ?? '--' }}°</div>
+            </div>
+            <div v-if="settings.showPressao">
+              <div class="text-caption">PRESSÃO</div>
+              <div class="text-bold">{{ weather.pressao ?? '--' }} mb</div>
+            </div>
+            <div v-if="settings.showUmidade">
+              <div class="text-caption">UMIDADE</div>
+              <div class="text-bold">{{ weather.umidade ?? '--' }}%</div>
+            </div>
+            <div>
+              <div class="text-caption">VENTO</div>
+              <div class="text-bold">
+                {{ ventokts }}kts {{ windDirLabel }}
+              </div>
+            </div>
+            <div v-if="settings.showMare">
+              <div class="text-caption">ALTURA REAL DA MARÉ</div>
+              <div class="text-bold text-primary">
+                {{ weather.altura_real_getmare ?? '--' }} m
+              </div>
             </div>
           </div>
-          <div>
-            <div class="text-caption">PRESSÃO</div>
-            <div class="text-bold">{{ weather.pressao ?? '--' }} mb</div>
-          </div>
-        </div>
-        <div class="row q-mt-xs">
-          <div class="q-mr-md">
-            <div class="text-caption">UMIDADE</div>
-            <div class="text-bold">{{ weather.umidade ?? '--' }}%</div>
-          </div>
-          <div>
-            <div class="text-caption">ALTURA REAL DA MARÉ</div>
-            <div class="text-bold text-primary">
-              {{ weather.altura_real_getmare ?? '--' }} m
+          <div class="row q-mt-xs">
+            <div class="q-mr-md">
+              <div class="text-caption">LEITURA</div>
+              <div class="text-bold">
+                {{ weather.timestamp_br?.date
+                  ? new Date(weather.timestamp_br.date).toLocaleString('pt-BR')
+                  : (weather.leitura ?? '--') }}
+              </div>
+            </div>
+            <div>
+              <div class="text-caption">STATUS</div>
+              <q-badge
+                :color="statusStyle.badge"
+                align="top"
+                class="q-ml-xs q-mt-xs text-bold"
+                style="font-size:1.1em;padding:3px 14px;border-radius:9px;"
+              >
+                {{ weather.status ?? '--' }}
+              </q-badge>
             </div>
           </div>
         </div>
-        <div class="row q-mt-xs">
-          <div class="q-mr-md">
-            <div class="text-caption">LEITURA</div>
-            <div class="text-bold">
-              {{ weather.timestamp_br?.date
-                ? new Date(weather.timestamp_br.date).toLocaleString('pt-BR')
-                : (weather.leitura ?? '--') }}
-            </div>
+        <!-- Blocos: Gauge Correnteza 3m e Rosa do Vento -->
+        <div class="weather-col-gauges">
+          <div class="gauge-group" v-if="settings.showCorrenteza">
+            <div class="gauge-title">Correnteza 3m</div>
+            <GaugeRelogio
+              :value="correntezaDir"
+              :intensidade="correntezakts"
+              :max="4"
+              :unidade="'kts'"
+              colorMain="#1976D2"
+              colorSecondary="#43A047"
+              colorBg="#E3F2FD"
+              :size="settings.sizeCorrenteza"
+            />
           </div>
-          <div>
-            <div class="text-caption">STATUS</div>
-            <q-badge
-              :color="statusStyle.badge"
-              align="top"
-              class="q-ml-xs q-mt-xs text-bold"
-              style="font-size:1.1em;padding:3px 14px;border-radius:9px;"
-            >
-              {{ weather.status ?? '--' }}
-            </q-badge>
+          <div class="gauge-group" v-if="settings.showVento">
+            <div class="gauge-title">Vento</div>
+            <WindRose
+              :direction="ventoDir"
+              :intensidade="ventokts"
+              :max="40"
+              :unidade="'kts'"
+              :size="settings.sizeVento"
+            />
           </div>
         </div>
-      </div>
-      <!-- Blocos: Gauge Correnteza 3m e Rosa do Vento -->
-      <div class="weather-col-gauges">
-        <div class="gauge-group">
-          <div class="gauge-title">Correnteza 3m</div>
-          <GaugeRelogio
-            :value="correntezaDir"
-            :intensidade="correntezakts"
-            :max="4"
-            :unidade="'kts'"
-            colorMain="#1976D2"
-            colorSecondary="#43A047"
-            colorBg="#E3F2FD"
-            size="90"
-          />
-        </div>
-        <div class="gauge-group">
-          <div class="gauge-title">Vento</div>
-          <WindRose
-            :direction="ventoDir"
-            :intensidade="ventokts"
-            :max="40"
-            :unidade="'kts'"
-            :size="90"
-          />
-        </div>
-      </div>
-    </q-card>
+      </q-card>
+      <!-- Painel de Configurações -->
+      <WeatherViewConfig
+        v-model="showConfig"
+        @update:settings="onConfigUpdate"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
-import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
-import WindRose from 'components/praticagem/WindRose.vue';
-import { computed, onMounted } from 'vue';
+import GaugeRelogio from 'src/components/praticagem/GaugeRelogio.vue';
+import WindRose from 'src/components/praticagem/WindRose.vue';
+import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
 
-// Pega o último registro do weather
+const showConfig = ref(false);
+
+const defaultSettings = {
+  siglaEN: false,
+  showVento: true,
+  showCorrenteza: true,
+  sizeVento: 90,
+  sizeCorrenteza: 90,
+  showTemp: true,
+  showPressao: true,
+  showUmidade: true,
+  showMare: true,
+};
+
+const settings = ref({ ...defaultSettings });
+
+// Carrega config ao abrir o painel
+function loadConfig() {
+  try {
+    const data = JSON.parse(localStorage.getItem('weatherPanelConfig'));
+    if (data) Object.assign(settings.value, data);
+  // eslint-disable-next-line no-empty
+  } catch {}
+}
+onMounted(loadConfig);
+
+// Recebe atualização do filho (config)
+function onConfigUpdate(newSettings) {
+  Object.assign(settings.value, newSettings);
+}
+
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
 
 // Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
@@ -183,7 +227,10 @@ function cardinalToDegree(cardinal) {
 // Fallback: grau para cardinal
 function degreeToCardinal(deg) {
   if (deg == null || deg === '--') return '--';
-  const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
+  // Aqui se quiser sigla EN/BR, basta usar settings.value.siglaEN pra escolher o array
+  const ptDirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
+  const enDirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+  const dirs = settings.value.siglaEN ? enDirs : ptDirs;
   return dirs[Math.round((deg % 360) / 45)];
 }
 
@@ -229,9 +276,8 @@ const ventokts = computed(() => {
 });
 
 onMounted(() => {
-  console.log('weather:', weather.value);
-  console.log('ventonum:', weather.value?.ventonum, 'ventodirecao:', ventoDirCardinal.value);
-  console.log('ventoDir (graus):', ventoDir.value, 'Label:', windDirLabel.value);
+  loadConfig();
+  // opcional: toda vez que reabrir o painel, recarrega config do localStorage
 });
 </script>
 
