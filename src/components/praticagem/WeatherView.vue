@@ -23,7 +23,7 @@
           <div>
             <div class="text-caption">VENTO</div>
             <div class="text-bold">
-              {{ ventoKts }} kt {{ windDirLabel }}
+              {{ ventokts }}kts {{ windDirLabel }}
             </div>
           </div>
           <div>
@@ -71,9 +71,9 @@
           <div class="gauge-title">Correnteza 3m</div>
           <GaugeRelogio
             :value="correntezaDir"
-            :intensidade="correntezaKts"
+            :intensidade="correntezakts"
             :max="4"
-            :unidade="'kt'"
+            :unidade="'kts'"
             colorMain="#1976D2"
             colorSecondary="#43A047"
             colorBg="#E3F2FD"
@@ -83,11 +83,11 @@
         <div class="gauge-group">
           <div class="gauge-title">Vento</div>
           <WindRose
-            :direcao="ventoDir"
-            :intensidade="ventoKts"
+            :direction="ventoDir"
+            :intensidade="ventokts"
             :max="40"
-            :unidade="'kt'"
-            size="90"
+            :unidade="'kts'"
+            :size="90"
           />
         </div>
       </div>
@@ -100,11 +100,93 @@ import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
 import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
 import WindRose from 'components/praticagem/WindRose.vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
-// Pegando o último registro do weather
+// Pega o último registro do weather
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
 
+// Função universal para converter cardinal para graus meteorológicos
+function cardinalToDegree(cardinal) {
+  if (!cardinal || typeof cardinal !== 'string') return 0;
+  // Limpa e padroniza
+  const c = cardinal.trim().toUpperCase().replace(/[^A-Z]/g, '');
+  const map = {
+    N: 0,
+    NNE: 22.5,
+    NE: 45,
+    ENE: 67.5,
+    E: 90,
+    ESE: 112.5,
+    SE: 135,
+    SSE: 157.5,
+    S: 180,
+    SSO: 202.5,
+    SO: 225,
+    OSO: 247.5,
+    O: 270,
+    ONO: 292.5,
+    NO: 315,
+    NNO: 337.5,
+    // ENGLISH
+    W: 270,
+    WSW: 247.5,
+    SW: 225,
+    SSW: 202.5,
+    NW: 315,
+    NNW: 337.5,
+    WNW: 292.5,
+    // Extensos (pt/en)
+    NORTE: 0,
+    NORDESTE: 45,
+    LESTE: 90,
+    SUDESTE: 135,
+    SUL: 180,
+    SUDOESTE: 225,
+    OESTE: 270,
+    NOROESTE: 315,
+    NORTH: 0,
+    NORTHEAST: 45,
+    EAST: 90,
+    SOUTHEAST: 135,
+    SOUTH: 180,
+    SOUTHWEST: 225,
+    WEST: 270,
+    NORTHWEST: 315,
+  };
+  if (map[c] !== undefined) return map[c];
+  console.warn('SIGLA DE VENTO DESCONHECIDA:', cardinal);
+  return 0;
+}
+
+// Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
+const ventoDirCardinal = computed(() => weather.value?.ventodirecao || weather.value?.vento_dir || null);
+
+// Mostra sempre a sigla do backend (exata), fallback para cardinal se só veio grau
+const windDirLabel = computed(() => (
+  ventoDirCardinal.value
+    ? ` ${ventoDirCardinal.value.toUpperCase()}`
+    // eslint-disable-next-line no-use-before-define
+    : (typeof weather.value?.ventonum === 'number' ? degreeToCardinal(weather.value.ventonum) : '')
+));
+
+// Usado para o ponteiro do WindRose (vai sempre em GRAUS, do campo ventonum se existir, se não da sigla)
+const ventoDir = computed(() => {
+  const vnum = weather.value?.ventonum;
+  // Usa sempre ventonum se for válido
+  // eslint-disable-next-line no-restricted-globals
+  if (typeof vnum === 'number' && !isNaN(vnum)) return vnum;
+  // Se não veio ventonum, tenta converter a sigla para grau
+  return cardinalToDegree(ventoDirCardinal.value);
+});
+
+// Fallback para grau para cardinal visual
+function degreeToCardinal(deg) {
+  if (deg == null || deg === '--') return '--';
+  const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
+  return dirs[Math.round((deg % 360) / 45)];
+}
+
+// Status e computadas
 const statusText = computed(() => String(weather.value?.status || '')
   .toUpperCase()
   .normalize('NFD')
@@ -134,31 +216,22 @@ const statusStyle = computed(() => ({
 }));
 
 const correntezaDir = computed(() => parseFloat(weather.value?.direcao_3m ?? 0));
-const correntezaKts = computed(() => {
+const correntezakts = computed(() => {
   const val = parseFloat(weather.value?.intensidade_3m ?? 0);
   // eslint-disable-next-line no-restricted-globals
   return isNaN(val) ? 0 : +val.toFixed(2);
 });
-
-const ventoDir = computed(() => parseFloat(
-  weather.value?.ventodir
-    ?? weather.value?.ventodirecao
-    ?? weather.value?.ventonum
-    ?? weather.value?.vento_dir
-    ?? 0,
-));
-const ventoKts = computed(() => {
+const ventokts = computed(() => {
   const val = parseFloat(weather.value?.ventointensidade ?? weather.value?.vento_int ?? 0);
   // eslint-disable-next-line no-restricted-globals
   return isNaN(val) ? 0 : +val.toFixed(2);
 });
 
-function getWindDirLabel(deg) {
-  if (deg == null || deg === '--') return '--';
-  const dirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
-  return dirs[Math.round((deg % 360) / 45)];
-}
-const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
+onMounted(() => {
+  console.log('weather:', weather.value);
+  console.log('ventonum:', weather.value?.ventonum, 'ventodirecao:', ventoDirCardinal.value);
+  console.log('ventoDir (graus):', ventoDir.value, 'Label:', windDirLabel.value);
+});
 </script>
 
 <style scoped>
@@ -206,7 +279,6 @@ const windDirLabel = computed(() => getWindDirLabel(ventoDir.value));
   --weather-icon: #333;
 }
 
-/* ======= COMPONENTE PRINCIPAL ====== */
 .weather-main-card {
   display: flex;
   flex-direction: row;

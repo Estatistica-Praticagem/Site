@@ -1,42 +1,6 @@
 <template>
   <div style="margin-bottom:0;">
-    <!-- Resumo principal -->
-    <!-- <q-card class="q-pa-md q-mb-md bg-white shadow-3" style="border-radius:18px;max-width:1200px;margin:auto;">
-      <q-table
-        dense flat
-        :rows="[{
-          Temperatura: `${weather.temperatura ?? '--'}°C`,
-          'Sensação Térmica': `${weather.sensacaotermica ?? weather.sensacao ?? '--'}°C`,
-          'Pressão': `${weather.pressao ?? '--'} hPa`,
-          'Umidade': `${weather.umidade ?? '--'}%`,
-          'Maré Real': `${weather.altura_real_getmare ?? '--'} m`,
-          'Status': weather.status ?? '--'
-        }]"
-        :columns="[
-          {name:'Temperatura',label:'Temperatura',field:'Temperatura',align:'center'},
-          {name:'Sensação Térmica',label:'Sens. Térmica',field:'Sensação Térmica',align:'center'},
-          {name:'Pressão',label:'Pressão',field:'Pressão',align:'center'},
-          {name:'Umidade',label:'Umidade',field:'Umidade',align:'center'},
-          {name:'Maré Real',label:'Maré Real',field:'Maré Real',align:'center'},
-          {name:'Status',label:'Status',field:'Status',align:'center'},
-        ]"
-        hide-bottom
-        :pagination="{rowsPerPage:1}"
-        class="bg-white no-shadow"
-        style="border-radius: 12px"
-      />
-      <div class="row q-mt-sm items-center justify-center">
-        <div class="col-auto text-center">
-          <div class="text-caption text-primary" style="font-size:.98em">Vento Médio</div>
-          <div class="text-h5 text-weight-bold" style="color:#0097A7">
-            {{ weather.ventointensidade ?? '--' }} tk
-            <span class="q-ml-xs" style="font-size:0.8em;color:#888;">({{ weather.ventodirecao ?? '--' }})</span>
-          </div>
-        </div>
-      </div>
-    </q-card> -->
-
-    <!-- SELETOR: Tabela ou Relógios -->
+    <!-- Botão: Relógios ou Tabela -->
     <div class="q-mb-md flex items-center gap-3 justify-center">
       <q-btn-toggle
         v-model="viewMode"
@@ -51,7 +15,7 @@
       />
     </div>
 
-    <!-- TABELA Vazante/Enchente (visível só se selecionado) -->
+    <!-- Tabela de Intensidades -->
     <q-card
       v-if="viewMode === 'table'"
       flat
@@ -72,27 +36,52 @@
       />
     </q-card>
 
-    <!-- RELÓGIOS (visível só se selecionado) -->
-    <div v-else class="text-h6 text-weight-medium q-mb-xs" style="color:#0267C1">ADCP - Correntezas (m/s)</div>
-    <div v-if="viewMode === 'gauges'" class="row relogio-grid">
-      <div
-        v-for="info in correnteCampos"
-        :key="info.label"
-        class="g-rel-col"
-      >
-        <q-card flat bordered class="relogio-card">
-          <div class="text-bold text-primary q-mb-xs relogio-label">{{ info.label }}</div>
-          <GaugeRelogio
-            :value="parseFloat(weather[info.dir] ?? 0)"
-            :intensidade="parseFloat(weather[info.int] ?? 0)"
-            :max="2"
-            :unidade="'m/s'"
-            colorMain="#1976D2"
-            colorSecondary="#43A047"
-            colorBg="#E3F2FD"
-            size="100"
+    <!-- Relógios: Rosa dos Ventos + Correntezas -->
+    <div v-else>
+      <!-- Rosa dos Ventos / Relógio de Vento -->
+      <!-- <div class="row items-center justify-center q-mb-sm wind-gauge-wrap">
+        <q-card flat bordered class="wind-gauge-card">
+          <div class="text-bold text-primary q-mb-xs" style="text-align:center;font-size:1.09em">
+            Vento Médio
+          </div>
+          <WindGauge
+            :value="parseFloat(weather.ventodirecao ?? 0)"
+            :intensidade="parseFloat(weather.ventointensidade ?? 0)"
+            :max="60"
+            :size="120"
           />
+          <div class="text-center text-grey-7 q-mt-xs" style="font-size:.92em">
+            {{ weather.ventointensidade ?? '--' }} kts
+            <span v-if="weather.ventodirecao" class="q-ml-xs" style="font-size:0.9em;">
+              ({{ weather.ventodirecao }}°)
+            </span>
+          </div>
         </q-card>
+      </div> -->
+
+      <div class="text-h6 text-weight-medium q-mb-xs" style="color:#0267C1">
+        ADCP - Correntezas (kts)
+      </div>
+      <div class="row relogio-grid">
+        <div
+          v-for="info in correnteCampos"
+          :key="info.label"
+          class="g-rel-col"
+        >
+          <q-card flat bordered class="relogio-card">
+            <div class="text-bold text-primary q-mb-xs relogio-label">{{ info.label }}</div>
+            <CurrentGauge
+              :intensidade="parseFloat(weather[info.int] ?? 0)"
+              :value="parseFloat(weather[info.dir] ?? 0)"
+              :max="6"
+              unidade="kts"
+              :profundidade="info.label"
+              :size="100"
+            />
+
+          </q-card>
+
+        </div>
       </div>
     </div>
 
@@ -112,13 +101,13 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import GaugeRelogio from 'components/praticagem/GaugeRelogio.vue';
-import { useWeatherStore } from 'src/stores/weather';
 import { ref, computed } from 'vue';
+// import WindGauge from 'components/praticagem/WindGauge.vue';
+import CurrentGauge from 'components/praticagem/GaugeRelogio.vue';
+import { useWeatherStore } from 'src/stores/weather';
 
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
-
-const viewMode = ref('gauges'); // Ou 'table' para começar pela tabela
+const viewMode = ref('gauges'); // default
 
 const correnteCampos = [
   {
@@ -157,14 +146,16 @@ const adcpVazanteRows = computed(() => {
     const intAj = weather.value[info.intAj];
     let status = '--';
     if (ench !== undefined && ench !== null) status = ench === -1 ? 'Vazante' : (ench === 1 ? 'Enchente' : '--');
-    const intKts = intAj != null ? (intAj * 1.94384).toFixed(2) : '--';
+    // NÃO converte, já está em kts!
+    const intkts = intAj != null ? Number(intAj).toFixed(2) : '--';
     return {
       prof: info.label,
-      int: intKts !== '--' ? `${intKts} kts` : '--',
+      int: intkts !== '--' ? `${intkts} kts` : '--',
       status,
     };
   });
 });
+
 </script>
 
 <style scoped>
@@ -203,6 +194,20 @@ const adcpVazanteRows = computed(() => {
   margin-top: 2px;
   margin-bottom: 0;
   color: #1565c0;
+}
+.wind-gauge-wrap {
+  margin-bottom: 0.4em;
+}
+.wind-gauge-card {
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #b3b3b326;
+  padding: 10px 14px 4px 14px;
+  min-width: 150px;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
 }
 @media (max-width: 1100px) {
   .relogio-grid { max-width: 100vw; }

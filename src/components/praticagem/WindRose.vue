@@ -85,7 +85,7 @@
       font-weight="bold"
       style="font-variant-numeric: tabular-nums;"
     >{{ intVal }}</text>
-    <text x="80" y="111" text-anchor="middle" font-size="12" fill="#666">m/s</text>
+    <text x="80" y="111" text-anchor="middle" font-size="12" fill="#666">kts</text>
   </svg>
 </template>
 
@@ -94,21 +94,20 @@ import { computed } from 'vue';
 
 // Props
 const props = defineProps({
-  direction: { type: Number, default: 0 }, // Graus meteorológicos
-  intensidade: { type: Number, default: 0 }, // Valor (m/s)
+  direction: { type: Number, default: 0 }, // Graus meteorológicos (ventonum)
+  intensidade: { type: Number, default: 0 }, // Valor (kts)
   max: { type: Number, default: 20 }, // Para cor/escala do ponteiro
 });
 
 // Cor do ponteiro conforme intensidade
-function color(val, max) {
-  if (val < max * 0.33) return '#43a047';
-  if (val < max * 0.66) return '#1976d2';
-  if (val < max * 0.85) return '#f9a825';
-  return '#e53935';
+function color(val) {
+  if (val <= 15) return '#43a047'; // Verde
+  if (val <= 35) return '#fbc02d'; // Amarelo
+  return '#e53935'; // Vermelho
 }
 
-// Lógica visual
-const pointerAngle = computed(() => ((props.direction || 0) % 360) - 90); // Ajuste SVG
+// Lógica visual (0º = ponteiro para cima = Norte, 90º = direita = Leste, etc)
+const pointerAngle = computed(() => ((props.direction || 0) % 360) - 90); // -90 ajusta SVG: 0º para cima
 const len = computed(() => 42 + 29 * Math.min((props.intensidade || 0) / props.max, 1));
 // eslint-disable-next-line no-restricted-globals
 const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(2)));
@@ -133,15 +132,3 @@ const polygonPoints = computed(() => {
   `;
 });
 </script>
-
-<style scoped>
-.rose-svg {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border-radius: 50%;
-  box-shadow: 0 2px 12px #90caf92e;
-  background: transparent;
-  user-select: none;
-}
-</style>

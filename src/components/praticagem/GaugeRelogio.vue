@@ -10,7 +10,7 @@
     <g :transform="'rotate(-135 55 55)'">
       <path
         :d="arcPath"
-        :stroke="corIntensidade(intensidade, max)"
+        :stroke="corIntensidade(intensidade)"
         stroke-width="8"
         fill="none"
         stroke-linecap="round"
@@ -24,7 +24,7 @@
     <text x="55" y="60" text-anchor="middle" font-size="17" fill="#333" font-weight="bold">
       {{ intVal }}
     </text>
-    <text x="55" y="74" text-anchor="middle" font-size="10" fill="#789">kt</text>
+    <text x="55" y="74" text-anchor="middle" font-size="10" fill="#789">kts</text>
     <text x="55" y="90" text-anchor="middle" font-size="11" fill="#888">{{ grau }}°</text>
     <text x="55" y="15" text-anchor="middle" font-size="9" fill="#1976d2">N</text>
     <text x="55" y="104" text-anchor="middle" font-size="9" fill="#1976d2">S</text>
@@ -37,17 +37,18 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  value: { type: Number, default: 0 },
-  intensidade: { type: Number, default: 0 },
-  max: { type: Number, default: 3 },
+  value: { type: Number, default: 0 }, // direção da correnteza, se quiser usar
+  intensidade: { type: Number, default: 0 }, // intensidade (nós/knots)
+  max: { type: Number, default: 6 }, // máximo do arco, ex: 6 knots
 });
 
-function corIntensidade(val, max) {
-  if (val < max * 0.33) return '#43a047';
-  if (val < max * 0.66) return '#1976d2';
-  if (val < max * 0.85) return '#f9a825';
-  return '#e53935';
+// Cores para CORRENTEZA (ajustada para sua regra!)
+function corIntensidade(val) {
+  if (val <= 2) return '#43a047'; // Verde
+  if (val <= 4) return '#fbc02d'; // Amarelo
+  return '#e53935'; // Vermelho
 }
+
 function polarToCartesian(cx, cy, r, angleInDegrees) {
   // eslint-disable-next-line no-mixed-operators
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;

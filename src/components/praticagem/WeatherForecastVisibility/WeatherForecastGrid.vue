@@ -78,14 +78,14 @@
                 <WindMiniClock :deg="row.wind_deg" :speed="row.wind_speed" />
                 {{ windDir(row.wind_deg) }}
                 <span class="text-blue-8 text-weight-medium">
-                  {{ row.wind_speed_knots != null ? row.wind_speed_knots.toFixed(1) + ' kt' : '--' }}
+                  {{ row.wind_speed_knots != null ? row.wind_speed_knots.toFixed(1) + ' kts' : '--' }}
                 </span>
               </span>
             </td>
             <!-- Rajada de vento (em knots)
             <td>
               <span>
-                {{ row.wind_gust_knots != null ? row.wind_gust_knots.toFixed(1) + ' kt' : '--' }}
+                {{ row.wind_gust_knots != null ? row.wind_gust_knots.toFixed(1) + ' kts' : '--' }}
               </span>
             </td>
             Chuva
