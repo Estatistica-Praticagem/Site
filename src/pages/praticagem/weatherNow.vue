@@ -13,6 +13,8 @@
     <div style="height:22px"></div>
     <WeatherForecastVisibility/>
     <div style="height:22px"></div>
+    <VerticalCurrentProfile/>
+    <div style="height:22px"></div>
     <FooterPraticagem/>
   </q-page>
 </template>
@@ -27,6 +29,7 @@ import CurrentForecastComparison from 'src/components/praticagem/CurrentForecast
 import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastView.vue';
 import WeatherForecastVisibility from 'src/components/praticagem/WeatherForecastVisibility.vue';
 import FooterPraticagem from 'src/components/praticagem/FooterPraticagem.vue';
+import VerticalCurrentProfile from 'src/components/praticagem/VerticalCurrentProfile.vue';
 
 const store = useWeatherStore();
 
