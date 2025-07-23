@@ -74,7 +74,7 @@ const store = useWeatherStore();
 const { weatherHistory } = storeToRefs(store);
 
 const viewType = ref('chart'); // chart (default) or table
-const showPoints = ref(true); // bolinhas no gráfico
+const showPoints = ref(false); // bolinhas no gráfico
 
 // Detecta se é mobile (mantém responsividade para outras configs se quiser)
 const isMobile = ref(false);
