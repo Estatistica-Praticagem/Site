@@ -12,14 +12,13 @@
       }"
     >
       <div class="cbp-header row items-center justify-between">
-        <span
-          class="cbp-title"
-          :style="{ fontSize: `${1.12 * settings.scale}em` }"
-        >Perfil de Correnteza por Profundidade</span>
+        <span class="cbp-title" :style="{ fontSize: `${1.12 * settings.scale}em` }">
+          Perfil de Correnteza por Profundidade
+        </span>
         <q-btn dense flat round icon="more_vert" @click="showConfig = true" />
       </div>
 
-      <!-- SELETOR DE VISUALIZAÇÃO -->
+      <!-- Seletor de visualização -->
       <div class="cbp-view-select row items-center q-mb-md">
         <q-btn-toggle
           v-model="settings.view"
@@ -32,7 +31,7 @@
         />
       </div>
 
-      <!-- VISOR PADRÃO: BARRAS -->
+      <!-- VISOR: Barras -->
       <div v-if="settings.view === 'bars'" class="cbp-graph-ct">
         <div class="cbp-bars">
           <div
@@ -44,6 +43,7 @@
               class="cbp-bar-label"
               :style="{ fontSize: `${1 * settings.scale}em`, width: `${72 * settings.scale}px` }"
             >{{ d.label }}</span>
+
             <div
               class="cbp-bar-line"
               :style="{ width: `${180 * settings.scale}px`, height: `${18 * settings.scale}px` }"
@@ -52,12 +52,12 @@
                 v-if="getBarVal(d.key) < 0"
                 class="cbp-bar cbp-bar-enchente"
                 :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
-              ></div>
+              />
               <div
                 v-if="getBarVal(d.key) > 0"
                 class="cbp-bar cbp-bar-vazante"
                 :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
-              ></div>
+              />
               <span
                 v-if="getBarVal(d.key) !== 0"
                 class="cbp-bar-value"
@@ -80,10 +80,10 @@
         </div>
       </div>
 
-      <!-- VISOR NOVO: SVG (current-graph) -->
+      <!-- VISOR: SVG -->
       <div v-if="settings.view === 'current-graph'" class="cbp-current-svg-ct">
         <div class="current-bars-graph">
-          <svg :width="width * settings.scale" :height="height * settings.scale" :style="{ display: 'block', margin: '0 auto' }">
+          <svg :width="width * settings.scale" :height="height * settings.scale" style="display:block;margin:0 auto">
             <line
               :x1="xZero * settings.scale"
               :y1="20 * settings.scale"
@@ -124,7 +124,7 @@
         </div>
       </div>
 
-      <!-- VISOR: TABELA -->
+      <!-- VISOR: Tabela -->
       <div v-if="settings.view === 'table'" class="cbp-table-ct">
         <table class="cbp-table">
           <thead>
@@ -148,7 +148,7 @@
         </table>
       </div>
 
-      <!-- PAINEL DE CONFIGURAÇÃO -->
+      <!-- CONFIG -->
       <q-dialog v-model="showConfig">
         <q-card style="min-width:320px;max-width:94vw;">
           <q-card-section>
@@ -203,30 +203,20 @@
 import {
   ref, computed, onMounted, watch,
 } from 'vue';
+import { useWeatherStore } from 'src/stores/weather';
+import { storeToRefs } from 'pinia';
 
-// BASES PARA ESCALA
+// Dimensões base
 const cardBaseWidth = 490;
 const cardBaseMinWidth = 350;
 const cardBaseMaxWidth = 490;
 
-const profileData = {
-  superficie: 0.5,
-  '1_5m': 0.7,
-  '3m': -0.3,
-  '6m': -0.8,
-  '7_5m': -1.2,
-  '15m': -1.6,
-};
+// Pinia
+const store = useWeatherStore();
+const { weatherLast } = storeToRefs(store);
+onMounted(() => { store.fetchLast(); });
 
-const allDepths = [
-  { label: 'SUP (0m)', key: 'superficie' },
-  { label: '1,5m', key: '1_5m' },
-  { label: '3m', key: '3m' },
-  { label: '6m', key: '6m' },
-  { label: '7,5m', key: '7_5m' },
-  { label: '15m', key: '15m' },
-];
-
+// Opções de visualização
 const viewOptions = [
   { label: 'Gráfico SVG', value: 'current-graph', icon: 'fas fa-align-left' },
   { label: 'Barras', value: 'bars', icon: 'fas fa-grip-horizontal' },
@@ -235,13 +225,64 @@ const viewOptions = [
 
 const defaultSettings = {
   scale: 1,
-  selectedDepths: ['superficie', '3m', '6m'],
+  selectedDepths: [],
   view: 'bars',
 };
 
 const showConfig = ref(false);
 const settings = ref({ ...defaultSettings });
 
+// Lista dinâmica de profundidades
+const depthObjects = computed(() => {
+  const w = weatherLast.value || {};
+  const list = [];
+
+  // SUP
+  if ('intensidade_superficie' in w || 'intensidade_superficie_ajustada' in w) {
+    list.push({
+      key: 'superficie',
+      label: 'SUP (0m)',
+      intKeys: ['intensidade_superficie_ajustada', 'intensidade_superficie'],
+      enchKey: 'enchente_vazante_superficie',
+    });
+  }
+
+  Object.keys(w).forEach((k) => {
+    const m = k.match(/^intensidade_(\d+(?:_\d+)?)m(?:_ajustada)?$/); // pega 1_5m, 13_5m etc
+    if (m) {
+      const id = m[1]; // ex "1_5" ou "3"
+      const key = `${id}m`; // "1_5m"
+      if (list.some((o) => o.key === key)) return;
+      list.push({
+        key,
+        label: `${id.replace('_', ',')}m`,
+        intKeys: [
+          `intensidade_${id}m_ajustada`,
+          `intensidade_${id}m`,
+        ],
+        enchKey: `enchente_vazante_${id}m`,
+      });
+    }
+  });
+
+  // Ordena: SUP primeiro, depois crescente
+  return list.sort((a, b) => {
+    if (a.key === 'superficie') return -1;
+    if (b.key === 'superficie') return 1;
+    return parseFloat(a.label.replace(',', '.')) - parseFloat(b.label.replace(',', '.'));
+  });
+});
+
+const allDepths = computed(() => depthObjects.value.map(({ key, label }) => ({ key, label })));
+
+// Primeira vez seleciona todas
+watch(depthObjects, (arr) => {
+  if (!settings.value.selectedDepths.length) {
+    settings.value.selectedDepths = arr.map((d) => d.key);
+  }
+}, { immediate: true });
+
+// Salvar/restaurar config
 function saveConfig() {
   localStorage.setItem('currentBarProfileConfig', JSON.stringify(settings.value));
 }
@@ -251,18 +292,35 @@ onMounted(() => {
 });
 watch(settings, saveConfig, { deep: true });
 
-const shownDepths = computed(() => allDepths.filter((d) => settings.value.selectedDepths.includes(d.key)));
+// Filtradas
+const shownDepths = computed(() => allDepths.value.filter((d) => settings.value.selectedDepths.includes(d.key)));
 
+// Valor (kts) assinado
 function getBarVal(key) {
-  return Number(profileData[key]) || 0;
+  const w = weatherLast.value || {};
+  const obj = depthObjects.value.find((o) => o.key === key);
+  if (!obj) return 0;
+
+  // Prioriza ajustada
+  let raw = 0;
+  // eslint-disable-next-line no-restricted-syntax
+  for (const k of obj.intKeys) {
+    if (w[k] != null) {
+      raw = Number(w[k]) || 0;
+      break;
+    }
+  }
+  return raw; // já inclui sinal
 }
+
+// Largura barra normalizada
 function barWidth(val) {
-  const max = 2;
+  const max = 2; // ajuste se quiser
   // eslint-disable-next-line no-mixed-operators
   return Math.abs(val) / max * 180;
 }
 
-// NOVO SVG
+// SVG helpers
 const width = 390;
 const height = 180;
 const barHeight = 22;
