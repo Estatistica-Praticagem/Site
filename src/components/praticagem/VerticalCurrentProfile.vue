@@ -31,7 +31,7 @@
         />
       </div>
 
-      <!-- VISOR: Barras -->
+      <!-- VISOR: Barras simples -->
       <div v-if="settings.view === 'bars'" class="cbp-graph-ct">
         <div class="cbp-bars">
           <div
@@ -48,14 +48,16 @@
               class="cbp-bar-line"
               :style="{ width: `${180 * settings.scale}px`, height: `${18 * settings.scale}px` }"
             >
+              <!-- NEGATIVO = VAZANTE (vermelho) -->
               <div
                 v-if="getBarVal(d.key) < 0"
-                class="cbp-bar cbp-bar-enchente"
+                class="cbp-bar cbp-bar-vazante"
                 :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
               />
+              <!-- POSITIVO = ENCHENTE (azul) -->
               <div
                 v-if="getBarVal(d.key) > 0"
-                class="cbp-bar cbp-bar-vazante"
+                class="cbp-bar cbp-bar-enchente"
                 :style="{ width: barWidth(getBarVal(d.key)) * settings.scale + 'px', height: `${18 * settings.scale}px` }"
               />
               <span
@@ -74,52 +76,58 @@
           </div>
         </div>
         <div class="cbp-legend row items-center" :style="{ fontSize: `${0.97 * settings.scale}em` }">
-          <span class="cbp-leg-enchente" :style="{ width: `${18 * settings.scale}px`, height: `${10 * settings.scale}px` }"></span> Enchente
           <span class="cbp-leg-vazante" :style="{ width: `${18 * settings.scale}px`, height: `${10 * settings.scale}px` }"></span> Vazante
+          <span class="cbp-leg-enchente" :style="{ width: `${18 * settings.scale}px`, height: `${10 * settings.scale}px`, marginLeft:'10px' }"></span> Enchente
           <span class="cbp-leg-label" :style="{ marginLeft: `${16 * settings.scale}px` }"> Intensidade (kts)</span>
         </div>
       </div>
 
-      <!-- VISOR: SVG -->
+      <!-- VISOR: SVG dinâmico -->
       <div v-if="settings.view === 'current-graph'" class="cbp-current-svg-ct">
         <div class="current-bars-graph">
-          <svg :width="width * settings.scale" :height="height * settings.scale" style="display:block;margin:0 auto">
+          <svg
+            :width="svgWidth * settings.scale"
+            :height="svgHeight * settings.scale"
+            style="display:block;margin:0 auto"
+          >
+            <!-- Linha zero -->
             <line
               :x1="xZero * settings.scale"
-              :y1="20 * settings.scale"
+              :y1="topPad * settings.scale"
               :x2="xZero * settings.scale"
-              :y2="(height - 10) * settings.scale"
+              :y2="(svgHeight - bottomPad) * settings.scale"
               stroke="#bbb"
               :stroke-width="2 * settings.scale"
             />
+            <!-- Barras -->
             <g v-for="(row, idx) in currentBarData" :key="row.label">
               <rect
-                :x="row.value >= 0 ? xZero * settings.scale : (xZero + scale(row.value)) * settings.scale"
+                :x="row.value < 0 ? (xZero + scale(row.value)) * settings.scale : xZero * settings.scale"
                 :y="yScale(idx) * settings.scale"
                 :width="Math.abs(scale(row.value)) * settings.scale"
                 :height="barHeight * settings.scale"
-                :fill="row.value >= 0 ? '#e57373' : '#1976d2'"
+                :fill="row.value < 0 ? '#e57373' : '#1976d2'"
               />
               <text
-                :x="row.value >= 0
-                  ? xZero * settings.scale + Math.abs(scale(row.value)) * settings.scale + 4 * settings.scale
-                  : xZero * settings.scale + scale(row.value) * settings.scale - 38 * settings.scale"
-                :y="yScale(idx) * settings.scale + barHeight * settings.scale / 2 + 5 * settings.scale"
+                :x="row.value < 0
+                  ? xZero * settings.scale + scale(row.value) * settings.scale - 38 * settings.scale
+                  : xZero * settings.scale + Math.abs(scale(row.value)) * settings.scale + 4 * settings.scale"
+                :y="(yScale(idx) + barHeight/2 + 5) * settings.scale"
                 :font-size="12 * settings.scale"
                 fill="#222"
               >{{ Math.abs(row.value).toFixed(2) }} kts</text>
               <text
                 :x="12 * settings.scale"
-                :y="yScale(idx) * settings.scale + barHeight * settings.scale / 2 + 5 * settings.scale"
+                :y="(yScale(idx) + barHeight/2 + 5) * settings.scale"
                 :font-size="14 * settings.scale"
                 fill="#222"
               >{{ row.label }}</text>
             </g>
           </svg>
           <div :style="{ marginTop: `${8 * settings.scale}px`, fontSize: `${13 * settings.scale}px`, color: '#888' }">
-            <span style="color:#1976d2;">⬅ Enchente</span>
+            <span style="color:#e57373;">⬅ Vazante</span>
             &nbsp; Intensidade (kts) &nbsp;
-            <span style="color:#e57373;">Vazante ➡</span>
+            <span style="color:#1976d2;">Enchente ➡</span>
           </div>
         </div>
       </div>
@@ -139,9 +147,9 @@
               <td>{{ d.label }}</td>
               <td>{{ Math.abs(getBarVal(d.key)).toFixed(2) }} kts</td>
               <td>
-                <span v-if="getBarVal(d.key) < 0" class="cbp-leg-enchente"></span>
-                <span v-if="getBarVal(d.key) > 0" class="cbp-leg-vazante"></span>
-                {{ getBarVal(d.key) > 0 ? 'Vazante' : getBarVal(d.key) < 0 ? 'Enchente' : '-' }}
+                <span v-if="getBarVal(d.key) < 0" class="cbp-leg-vazante"></span>
+                <span v-if="getBarVal(d.key) > 0" class="cbp-leg-enchente"></span>
+                {{ getBarVal(d.key) < 0 ? 'Vazante' : getBarVal(d.key) > 0 ? 'Enchente' : '-' }}
               </td>
             </tr>
           </tbody>
@@ -206,7 +214,7 @@ import {
 import { useWeatherStore } from 'src/stores/weather';
 import { storeToRefs } from 'pinia';
 
-// Dimensões base
+// Dimensões base do card
 const cardBaseWidth = 490;
 const cardBaseMinWidth = 350;
 const cardBaseMaxWidth = 490;
@@ -232,12 +240,12 @@ const defaultSettings = {
 const showConfig = ref(false);
 const settings = ref({ ...defaultSettings });
 
-// Lista dinâmica de profundidades
+// Monta lista dinâmica de profundidades disponíveis
 const depthObjects = computed(() => {
   const w = weatherLast.value || {};
   const list = [];
 
-  // SUP
+  // SUP (superfície)
   if ('intensidade_superficie' in w || 'intensidade_superficie_ajustada' in w) {
     list.push({
       key: 'superficie',
@@ -248,9 +256,9 @@ const depthObjects = computed(() => {
   }
 
   Object.keys(w).forEach((k) => {
-    const m = k.match(/^intensidade_(\d+(?:_\d+)?)m(?:_ajustada)?$/); // pega 1_5m, 13_5m etc
+    const m = k.match(/^intensidade_(\d+(?:_\d+)?)m(?:_ajustada)?$/);
     if (m) {
-      const id = m[1]; // ex "1_5" ou "3"
+      const id = m[1]; // ex: "1_5" ou "3"
       const key = `${id}m`; // "1_5m"
       if (list.some((o) => o.key === key)) return;
       list.push({
@@ -265,7 +273,7 @@ const depthObjects = computed(() => {
     }
   });
 
-  // Ordena: SUP primeiro, depois crescente
+  // Ordenar: SUP primeiro, depois por valor numérico
   return list.sort((a, b) => {
     if (a.key === 'superficie') return -1;
     if (b.key === 'superficie') return 1;
@@ -275,14 +283,14 @@ const depthObjects = computed(() => {
 
 const allDepths = computed(() => depthObjects.value.map(({ key, label }) => ({ key, label })));
 
-// Primeira vez seleciona todas
+// Seleciona todas as profundidades na primeira carga
 watch(depthObjects, (arr) => {
   if (!settings.value.selectedDepths.length) {
     settings.value.selectedDepths = arr.map((d) => d.key);
   }
 }, { immediate: true });
 
-// Salvar/restaurar config
+// Persistência em localStorage
 function saveConfig() {
   localStorage.setItem('currentBarProfileConfig', JSON.stringify(settings.value));
 }
@@ -292,44 +300,53 @@ onMounted(() => {
 });
 watch(settings, saveConfig, { deep: true });
 
-// Filtradas
+// Profundidades visíveis
 const shownDepths = computed(() => allDepths.value.filter((d) => settings.value.selectedDepths.includes(d.key)));
 
-// Valor (kts) assinado
+// Valor assinado (kts): NEGATIVO = Vazante, POSITIVO = Enchente
 function getBarVal(key) {
   const w = weatherLast.value || {};
   const obj = depthObjects.value.find((o) => o.key === key);
   if (!obj) return 0;
 
-  // Prioriza ajustada
-  let raw = 0;
   // eslint-disable-next-line no-restricted-syntax
   for (const k of obj.intKeys) {
-    if (w[k] != null) {
-      raw = Number(w[k]) || 0;
-      break;
-    }
+    if (w[k] != null) return Number(w[k]) || 0;
   }
-  return raw; // já inclui sinal
+  return 0;
 }
 
-// Largura barra normalizada
+// Barra horizontal simples
 function barWidth(val) {
   const max = 2; // ajuste se quiser
   // eslint-disable-next-line no-mixed-operators
   return Math.abs(val) / max * 180;
 }
 
-// SVG helpers
-const width = 390;
-const height = 180;
+/* ---------------- SVG Dinâmico ---------------- */
+const svgWidth = 390;
 const barHeight = 22;
-const yScale = (idx) => 25 + idx * (barHeight + 5);
+const rowGap = 6;
+const topPad = 20;
+const bottomPad = 10;
 const xZero = 180;
-const maxVal = computed(() => Math.max(...shownDepths.value.map((d) => Math.abs(getBarVal(d.key))), 1.3));
-// eslint-disable-next-line no-mixed-operators
-const scale = (v) => v / maxVal.value * 100;
 
+// Altura do SVG de acordo com quantas profundidades
+const svgHeight = computed(() => {
+  const n = shownDepths.value.length;
+  return topPad + bottomPad + n * (barHeight + rowGap);
+});
+
+// yScale para cada linha
+const yScale = (idx) => topPad + idx * (barHeight + rowGap);
+
+// max de escala absoluta (para normalizar)
+const maxVal = computed(() => Math.max(...shownDepths.value.map((d) => Math.abs(getBarVal(d.key))), 1.3));
+
+// Conversão de kts -> espaço horizontal
+const scale = (v) => (v / maxVal.value) * 100;
+
+// Dados prontos para o SVG
 const currentBarData = computed(() => shownDepths.value.map((d) => ({
   label: d.label,
   value: getBarVal(d.key),
@@ -366,7 +383,7 @@ const currentBarData = computed(() => shownDepths.value.map((d) => ({
 .cbp-bar-value { position: absolute; font-weight: 500; color: #333; white-space: nowrap; }
 .cbp-legend { margin-top: 6px; gap: 16px; }
 .cbp-leg-enchente { background: #1976d2; display: inline-block; border-radius: 5px; margin-right: 3px; }
-.cbp-leg-vazante { background: #e57373; display: inline-block; border-radius: 5px; margin-left: 10px; margin-right: 3px; }
+.cbp-leg-vazante  { background: #e57373; display: inline-block; border-radius: 5px; margin-right: 3px; }
 .cbp-leg-label { color: #888; }
 .cbp-table { width: 100%; border-collapse: collapse; }
 .cbp-table th, .cbp-table td { padding: 7px 12px; text-align: left; font-size: .97em; color: #222; }
