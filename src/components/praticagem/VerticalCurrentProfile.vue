@@ -228,8 +228,8 @@ const allDepths = [
 ];
 
 const viewOptions = [
-  { label: 'Barras', value: 'bars', icon: 'fas fa-grip-horizontal' },
   { label: 'Gráfico SVG', value: 'current-graph', icon: 'fas fa-align-left' },
+  { label: 'Barras', value: 'bars', icon: 'fas fa-grip-horizontal' },
   { label: 'Tabela', value: 'table', icon: 'fas fa-table' },
 ];
 

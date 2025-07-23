@@ -21,7 +21,9 @@
         </div>
         <!-- Ajuste tamanho -->
         <div class="q-mt-md">
+          <div>Tamanho relógio de vento</div>
           <q-slider v-model="settings.sizeVento" :min="70" :max="150" step="1" label="Tamanho Vento" @change="saveConfig"/>
+          <div>Tamanho relógio de correnteza</div>
           <q-slider v-model="settings.sizeCorrenteza" :min="70" :max="150" step="1" label="Tamanho Correnteza" @change="saveConfig"/>
         </div>
         <!-- Ocultar campos principais -->
