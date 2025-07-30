@@ -1,11 +1,11 @@
 <template>
   <div class="q-pa-md">
-    <!-- Controles globais -->
+    <!-- Controles globais + configurações -->
     <q-card class="q-pa-sm q-mb-md shadow-2 bg-white">
       <div class="row items-center justify-between">
         <div class="row items-center q-gutter-sm">
           <q-option-group
-            v-model="showPoints"
+            v-model="config.showPoints"
             :options="[
               { label: 'Com bolinhas', value: true },
               { label: 'Sem bolinhas', value: false }
@@ -25,8 +25,13 @@
             size="sm"
             class="tide-toggle"
           />
+          <q-toggle
+            v-model="config.showBand"
+            color="primary"
+            label="Exibir banda"
+            class="q-ml-md"
+          />
         </div>
-
         <div class="row items-center q-gutter-sm">
           <q-select
             v-model="selectedDepthKeys"
@@ -42,7 +47,6 @@
             style="min-width: 280px"
             label="Profundidades"
           />
-
           <q-btn
             color="primary"
             icon="refresh"
@@ -51,19 +55,44 @@
             :loading="loading"
             @click="loadAll"
           />
+          <q-btn flat round dense icon="more_vert" @click="showConfig = true" class="q-ml-xs" />
         </div>
       </div>
     </q-card>
 
+    <!-- Diálogo de configurações (pode expandir com mais opções) -->
+    <q-dialog v-model="showConfig">
+      <q-card style="min-width:320px;">
+        <q-card-section class="row items-center">
+          <div class="text-h6 text-primary">Configurações</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-separator />
+        <q-card-section>
+          <div class="q-mb-md">
+            <div class="text-bold">Altura do gráfico</div>
+            <q-slider
+              v-model="config.chartHeight"
+              :min="160"
+              :max="700"
+              :step="10"
+              color="primary"
+              label
+              style="max-width:260px;"
+            />
+            <span class="q-ml-md text-grey-7">{{ config.chartHeight }} px</span>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- Cards por profundidade -->
     <div class="row q-col-gutter-md">
-      <div
-        v-for="d in visibleDepths"
-        :key="d.key"
-        class="col-12 col-md-6 col-lg-4"
-      >
+      <div v-for="d in visibleDepths" :key="d.key" class="col-12 col-md-6 col-lg-4">
         <q-card class="q-pa-md bg-white shadow-2 tide-compare-card">
-          <div class="row items-center justify-between q-mb-sm">
+          <!-- Título e atualizado -->
+          <div class="row items-center justify-between q-mb-xs">
             <div class="text-subtitle1 text-primary text-weight-bold">
               Intensidade {{ d.label }} — Histórico x Previsão ({{ prevSourceLabel }})
             </div>
@@ -71,180 +100,176 @@
               Atualizado: {{ latestTimestamps[d.key] }}
             </div>
           </div>
+          <!-- Mini-cards valores - sempre no topo, valores seguem o scrub -->
+          <div class="row q-gutter-md tide-mini-card-row q-mb-md">
+            <div class="tide-mini-value-card">
+              <div class="text-caption text-grey-7">Histórico</div>
+              <div class="text-h6 text-primary">
+                {{ miniCardValue[d.key]?.hist !== null ? miniCardValue[d.key]?.hist : '--' }}
+              </div>
+            </div>
+            <div class="tide-mini-value-card">
+              <div class="text-caption text-grey-7">Previsão</div>
+              <div class="text-h6" :style="{ color: d.color }">
+                {{ miniCardValue[d.key]?.prev !== null ? miniCardValue[d.key]?.prev : '--' }}
+              </div>
+            </div>
+          </div>
 
-          <div class="tide-chart-container">
-            <Line
-              :data="chartDataByDepth[d.key]"
-              :options="chartOptionsByDepth[d.key]"
-              :height="320"
-            />
+          <!-- Navegação temporal individual -->
+          <div class="row items-center q-mb-xs">
+            <q-btn dense flat icon="chevron_left" @click="prevWindow(d.key)" :disable="cursor[d.key] <= 0" class="q-mr-xs" />
+            <span class="text-caption">{{ windowLabel(d.key) }}</span>
+            <q-btn dense flat icon="chevron_right" @click="nextWindow(d.key)" :disable="cursor[d.key] >= maxCursor(d.key)" class="q-ml-xs" />
+          </div>
+
+          <!-- Gráfico individual -->
+          <div class="tide-chart-container" ref="chartWrap">
+            <canvas :ref="el => setCanvasRef(d.key, el)" :height="config.chartHeight" style="width:100%;"></canvas>
+            <!-- Tooltip, posicionado acima do gráfico -->
+            <div v-if="tooltip[d.key]?.active" :style="tooltipStyle">
+              <div class="text-caption" style="font-weight:bold;">
+                {{ tooltip[d.key].label }}
+              </div>
+              <div class="q-mt-xs">
+                <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[d.key].hist }}</span>
+                <br>
+                <span :style="{color: d.color}"><b>Previsão:</b> {{ tooltip[d.key].prev }}</span>
+              </div>
+            </div>
           </div>
         </q-card>
       </div>
     </div>
-
     <div class="q-mt-md text-negative" v-if="error">{{ error }}</div>
   </div>
 </template>
 
 <script setup>
 import {
-  ref, computed, onMounted, onUnmounted,
+  ref, computed, reactive, onMounted, watch, nextTick,
 } from 'vue';
-import { Line } from 'vue-chartjs';
 import {
-  Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend,
+  Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend, Filler,
 } from 'chart.js';
 
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-/* ======================= CONFIG ======================= */
+// ========== CONFIGS GERAIS ==========
 const API_BASE = 'https://www.meusimulador.com/kevi/backend/praticagem';
-
-// Endpoints
-const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`; // ?limit=...
-const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`; // ?tabela=hora|5min&limit=...&include_past=1
-
-// Profundidades
+const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`;
+const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`;
 const DEPTHS = [
-  { key: '1_5m', label: '1.5m' },
-  { key: '3m', label: '3m' },
-  { key: '6m', label: '6m' },
-  { key: '7_5m', label: '7.5m' },
-  { key: '9m', label: '9m' },
-  { key: '10_5m', label: '10.5m' },
-  { key: '12m', label: '12m' },
-  { key: '13_5m', label: '13.5m' },
-  { key: 'superficie', label: 'Superfície' },
+  { key: '1_5m', label: '1.5m', color: '#4f7fee' },
+  { key: '3m', label: '3m', color: '#5cc77e' },
+  { key: '6m', label: '6m', color: '#c2b81e' },
+  { key: '7_5m', label: '7.5m', color: '#f59f41' },
+  { key: '9m', label: '9m', color: '#cf5c36' },
+  { key: '10_5m', label: '10.5m', color: '#b03ad7' },
+  { key: '12m', label: '12m', color: '#5e6c7d' },
+  { key: '13_5m', label: '13.5m', color: '#43c3d6' },
+  { key: 'superficie', label: 'Superfície', color: '#e31b5c' },
 ];
+const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
+const mestreIntensityCol = (key) => `intensidade_${key}`;
+const prevCol = (key) => `valor_previsto_${key}`;
 
-// Helpers de nome de coluna
-const mestreIntensityCol = (depthKey) => `intensidade_${depthKey}`;
-const prevCol = (depthKey) => `valor_previsto_${depthKey}`;
-
-/* ======================= STATE ======================= */
+// ========== STATE ==========
+const config = ref({
+  chartHeight: 320,
+  showPoints: false,
+  showBand: false,
+});
+const showConfig = ref(false);
 const loading = ref(false);
 const error = ref(null);
-const showPoints = ref(false);
-const prevSource = ref('5min'); // '5min' | 'hora'
+const prevSource = ref('5min');
 const prevSourceLabel = computed(() => (prevSource.value === '5min' ? '5-min' : 'horária'));
-
-// Seletor de cards
-const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
-const selectedDepthKeys = ref(DEPTHS.map((d) => d.key)); // mostra todos por padrão
+const selectedDepthKeys = ref(DEPTHS.map((d) => d.key));
 const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
+const mestre5min = ref([]); const prevHourly = ref([]); const
+  prev5m = ref([]);
 
-// Responsividade (tamanho dos pontos)
-const isMobile = ref(false);
-const updateIsMobile = () => { isMobile.value = window.innerWidth < 700; };
-onMounted(() => {
-  updateIsMobile();
-  window.addEventListener('resize', updateIsMobile);
-  // eslint-disable-next-line no-use-before-define
-  loadAll();
-});
-onUnmounted(() => window.removeEventListener('resize', updateIsMobile));
-
-/* ======================= FETCH & NORMALIZAÇÃO ======================= */
+// ========== FETCH ==========
 async function fetchJSON(url) {
   const res = await fetch(url);
   const json = await res.json();
-  if (!json.success) {
-    throw new Error(json.erro || `Falha no endpoint: ${url}`);
-  }
+  if (!json.success) throw new Error(json.erro || `Falha no endpoint: ${url}`);
   return json.data || [];
 }
-
-// NUMERIC vindo como number/string/{} -> number|null
-const numOrNull = (v) => {
-  if (v === null || v === undefined) return null;
-  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-  if (typeof v === 'string') {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  if (typeof v === 'object') return null; // caso do {}
-  return null;
-};
-
-// timestamp string ou {date: "..."} -> "YYYY-MM-DD HH:mm:ss"
-const normTs = (t) => {
-  if (!t) return null;
-  if (typeof t === 'string') return t.replace('T', ' ').slice(0, 19);
-  if (t.date) return String(t.date).replace('T', ' ').slice(0, 19);
-  return String(t);
-};
-
-/* ======================= DATASETS ======================= */
-// Histórico (mestre 5-min)
-const mestre5min = ref([]);
-// Previsões
-const prevHourly = ref([]);
-const prev5m = ref([]);
+const numOrNull = (v) => ((v === null || v === undefined) ? null : (typeof v === 'number' ? (Number.isFinite(v) ? v : null) : (typeof v === 'string' ? (Number.isFinite(Number(v)) ? Number(v) : null) : null)));
+const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
 
 async function loadAll() {
-  loading.value = true;
-  error.value = null;
+  loading.value = true; error.value = null;
   try {
-    // Limites ALTOS para trazer TUDO que houver nas tabelas
-    const masterLimit = 20000; // 5-min (grande folga)
-    const prevHourLim = 10000; // horária (folga)
-    const prev5mLim = 20000; // 5-min (folga)
-
-    const includePast = '&include_past=1'; // se o PHP ignorar, não faz mal
-
     const [mestre, ph, p5] = await Promise.all([
-      fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=${masterLimit}`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=${prevHourLim}${includePast}`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=${prev5mLim}${includePast}`),
+      fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=20000`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=10000&include_past=1`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=20000&include_past=1`),
     ]);
-
-    // ---- Histórico
-    mestre5min.value = (mestre || [])
-      .map((r) => {
-        const out = { ...r };
-        out.timestamp_br = normTs(r.timestamp_br);
-        DEPTHS.forEach((d) => {
-          const c = mestreIntensityCol(d.key);
-          if (c in out) out[c] = numOrNull(out[c]);
-        });
-        return out;
-      })
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-
-    // ---- Prev horária
-    prevHourly.value = (ph || [])
-      .map((r) => {
-        const out = { ...r, timestamp_br: normTs(r.timestamp_br) };
-        DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); });
-        return out;
-      })
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-
-    // ---- Prev 5-min
-    prev5m.value = (p5 || [])
-      .map((r) => {
-        const out = { ...r, timestamp_br: normTs(r.timestamp_br) };
-        DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); });
-        return out;
-      })
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-
-    // eslint-disable-next-line no-console
-    console.debug('linhas (tudo):', {
-      mestre5min: mestre5min.value.length,
-      prevHora: prevHourly.value.length,
-      prev5min: prev5m.value.length,
-    });
-  } catch (e) {
-    error.value = e.message || String(e);
-  } finally {
-    loading.value = false;
-  }
+    mestre5min.value = mestre.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[mestreIntensityCol(d.key)] = numOrNull(r[mestreIntensityCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+    prevHourly.value = ph.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+    prev5m.value = p5.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+  } catch (e) { error.value = e.message || String(e); } finally { loading.value = false; }
 }
 
-/* ======================= COMUNS POR PROFUNDIDADE ======================= */
-// último timestamp válido do histórico por profundidade
+// ========== JANELAS INDIVIDUAIS ==========
+const windowSize = 288; const
+  stepSize = 144;
+const cursor = reactive({}); DEPTHS.forEach((d) => { cursor[d.key] = 0; });
+// eslint-disable-next-line no-unused-vars
+const alignedTimestamps = (key) => {
+  const allTs = [
+    ...new Set([
+      ...mestre5min.value.map((r) => r.timestamp_br),
+      ...(prevSource.value === '5min' ? prev5m.value : prevHourly.value).map((r) => r.timestamp_br),
+    ]),
+  ].filter(Boolean).sort();
+  return allTs;
+};
+const maxCursor = (key) => Math.max(0, alignedTimestamps(key).length - windowSize);
+// eslint-disable-next-line no-use-before-define
+const prevWindow = (key) => { cursor[key] = Math.max(0, cursor[key] - stepSize); renderChart(key); };
+// eslint-disable-next-line no-use-before-define
+const nextWindow = (key) => { cursor[key] = Math.min(maxCursor(key), cursor[key] + stepSize); renderChart(key); };
+const dataSliceTimestamps = (key) => alignedTimestamps(key).slice(cursor[key], cursor[key] + windowSize);
+const windowLabel = (key) => {
+  const ts = dataSliceTimestamps(key);
+  const ini = ts[0]?.slice(11, 16) || '';
+  const fim = ts[ts.length - 1]?.slice(11, 16) || '';
+  return ini && fim ? `${ini} – ${fim}` : '';
+};
+
+const getDepthSeries = (key) => {
+  const colHist = mestreIntensityCol(key); const colPrev = prevCol(key);
+  const histMap = new Map(mestre5min.value.map((r) => [r.timestamp_br, numOrNull(r[colHist])]));
+  const prevRows = prevSource.value === '5min' ? prev5m.value : prevHourly.value;
+  const prevMap = new Map(prevRows.map((r) => [r.timestamp_br, numOrNull(r[colPrev])]));
+  return dataSliceTimestamps(key).map((ts) => ({
+    timestamp: ts,
+    hist: histMap.get(ts) ?? null,
+    prev: prevMap.get(ts) ?? null,
+  }));
+};
+
+// ========== MINI CARDS MOSTRAM VALOR DO SCRUB OU ÚLTIMO ==========
+const lastScrubIdx = reactive({}); // idx do hover/tooltip para cada profundidade
+const miniCardValue = computed(() => {
+  const out = {};
+  visibleDepths.value.forEach((d) => {
+    const serie = getDepthSeries(d.key);
+    let idx = lastScrubIdx[d.key];
+    if (typeof idx !== 'number' || idx < 0 || idx >= serie.length) idx = serie.length - 1;
+    const hist = serie[idx]?.hist;
+    const prev = serie[idx]?.prev;
+    out[d.key] = {
+      hist: hist !== null && hist !== undefined ? Number(hist).toFixed(3) : '--',
+      prev: prev !== null && prev !== undefined ? Number(prev).toFixed(3) : '--',
+    };
+  });
+  return out;
+});
 const latestTimestamps = computed(() => {
   const out = {};
   DEPTHS.forEach((d) => {
@@ -255,118 +280,191 @@ const latestTimestamps = computed(() => {
   return out;
 });
 
-// escolhe a fonte de previsão respeitando o toggle e com fallback
-function pickPrevRowsFor(depthKey) {
-  const colPrev = prevCol(depthKey);
-  const toggleRows = prevSource.value === '5min' ? prev5m.value : prevHourly.value;
-  const altRows = prevSource.value === '5min' ? prevHourly.value : prev5m.value;
+// ========== Chart.js para múltiplos gráficos ==========
+const canvasRefs = reactive({});
+function setCanvasRef(key, el) { if (el) canvasRefs[key] = el; }
+const chartjsObjs = {};
+const tooltip = reactive({});
+const tooltipStyle = {
+  position: 'absolute',
+  zIndex: 99,
+  background: '#fff',
+  color: '#263238',
+  borderRadius: '8px',
+  boxShadow: '0 6px 16px rgba(38,50,56,0.2)',
+  padding: '10px 14px 9px 12px',
+  pointerEvents: 'none',
+  fontSize: '1.06em',
+  lineHeight: '1.18em',
+  border: '1.5px solid #d7e9fa',
+  userSelect: 'none',
+  minWidth: '128px',
+  left: 'auto',
+  top: '-56px', /* POSICIONA tooltip acima do gráfico! */
+  right: '8px',
+  bottom: 'auto',
+};
+function renderChart(key) {
+  nextTick(() => {
+    if (!canvasRefs[key]) return;
+    if (chartjsObjs[key]) { chartjsObjs[key].destroy(); chartjsObjs[key] = null; }
+    const d = DEPTHS.find((x) => x.key === key);
+    const pointRadius = config.value.showPoints ? 2 : 0;
+    const serie = getDepthSeries(key);
+    const labels = serie.map((s) => s.timestamp.slice(11, 16));
+    const histVals = serie.map((s) => s.hist);
+    const prevVals = serie.map((s) => s.prev);
 
-  const hasToggle = toggleRows.some((r) => numOrNull(r[colPrev]) != null);
-  if (hasToggle) return toggleRows;
+    const datasets = [];
+    if (config.value.showBand) {
+      const valid = [...histVals, ...prevVals].filter((v) => v != null);
+      if (valid.length > 0) {
+        const minVal = Math.min(...valid); const maxVal = Math.max(...valid);
+        const minArr = Array(labels.length).fill(minVal); const maxArr = Array(labels.length).fill(maxVal);
+        datasets.push({
+          label: `${d.label}_band_bottom`,
+          data: minArr,
+          borderColor: 'rgba(0,0,0,0)',
+          backgroundColor: 'rgba(0,0,0,0)',
+          fill: false,
+          pointRadius: 0,
+          order: 0,
+          hidden: true,
+          spanGaps: true,
+        });
+        datasets.push({
+          label: `${d.label}_band_top`,
+          data: maxArr,
+          borderColor: 'rgba(0,0,0,0)',
+          // eslint-disable-next-line no-use-before-define
+          backgroundColor: hexToRgba(d.color, 0.12),
+          fill: '-1',
+          pointRadius: 0,
+          order: 0,
+          hidden: false,
+          spanGaps: true,
+        });
+      }
+    }
+    datasets.push({
+      label: `Histórico ${d.label}`,
+      data: histVals,
+      borderColor: '#1e78db',
+      backgroundColor: '#1e78db33',
+      tension: 0.32,
+      pointRadius,
+      borderWidth: 2,
+      fill: false,
+      spanGaps: true,
+      order: 2,
+    });
+    datasets.push({
+      label: `Previsão ${d.label}`,
+      data: prevVals,
+      borderColor: d.color,
+      backgroundColor: `${d.color}33`,
+      borderDash: [6, 4],
+      tension: 0.32,
+      pointRadius,
+      borderWidth: 2,
+      fill: false,
+      spanGaps: true,
+      order: 2,
+    });
 
-  const hasAlt = altRows.some((r) => numOrNull(r[colPrev]) != null);
-  return hasAlt ? altRows : toggleRows;
+    chartjsObjs[key] = new Chart(canvasRefs[key].getContext('2d'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { boxWidth: 16, font: { size: 15 }, filter: (item) => !item.text.includes('_band_') },
+          },
+          tooltip: { enabled: false },
+        },
+        interaction: { intersect: false, mode: 'nearest', axis: 'x' },
+        scales: {
+          y: { min: -3, max: 3, title: { display: true, text: 'Intensidade (tk)', font: { size: 14 } } },
+          x: { title: { display: true, text: 'Hora', font: { size: 13 } }, ticks: { autoSkip: true, maxTicksLimit: 20 } },
+        },
+        onHover: (event, elements) => {
+          if (!elements.length) { tooltip[key] = { active: false }; lastScrubIdx[key] = null; return; }
+          const idx = elements[0].index;
+          lastScrubIdx[key] = idx;
+          tooltip[key] = {
+            active: true,
+            label: labels[idx],
+            hist: histVals[idx] !== null && histVals[idx] !== undefined ? Number(histVals[idx]).toFixed(3) : '--',
+            prev: prevVals[idx] !== null && prevVals[idx] !== undefined ? Number(prevVals[idx]).toFixed(3) : '--',
+          };
+        },
+        onLeave: () => { tooltip[key] = { active: false }; lastScrubIdx[key] = null; },
+      },
+      plugins: [{
+        id: 'scrubPointer',
+        afterDraw(chart) {
+          // eslint-disable-next-line no-underscore-dangle
+          const idx = chart.tooltip?._active?.[0]?.index ?? null;
+          if (idx == null) return;
+          const x = chart.scales.x.getPixelForValue(idx);
+          const y0 = chart.scales.y.top; const y1 = chart.scales.y.bottom;
+          const { ctx } = chart;
+          ctx.save();
+          ctx.strokeStyle = '#1e78db55';
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, y0);
+          ctx.lineTo(x, y1);
+          ctx.stroke();
+          ctx.restore();
+        },
+      }],
+    });
+  });
+}
+function hexToRgba(hex, alpha = 1) {
+  const h = hex.replace('#', '');
+  const bigint = parseInt(h, 16);
+  // eslint-disable-next-line no-bitwise
+  const r = (bigint >> 16) & 255;
+  // eslint-disable-next-line no-bitwise
+  const g = (bigint >> 8) & 255;
+  // eslint-disable-next-line no-bitwise
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// rótulo MM-DD HH:mm
-// eslint-disable-next-line camelcase
-const labelMMDD_HHMM = (ts) => (ts ? ts.slice(5, 16) : '');
-
-// monta séries alinhadas por timestamp (união histórico + previsão)
-function buildSeries(depthKey) {
-  const colHist = mestreIntensityCol(depthKey);
-  const colPrev = prevCol(depthKey);
-
-  const hist = mestre5min.value.map((r) => r.timestamp_br);
-  const prevRows = pickPrevRowsFor(depthKey);
-  const prev = prevRows.map((r) => r.timestamp_br);
-
-  const labels = Array.from(new Set([...hist, ...prev])).filter(Boolean).sort();
-
-  const histMap = new Map(mestre5min.value.map((r) => [r.timestamp_br, numOrNull(r[colHist])]));
-  const prevMap = new Map(prevRows.map((r) => [r.timestamp_br, numOrNull(r[colPrev])]));
-
-  return {
-    labels,
-    histVals: labels.map((ts) => histMap.get(ts) ?? null),
-    prevVals: labels.map((ts) => prevMap.get(ts) ?? null),
-  };
-}
-
-/* ======================= CHARTS ======================= */
-const chartDataByDepth = computed(() => {
-  const out = {};
-  const pointRadius = showPoints.value ? (isMobile.value ? 1 : 2) : 0;
-
-  visibleDepths.value.forEach((d) => {
-    const { labels, histVals, prevVals } = buildSeries(d.key);
-
-    out[d.key] = {
-      labels: labels.map(labelMMDD_HHMM),
-      datasets: [
-        {
-          label: `Histórico ${d.label} (mestre)`,
-          data: histVals,
-          borderColor: '#1e78db',
-          backgroundColor: '#1e78db',
-          tension: 0.28,
-          pointRadius,
-          borderWidth: 2,
-        },
-        {
-          label: `Previsão ${d.label} (${prevSourceLabel.value})`,
-          data: prevVals,
-          borderColor: '#ff6d00',
-          backgroundColor: '#ff6d00',
-          borderDash: [6, 4],
-          tension: 0.25,
-          pointRadius,
-          borderWidth: 2,
-        },
-      ],
-    };
-  });
-
-  return out;
+// ========== LIFECYCLE ==========
+onMounted(() => {
+  loadAll();
+  nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
 });
-
-const commonChartOptions = (titleText) => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'top',
-      labels: { boxWidth: 16, font: { size: 13 } },
-    },
-    title: { display: !!titleText, text: titleText },
-    tooltip: { callbacks: { title: (items) => (items?.[0]?.label ?? '') } },
-  },
-  scales: {
-    y: {
-      title: { display: true, text: 'Intensidade (tk)' },
-      suggestedMin: -3,
-      suggestedMax: 3,
-      grid: { color: (ctx) => (ctx.tick.value === 0 ? '#00000055' : undefined) },
-    },
-    x: {
-      title: { display: true, text: 'Hora' },
-      ticks: { autoSkip: true, maxTicksLimit: 20 },
-    },
-  },
-});
-
-const chartOptionsByDepth = computed(() => {
-  const out = {};
-  visibleDepths.value.forEach((d) => {
-    out[d.key] = commonChartOptions(`Profundidade ${d.label}`);
-  });
-  return out;
-});
+watch([visibleDepths, prevSource, () => config.value.showBand, () => config.value.showPoints, () => config.value.chartHeight], () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))), { deep: true });
+watch(
+  () => cursor,
+  () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
+  { deep: true },
+);
 </script>
 
 <style scoped>
-.tide-compare-card {
-  border-radius: 14px;
+.tide-compare-card { border-radius: 14px; margin-bottom: 18px; }
+.tide-mini-card-row {
+  justify-content: flex-start;
+  margin-bottom: 0.6rem;
+  margin-top: 0.6rem;
+}
+.tide-mini-value-card {
+  background: #f6f8fc;
+  border-radius: 9px;
+  min-width: 92px;
+  padding: 7px 18px 5px 18px;
+  box-shadow: 0 2px 8px #e9eef3a9;
+  display: flex; flex-direction: column; align-items: flex-start;
 }
 .tide-chart-container {
   width: 100%;
@@ -375,17 +473,11 @@ const chartOptionsByDepth = computed(() => {
   height: 320px;
   position: relative;
 }
-.tide-toggle {
-  min-width: 180px;
-}
+.tide-toggle { min-width: 180px; }
 @media (max-width: 700px) {
-  .tide-chart-container {
-    min-height: 160px;
-    max-height: 220px;
-    height: 180px;
-  }
-  .tide-toggle {
-    min-width: 120px;
-  }
+  .tide-compare-card { margin-bottom: 12px; }
+  .tide-mini-value-card { min-width: 70px; font-size: 0.98em;}
+  .tide-chart-container { min-height: 160px; max-height: 220px; height: 180px; }
+  .tide-toggle { min-width: 120px; }
 }
 </style>
