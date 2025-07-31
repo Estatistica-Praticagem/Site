@@ -334,11 +334,51 @@ const chartData = computed(() => {
   const datasets = [];
 
   activeLines.value.forEach((key) => {
-    const serie = dataSlice.value.map((item) => (
-      typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null
-    ));
+    // Se for GA e banda ativada, coloca as linhas +0,15 e -0,15 na ORDEM CERTA!
+    if (key === 'ga' && config.value.showBand) {
+      const serie = dataSlice.value.map((item) => (typeof item[lineFields.ga] === 'number' ? item[lineFields.ga] : null));
+      // -0.15 primeiro!
+      const minus = serie.map((v) => (v != null ? v - 0.15 : null));
+      const plus = serie.map((v) => (v != null ? v + 0.15 : null));
 
+      // Linha inferior (NÃO tem fill)
+      datasets.push({
+        label: 'Previsão GA -0,15',
+        data: minus,
+        // eslint-disable-next-line no-use-before-define
+        borderColor: hexToRgba(activeLineColors.ga, 0.90),
+        // eslint-disable-next-line no-use-before-define
+        backgroundColor: hexToRgba(activeLineColors.ga, 0.13),
+        borderWidth: 1.7,
+        fill: false, // Não preenche nada
+        pointRadius,
+        tension: 0.32,
+        spanGaps: true,
+        order: 1,
+      });
+
+      // Linha superior (preenche entre esta e a anterior)
+      datasets.push({
+        label: 'Previsão GA +0,15',
+        data: plus,
+        // eslint-disable-next-line no-use-before-define
+        borderColor: hexToRgba(activeLineColors.ga, 0.90),
+        // eslint-disable-next-line no-use-before-define
+        backgroundColor: hexToRgba(activeLineColors.ga, 0.13),
+        borderWidth: 1.7,
+        fill: '-1', // Pinta entre +0,15 e -0,15
+        pointRadius,
+        tension: 0.32,
+        spanGaps: true,
+        order: 1,
+      });
+      // NÃO adiciona a linha central da previsão GA quando banda está ativa!
+      return;
+    }
+
+    // Banda padrão para as outras linhas (mantém como está)
     if (config.value.showBand) {
+      const serie = dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null));
       const valid = serie.filter((v) => v != null);
       const minVal = Math.min(...valid);
       const maxVal = Math.max(...valid);
@@ -370,9 +410,10 @@ const chartData = computed(() => {
       });
     }
 
+    // Linha principal (apenas se não for o caso GA+banda)
     datasets.push({
       label: lineLabels[key],
-      data: serie,
+      data: dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
       borderColor: activeLineColors[key],
       backgroundColor: `${activeLineColors[key]}33`,
       tension: 0.32,
