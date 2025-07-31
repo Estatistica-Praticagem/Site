@@ -64,7 +64,8 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
   ].join(' ');
 }
 const arc = computed(() => (Math.min(props.intensidade, props.max) / props.max) * 270);
-const pointerAngle = computed(() => (props.value % 360) - 135);
+const pointerAngle = computed(() => props.value % 360);
+
 // eslint-disable-next-line no-restricted-globals
 const grau = computed(() => (isNaN(props.value) ? '--' : props.value.toFixed(1)));
 // eslint-disable-next-line no-restricted-globals

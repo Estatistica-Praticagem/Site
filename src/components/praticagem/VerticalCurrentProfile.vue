@@ -336,43 +336,41 @@ function getBarVal(key) {
 }
 
 // --- ENCHENTE/VAZANTE ---
-// SUP SEMPRE SEGUE 1.5M
 function isEnchente(key) {
-  if (key === 'superficie') {
-    return isEnchente('1_5m');
-  }
+  // Para SUP (superfície), segue a 1.5m se não tiver dado próprio
+  if (key === 'superficie') return isEnchente('1_5m');
   const w = weatherLast.value || {};
   const obj = depthObjects.value.find((o) => o.key === key);
   if (!obj) return false;
   let dir = w[obj.dirKey];
   if (dir !== undefined && dir !== null) {
     dir = Number(dir);
-    if ((dir >= 330 && dir <= 360) || (dir >= 0 && dir <= 30)) {
-      return true;
-    }
+    // ENCHENTE: direção para norte (330° a 360° ou 0° a 30°)
+    if ((dir >= 330 && dir <= 360) || (dir >= 0 && dir <= 30)) return true;
+    return false;
   }
-  // Se não tem direção, usa sinal do valor (negativo = enchente)
+  // Se não tem direção, pode usar heurística do sinal negativo (opcional)
   // eslint-disable-next-line no-restricted-syntax
   for (const k of obj.intKeys) {
     if (w[k] != null && Number(w[k]) < 0) return true;
   }
   return false;
 }
+
 function isVazante(key) {
-  if (key === 'superficie') {
-    return isVazante('1_5m');
-  }
+  // Para SUP (superfície), segue a 1.5m se não tiver dado próprio
+  if (key === 'superficie') return isVazante('1_5m');
   const w = weatherLast.value || {};
   const obj = depthObjects.value.find((o) => o.key === key);
   if (!obj) return false;
   let dir = w[obj.dirKey];
   if (dir !== undefined && dir !== null) {
     dir = Number(dir);
-    if (!((dir >= 330 && dir <= 360) || (dir >= 0 && dir <= 30))) {
-      return true;
-    }
+    // VAZANTE: direção para sul (150° a 210°)
+    if (dir >= 150 && dir <= 210) return true;
+    return false;
   }
-  // Se não tem direção, usa sinal do valor (positivo = vazante)
+  // Se não tem direção, pode usar heurística do sinal positivo (opcional)
   // eslint-disable-next-line no-restricted-syntax
   for (const k of obj.intKeys) {
     if (w[k] != null && Number(w[k]) > 0) return true;
