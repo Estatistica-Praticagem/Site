@@ -41,5 +41,7 @@ onMounted(() => {
   store.fetchHistory();
   store.fetchForecast();
   store.fetchOpenWeatherForecast();
+  store.fetchCorrenteza5Min(288); // 5-min, últimos 24h
+  store.fetchCorrentezaHourly(168); // horária, últimos 7 dias
 });
 </script>

@@ -40,7 +40,6 @@ putenv("GOOGLE_APPLICATION_CREDENTIALS={$credFile}");
 $sa = json_decode(file_get_contents($credFile), true)['client_email'] ?? 'desconhecido';
 
 /* ─────────── Parâmetros ───────────────────────────── */
-// tabela: hora | 5min (com sinônimos)
 $tblParam = '';
 if (isset($_GET['tabela'])) {
     $tblParam = strtolower(trim((string)$_GET['tabela']));
@@ -75,16 +74,16 @@ $bq = new BigQueryClient([
 ]);
 
 /* ─────────── Monta SQL (ABS para remover “-” nas previsões) ─────────── */
+/* ─────────── Monta SQL (ABS para remover “-” nas previsões) ─────────── */
 function buildSql(string $tableFq, int $limit): string {
-    // Se for tabela de PREVISÃO, converte para FLOAT64 e aplica ABS() para remover sinal negativo
     $isPrevHour = preg_match('/\.prev_correnteza$/', $tableFq) === 1;
-    $isPrev5m   = preg_match('/\.prev_correnteza_5min_tmp$/', $tableFq) === 1;
+    $isPrev5m   = preg_match('/\.prev_correnteza_5min$/', $tableFq) === 1;
 
     if ($isPrevHour || $isPrev5m) {
         $depths = ['1_5m','3m','6m','7_5m','9m','10_5m','12m','13_5m','superficie'];
         $cols = ["CAST(timestamp_br AS DATETIME) AS timestamp_br"];
         foreach ($depths as $d) {
-            // SAFE_CAST -> FLOAT64 e ABS() para garantir valores não negativos
+            // Usa ABS para remover o sinal negativo
             $cols[] = "ABS(SAFE_CAST(valor_previsto_{$d} AS FLOAT64)) AS valor_previsto_{$d}";
         }
         return sprintf(
@@ -102,6 +101,7 @@ function buildSql(string $tableFq, int $limit): string {
         $limit
     );
 }
+
 
 $sql = buildSql($tableFq, $limit);
 
@@ -128,10 +128,16 @@ try {
         exit;
     }
 
-    // Converte resultados em array simples
+    // Converte resultados em array simples, convertendo campos array vazios em null
     $rows = [];
     foreach ($results as $row) {
-        $rows[] = iterator_to_array($row);
+        $item = iterator_to_array($row);
+        foreach ($item as $k => $v) {
+            if (is_array($v) && count($v) === 0) {
+                $item[$k] = null;
+            }
+        }
+        $rows[] = $item;
     }
 
     echo json_encode([

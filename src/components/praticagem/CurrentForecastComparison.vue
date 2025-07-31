@@ -197,7 +197,15 @@ async function fetchJSON(url) {
   if (!json.success) throw new Error(json.erro || `Falha no endpoint: ${url}`);
   return json.data || [];
 }
-const numOrNull = (v) => ((v === null || v === undefined) ? null : (typeof v === 'number' ? (Number.isFinite(v) ? v : null) : (typeof v === 'string' ? (Number.isFinite(Number(v)) ? Number(v) : null) : null)));
+const numOrNull = (v) => {
+  // Trata casos: undefined, null, objeto vazio ({}), NaN, string vazia, etc
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'object' && Object.keys(v).length === 0) return null;
+  if (typeof v === 'string' && v.trim() === '') return null;
+  const num = Number(v);
+  return Number.isFinite(num) ? num : null;
+};
+
 const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
 
 async function loadAll() {

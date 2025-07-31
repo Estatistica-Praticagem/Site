@@ -98,7 +98,6 @@
               :lang="settings.siglaEN ? 'en' : 'pt'"
             />
           </div>
-
         </div>
       </q-card>
       <!-- Painel de Configurações -->
@@ -176,7 +175,6 @@ const windDirLabel = computed(() => (
 // Função universal para converter cardinal para graus meteorológicos
 function cardinalToDegree(cardinal) {
   if (!cardinal || typeof cardinal !== 'string') return 0;
-  // Limpa e padroniza
   const c = cardinal.trim().toUpperCase().replace(/[^A-Z]/g, '');
   const map = {
     N: 0,
@@ -195,7 +193,6 @@ function cardinalToDegree(cardinal) {
     ONO: 292.5,
     NO: 315,
     NNO: 337.5,
-    // ENGLISH
     W: 270,
     WSW: 247.5,
     SW: 225,
@@ -203,7 +200,6 @@ function cardinalToDegree(cardinal) {
     NW: 315,
     NNW: 337.5,
     WNW: 292.5,
-    // Extensos (pt/en)
     NORTE: 0,
     NORDESTE: 45,
     LESTE: 90,
@@ -229,7 +225,6 @@ function cardinalToDegree(cardinal) {
 // Fallback: grau para cardinal
 function degreeToCardinal(deg) {
   if (deg == null || deg === '--') return '--';
-  // Aqui se quiser sigla EN/BR, basta usar settings.value.siglaEN pra escolher o array
   const ptDirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
   const enDirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
   const dirs = settings.value.siglaEN ? enDirs : ptDirs;
@@ -255,7 +250,6 @@ const statusClass = computed(() => {
 });
 
 const statusStyle = computed(() => {
-  // Padrão original Quasar
   const padrao = {
     PRATICAVEL: 'blue-7',
     'IMPRATICAVEL TOTAL': 'cyan-6',
@@ -264,7 +258,6 @@ const statusStyle = computed(() => {
     'IMPOSSIBILITADA DE EMBARQUE E DESEMBARQUE': 'amber-6',
     'EM NORMALIZACAO': 'deep-purple-6',
   };
-  // Seu personalizado
   const custom = {
     PRATICAVEL: 'green',
     'IMPRATICAVEL TOTAL': 'red',
@@ -294,7 +287,6 @@ const ventokts = computed(() => {
 
 onMounted(() => {
   loadConfig();
-  // opcional: toda vez que reabrir o painel, recarrega config do localStorage
 });
 </script>
 
@@ -359,6 +351,7 @@ onMounted(() => {
   flex: 1 1 0;
   min-width: 0;
   padding-bottom: 12px;
+  padding: 18px 0 0 24px;    /* <<< Aqui dá espaço lateral e superior extra */
 }
 .weather-main-card,
 .weather-col-info,
@@ -407,6 +400,7 @@ onMounted(() => {
   }
   .weather-col-info {
     padding-bottom: 0;
+    padding: 12px 0 0 10px;   /* <<< Espaço lateral/superior no mobile */
   }
   .weather-col-gauges {
     min-width: unset;
