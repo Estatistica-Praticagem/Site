@@ -4,16 +4,6 @@
     <q-card class="q-pa-sm q-mb-md shadow-2 bg-white">
       <div class="row items-center justify-between">
         <div class="row items-center q-gutter-sm">
-          <q-option-group
-            v-model="config.showPoints"
-            :options="[
-              { label: 'Com bolinhas', value: true },
-              { label: 'Sem bolinhas', value: false }
-            ]"
-            type="radio"
-            color="primary"
-            inline
-          />
           <q-btn-toggle
             v-model="prevSource"
             spread
@@ -82,6 +72,33 @@
               style="max-width:260px;"
             />
             <span class="q-ml-md text-grey-7">{{ config.chartHeight }} px</span>
+          </div>
+          <div class="q-mb-md">
+            <div class="text-bold">Exibir pontos nos gráficos</div>
+            <q-option-group
+              v-model="config.showPoints"
+              :options="[
+                { label: 'Com bolinhas', value: true },
+                { label: 'Sem bolinhas', value: false }
+              ]"
+              type="radio"
+              color="primary"
+              inline
+            />
+          </div>
+          <div class="q-mb-md">
+            <div class="text-bold">Exibição da banda</div>
+            <q-btn-toggle
+              v-model="config.bandDisplay"
+              toggle-color="primary"
+              :options="[
+                { label: 'Fundo e linhas', value: 'both' },
+                { label: 'Apenas fundo', value: 'background' },
+                { label: 'Apenas linhas', value: 'lines' }
+              ]"
+              size="sm"
+              class="q-mt-xs"
+            />
           </div>
         </q-card-section>
       </q-card>
@@ -174,11 +191,14 @@ const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
 const mestreIntensityCol = (key) => `intensidade_${key}`;
 const prevCol = (key) => `valor_previsto_${key}`;
 
+const BAND_DELTA = 0.55;
+
 // ========== STATE ==========
 const config = ref({
   chartHeight: 320,
   showPoints: false,
   showBand: false,
+  bandDisplay: 'both', // <-- novo: fundo e linhas por padrão
 });
 const showConfig = ref(false);
 const loading = ref(false);
@@ -324,36 +344,61 @@ function renderChart(key) {
     const prevVals = serie.map((s) => s.prev);
 
     const datasets = [];
+
+    // ==================== BANDA PREVISÃO ====================
     if (config.value.showBand) {
-      const valid = [...histVals, ...prevVals].filter((v) => v != null);
-      if (valid.length > 0) {
-        const minVal = Math.min(...valid); const maxVal = Math.max(...valid);
-        const minArr = Array(labels.length).fill(minVal); const maxArr = Array(labels.length).fill(maxVal);
+      const plus = prevVals.map((v) => (v != null ? v + BAND_DELTA : null));
+      const minus = prevVals.map((v) => (v != null ? v - BAND_DELTA : null));
+
+      // Só fundo, só linhas, ou ambos
+      if (config.value.bandDisplay === 'both' || config.value.bandDisplay === 'lines') {
+        // Linha inferior: -0.50
         datasets.push({
-          label: `${d.label}_band_bottom`,
-          data: minArr,
-          borderColor: 'rgba(0,0,0,0)',
+          label: `Previsão ${d.label} -${BAND_DELTA.toFixed(2)}`,
+          data: minus,
+          borderColor: d.color,
           backgroundColor: 'rgba(0,0,0,0)',
           fill: false,
-          pointRadius: 0,
+          pointRadius: 1.5,
+          borderWidth: 2,
           order: 0,
-          hidden: true,
+          hidden: false,
           spanGaps: true,
         });
+        // Linha superior: +0.50 (com preenchimento até a inferior se 'both' ou 'background')
         datasets.push({
-          label: `${d.label}_band_top`,
-          data: maxArr,
+          label: `Previsão ${d.label} +${BAND_DELTA.toFixed(2)}`,
+          data: plus,
+          borderColor: d.color,
+          // eslint-disable-next-line no-use-before-define
+          backgroundColor: (config.value.bandDisplay === 'background' || config.value.bandDisplay === 'both') ? hexToRgba(d.color, 0.13) : 'rgba(0,0,0,0)',
+          fill: (config.value.bandDisplay === 'background' || config.value.bandDisplay === 'both') ? '-1' : false,
+          pointRadius: 1.5,
+          borderWidth: 2,
+          order: 0,
+          hidden: false,
+          spanGaps: true,
+        });
+      } else if (config.value.bandDisplay === 'background') {
+        // Apenas fundo, sem linhas (apenas uma área "entre linhas" com alpha)
+        datasets.push({
+          label: `Banda previsão ${d.label}`,
+          data: plus,
           borderColor: 'rgba(0,0,0,0)',
           // eslint-disable-next-line no-use-before-define
-          backgroundColor: hexToRgba(d.color, 0.12),
-          fill: '-1',
+          backgroundColor: hexToRgba(d.color, 0.13),
+          // eslint-disable-next-line no-use-before-define
+          fill: { target: { value: minus }, above: hexToRgba(d.color, 0.13) },
           pointRadius: 0,
+          borderWidth: 0,
           order: 0,
           hidden: false,
           spanGaps: true,
         });
       }
     }
+
+    // Linha histórica
     datasets.push({
       label: `Histórico ${d.label}`,
       data: histVals,
@@ -366,19 +411,22 @@ function renderChart(key) {
       spanGaps: true,
       order: 2,
     });
-    datasets.push({
-      label: `Previsão ${d.label}`,
-      data: prevVals,
-      borderColor: d.color,
-      backgroundColor: `${d.color}33`,
-      borderDash: [6, 4],
-      tension: 0.32,
-      pointRadius,
-      borderWidth: 2,
-      fill: false,
-      spanGaps: true,
-      order: 2,
-    });
+    // Linha previsão central (só mostra quando banda está desativada)
+    if (!config.value.showBand) {
+      datasets.push({
+        label: `Previsão ${d.label}`,
+        data: prevVals,
+        borderColor: d.color,
+        backgroundColor: `${d.color}33`,
+        borderDash: [6, 4],
+        tension: 0.32,
+        pointRadius,
+        borderWidth: 2,
+        fill: false,
+        spanGaps: true,
+        order: 2,
+      });
+    }
 
     chartjsObjs[key] = new Chart(canvasRefs[key].getContext('2d'), {
       type: 'line',
@@ -434,6 +482,7 @@ function renderChart(key) {
     });
   });
 }
+
 function hexToRgba(hex, alpha = 1) {
   const h = hex.replace('#', '');
   const bigint = parseInt(h, 16);
@@ -447,16 +496,24 @@ function hexToRgba(hex, alpha = 1) {
 }
 
 // ========== LIFECYCLE ==========
-onMounted(() => {
-  loadAll();
+onMounted(async () => {
+  await loadAll();
+  // Aguarda os dados e monta todos os gráficos logo de cara
   nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
 });
-watch([visibleDepths, prevSource, () => config.value.showBand, () => config.value.showPoints, () => config.value.chartHeight], () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))), { deep: true });
+
 watch(
-  () => cursor,
+  [visibleDepths, prevSource, () => config.value.showBand, () => config.value.showPoints, () => config.value.bandDisplay, () => config.value.chartHeight],
   () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
   { deep: true },
 );
+
+watch(
+  [mestre5min, prev5m, prevHourly],
+  () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
+  { deep: true },
+);
+
 </script>
 
 <style scoped>
