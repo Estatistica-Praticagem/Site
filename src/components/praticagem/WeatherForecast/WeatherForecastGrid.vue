@@ -45,7 +45,7 @@
 
 <script setup>
 import { computed, defineProps } from 'vue';
-import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
+import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniSeta.vue';
 
 const props = defineProps({
   day: String,

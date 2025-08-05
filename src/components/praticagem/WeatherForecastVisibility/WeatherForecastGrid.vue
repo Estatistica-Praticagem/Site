@@ -75,7 +75,7 @@
             <!-- Vento (em knots) -->
             <td>
               <span class="flex items-center gap-2">
-                <WindMiniClock :deg="row.wind_deg" :speed="row.wind_speed" />
+                <WindMiniSeta :deg="row.wind_deg" :speed="row.wind_speed" />
                 {{ windDir(row.wind_deg) }}
                 <span class="text-blue-8 text-weight-medium">
                   {{ row.wind_speed_knots != null ? row.wind_speed_knots.toFixed(1) + ' kts' : '--' }}
@@ -126,7 +126,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import WindMiniClock from 'src/components/praticagem/WeatherForecast/WindMiniClock.vue';
+import WindMiniSeta from 'src/components/praticagem/WeatherForecast/WindMiniSeta.vue';
 
 const props = defineProps({
   day: { type: String, required: true },
