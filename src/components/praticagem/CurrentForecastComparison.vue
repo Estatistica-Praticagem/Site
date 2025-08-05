@@ -50,7 +50,6 @@
       </div>
     </q-card>
 
-    <!-- Diálogo de configurações (pode expandir com mais opções) -->
     <q-dialog v-model="showConfig">
       <q-card style="min-width:320px;">
         <q-card-section class="row items-center">
@@ -104,11 +103,9 @@
       </q-card>
     </q-dialog>
 
-    <!-- Cards por profundidade -->
     <div class="row q-col-gutter-md">
       <div v-for="d in visibleDepths" :key="d.key" class="col-12 col-md-6 col-lg-4">
         <q-card class="q-pa-md bg-white shadow-2 tide-compare-card">
-          <!-- Título e atualizado -->
           <div class="row items-center justify-between q-mb-xs">
             <div class="text-subtitle1 text-primary text-weight-bold">
               Intensidade {{ d.label }} — Histórico x Previsão ({{ prevSourceLabel }})
@@ -117,7 +114,6 @@
               Atualizado: {{ latestTimestamps[d.key] }}
             </div>
           </div>
-          <!-- Mini-cards valores - sempre no topo, valores seguem o scrub -->
           <div class="row q-gutter-md tide-mini-card-row q-mb-md">
             <div class="tide-mini-value-card">
               <div class="text-caption text-grey-7">Histórico</div>
@@ -132,25 +128,19 @@
               </div>
             </div>
           </div>
-
-          <!-- Navegação temporal individual -->
           <div class="row items-center q-mb-xs">
             <q-btn dense flat icon="chevron_left" @click="prevWindow(d.key)" :disable="cursor[d.key] <= 0" class="q-mr-xs" />
             <span class="text-caption">{{ windowLabel(d.key) }}</span>
             <q-btn dense flat icon="chevron_right" @click="nextWindow(d.key)" :disable="cursor[d.key] >= maxCursor(d.key)" class="q-ml-xs" />
           </div>
-
-          <!-- Gráfico individual -->
           <div class="tide-chart-container" ref="chartWrap">
             <canvas :ref="el => setCanvasRef(d.key, el)" :height="config.chartHeight" style="width:100%;"></canvas>
-            <!-- Tooltip, posicionado acima do gráfico -->
             <div v-if="tooltip[d.key]?.active" :style="tooltipStyle">
               <div class="text-caption" style="font-weight:bold;">
                 {{ tooltip[d.key].label }}
               </div>
               <div class="q-mt-xs">
-                <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[d.key].hist }}</span>
-                <br>
+                <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[d.key].hist }}</span><br>
                 <span :style="{color: d.color}"><b>Previsão:</b> {{ tooltip[d.key].prev }}</span>
               </div>
             </div>
@@ -172,7 +162,6 @@ import {
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-// ========== CONFIGS GERAIS ==========
 const API_BASE = 'https://www.meusimulador.com/kevi/backend/praticagem';
 const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`;
 const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`;
@@ -190,27 +179,39 @@ const DEPTHS = [
 const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
 const mestreIntensityCol = (key) => `intensidade_${key}`;
 const prevCol = (key) => `valor_previsto_${key}`;
-
 const BAND_DELTA = 0.55;
 
-// ========== STATE ==========
 const config = ref({
   chartHeight: 320,
   showPoints: false,
   showBand: false,
-  bandDisplay: 'both', // <-- novo: fundo e linhas por padrão
+  bandDisplay: 'both',
 });
 const showConfig = ref(false);
 const loading = ref(false);
 const error = ref(null);
 const prevSource = ref('5min');
 const prevSourceLabel = computed(() => (prevSource.value === '5min' ? '5-min' : 'horária'));
-const selectedDepthKeys = ref(DEPTHS.map((d) => d.key));
-const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
-const mestre5min = ref([]); const prevHourly = ref([]); const
-  prev5m = ref([]);
+const SELECTED_DEPTHS_KEY = 'correntezaSelectedDepths';
+function getInitialDepths() {
+  const saved = localStorage.getItem(SELECTED_DEPTHS_KEY);
+  if (saved) {
+    try {
+      const val = JSON.parse(saved);
+      if (Array.isArray(val) && val.length) return val;
+    // eslint-disable-next-line no-empty
+    } catch (e) {}
+  }
+  return ['3m'];
+}
+const selectedDepthKeys = ref(getInitialDepths());
 
-// ========== FETCH ==========
+const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
+const mestre5min = ref([]); const prevHourly = ref([]); const prev5m = ref([]);
+watch(selectedDepthKeys, (val) => {
+  localStorage.setItem(SELECTED_DEPTHS_KEY, JSON.stringify(val));
+}, { deep: true });
+
 async function fetchJSON(url) {
   const res = await fetch(url);
   const json = await res.json();
@@ -218,14 +219,12 @@ async function fetchJSON(url) {
   return json.data || [];
 }
 const numOrNull = (v) => {
-  // Trata casos: undefined, null, objeto vazio ({}), NaN, string vazia, etc
   if (v === null || v === undefined) return null;
   if (typeof v === 'object' && Object.keys(v).length === 0) return null;
   if (typeof v === 'string' && v.trim() === '') return null;
   const num = Number(v);
   return Number.isFinite(num) ? num : null;
 };
-
 const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
 
 async function loadAll() {
@@ -239,12 +238,14 @@ async function loadAll() {
     mestre5min.value = mestre.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[mestreIntensityCol(d.key)] = numOrNull(r[mestreIntensityCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
     prevHourly.value = ph.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
     prev5m.value = p5.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-  } catch (e) { error.value = e.message || String(e); } finally { loading.value = false; }
+  } catch (e) { error.value = e.message || String(e); } finally {
+    // eslint-disable-next-line no-use-before-define
+    DEPTHS.forEach((d) => { cursor[d.key] = maxCursor(d.key); });
+    loading.value = false;
+  }
 }
 
-// ========== JANELAS INDIVIDUAIS ==========
-const windowSize = 288; const
-  stepSize = 144;
+const windowSize = 288; const stepSize = 144;
 const cursor = reactive({}); DEPTHS.forEach((d) => { cursor[d.key] = 0; });
 // eslint-disable-next-line no-unused-vars
 const alignedTimestamps = (key) => {
@@ -281,8 +282,7 @@ const getDepthSeries = (key) => {
   }));
 };
 
-// ========== MINI CARDS MOSTRAM VALOR DO SCRUB OU ÚLTIMO ==========
-const lastScrubIdx = reactive({}); // idx do hover/tooltip para cada profundidade
+const lastScrubIdx = reactive({});
 const miniCardValue = computed(() => {
   const out = {};
   visibleDepths.value.forEach((d) => {
@@ -308,7 +308,6 @@ const latestTimestamps = computed(() => {
   return out;
 });
 
-// ========== Chart.js para múltiplos gráficos ==========
 const canvasRefs = reactive({});
 function setCanvasRef(key, el) { if (el) canvasRefs[key] = el; }
 const chartjsObjs = {};
@@ -328,7 +327,7 @@ const tooltipStyle = {
   userSelect: 'none',
   minWidth: '128px',
   left: 'auto',
-  top: '-56px', /* POSICIONA tooltip acima do gráfico! */
+  top: '-56px',
   right: '8px',
   bottom: 'auto',
 };
@@ -344,15 +343,10 @@ function renderChart(key) {
     const prevVals = serie.map((s) => s.prev);
 
     const datasets = [];
-
-    // ==================== BANDA PREVISÃO ====================
     if (config.value.showBand) {
       const plus = prevVals.map((v) => (v != null ? v + BAND_DELTA : null));
       const minus = prevVals.map((v) => (v != null ? v - BAND_DELTA : null));
-
-      // Só fundo, só linhas, ou ambos
       if (config.value.bandDisplay === 'both' || config.value.bandDisplay === 'lines') {
-        // Linha inferior: -0.50
         datasets.push({
           label: `Previsão ${d.label} -${BAND_DELTA.toFixed(2)}`,
           data: minus,
@@ -365,7 +359,6 @@ function renderChart(key) {
           hidden: false,
           spanGaps: true,
         });
-        // Linha superior: +0.50 (com preenchimento até a inferior se 'both' ou 'background')
         datasets.push({
           label: `Previsão ${d.label} +${BAND_DELTA.toFixed(2)}`,
           data: plus,
@@ -380,7 +373,6 @@ function renderChart(key) {
           spanGaps: true,
         });
       } else if (config.value.bandDisplay === 'background') {
-        // Apenas fundo, sem linhas (apenas uma área "entre linhas" com alpha)
         datasets.push({
           label: `Banda previsão ${d.label}`,
           data: plus,
@@ -397,8 +389,6 @@ function renderChart(key) {
         });
       }
     }
-
-    // Linha histórica
     datasets.push({
       label: `Histórico ${d.label}`,
       data: histVals,
@@ -411,7 +401,6 @@ function renderChart(key) {
       spanGaps: true,
       order: 2,
     });
-    // Linha previsão central (só mostra quando banda está desativada)
     if (!config.value.showBand) {
       datasets.push({
         label: `Previsão ${d.label}`,
@@ -482,7 +471,6 @@ function renderChart(key) {
     });
   });
 }
-
 function hexToRgba(hex, alpha = 1) {
   const h = hex.replace('#', '');
   const bigint = parseInt(h, 16);
@@ -495,25 +483,20 @@ function hexToRgba(hex, alpha = 1) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// ========== LIFECYCLE ==========
 onMounted(async () => {
   await loadAll();
-  // Aguarda os dados e monta todos os gráficos logo de cara
   nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
 });
-
 watch(
   [visibleDepths, prevSource, () => config.value.showBand, () => config.value.showPoints, () => config.value.bandDisplay, () => config.value.chartHeight],
   () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
   { deep: true },
 );
-
 watch(
   [mestre5min, prev5m, prevHourly],
   () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
   { deep: true },
 );
-
 </script>
 
 <style scoped>

@@ -84,7 +84,7 @@ export const useWeatherStore = defineStore('weather', {
 
     /* ====================== NOVO: CORRENTEZA ====================== */
     // Helper genérico: chama o endpoint PHP unificado de correnteza
-    async fetchCorrenteza({ tabela = '5min', limit = 1000 } = {}) {
+    async fetchCorrenteza({ tabela = '5min', limit = 100000 } = {}) {
       // eslint-disable-next-line no-undef
       const url = `${BQ_BASE}/get_prev_correnteza_forecast_bq.php?tabela=${encodeURIComponent(tabela)}&limit=${encodeURIComponent(limit)}`;
       const res = await fetch(url, { method: 'GET' });
@@ -110,7 +110,7 @@ export const useWeatherStore = defineStore('weather', {
     },
 
     // Histórico 5-min (ajuste o limit conforme a necessidade)
-    async fetchCorrenteza5Min(limit = 288) { // ~24h em 5min
+    async fetchCorrenteza5Min(limit = 100000) { // ~24h em 5min
       this.loading = true; this.error = null;
       try {
         this.correnteza5Min = await this.fetchCorrenteza({ tabela: '5min', limit });
@@ -122,7 +122,7 @@ export const useWeatherStore = defineStore('weather', {
     },
 
     // Série horária (ajuste o limit conforme a necessidade)
-    async fetchCorrentezaHourly(limit = 168) { // ~7 dias
+    async fetchCorrentezaHourly(limit = 340) { // ~7 dias
       this.loading = true; this.error = null;
       try {
         this.correntezaHourly = await this.fetchCorrenteza({ tabela: 'hora', limit });
