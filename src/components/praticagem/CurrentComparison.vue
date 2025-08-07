@@ -192,7 +192,8 @@ const { weatherHistory } = storeToRefs(store);
 const depths = ['1_5m', '3m', '6m'];
 const formatDepth = (d) => d.replace('_', '.');
 const getLastValue = (depth) => {
-  const last = [...(weatherHistory.value || [])].reverse().find((item) => item[`intensidade_${depth}`] != null);
+  // eslint-disable-next-line no-use-before-define
+  const last = [...(dataset.value || [])].reverse().find((item) => item[`intensidade_${depth}`] != null);
   return last ? Number(last[`intensidade_${depth}`]).toFixed(2) : '--';
 };
 
@@ -238,11 +239,37 @@ watch(config, () => {
 /* ---- Navegação temporal ---- */
 const windowSize = 144;
 const stepSize = 72;
-const dataset = computed(() => {
-  const all = (weatherHistory.value || [])
-    .filter((item) => item.timestamp_br && (item.intensidade_1_5m != null || item.intensidade_3m != null || item.intensidade_6m != null));
-  return all.slice(); // <--- NÃO usa reverse!
-});
+
+// ==== AJUSTE DE NORMALIZAÇÃO AQUI ====
+const dataset = computed(() => (weatherHistory.value || [])
+  .filter((item) => item.timestamp_br)
+  .map((item) => {
+    let ts = '';
+    if (item.timestamp_br?.date) {
+      ts = item.timestamp_br.date.slice(0, 16);
+    } else if (typeof item.timestamp_br === 'string') {
+      ts = item.timestamp_br.slice(0, 16);
+    }
+    const i15 = item.intensidade_1_5m;
+    const i3 = item.intensidade_3m;
+    const i6 = item.intensidade_6m;
+    return {
+      ...item,
+      timestamp_br: ts,
+      // eslint-disable-next-line no-restricted-globals
+      intensidade_1_5m: isFinite(Number(i15)) ? Number(i15) : null,
+      // eslint-disable-next-line no-restricted-globals
+      intensidade_3m: isFinite(Number(i3)) ? Number(i3) : null,
+      // eslint-disable-next-line no-restricted-globals
+      intensidade_6m: isFinite(Number(i6)) ? Number(i6) : null,
+    };
+  })
+  .filter((item) => (
+    item.intensidade_1_5m !== null
+      || item.intensidade_3m !== null
+      || item.intensidade_6m !== null
+  )));
+// =====================================
 
 const maxCursor = computed(() => Math.max(0, dataset.value.length - windowSize));
 const cursor = ref(maxCursor.value);
@@ -251,8 +278,8 @@ function prevWindow() { cursor.value = Math.max(0, cursor.value - stepSize); }
 function nextWindow() { cursor.value = Math.min(maxCursor.value, cursor.value + stepSize); }
 const dataSlice = computed(() => dataset.value.slice(cursor.value, cursor.value + windowSize));
 const windowLabel = computed(() => {
-  const ini = dataSlice.value[0]?.timestamp_br?.date?.slice(11, 16) || dataSlice.value[0]?.timestamp_br?.slice(11, 16) || '';
-  const fim = dataSlice.value[dataSlice.value.length - 1]?.timestamp_br?.date?.slice(11, 16) || dataSlice.value[dataSlice.value.length - 1]?.timestamp_br?.slice(11, 16) || '';
+  const ini = dataSlice.value[0]?.timestamp_br?.slice(11, 16) || '';
+  const fim = dataSlice.value[dataSlice.value.length - 1]?.timestamp_br?.slice(11, 16) || '';
   return ini && fim ? `${ini} – ${fim}` : '';
 });
 
@@ -274,13 +301,12 @@ const activeLines = computed(() => config.value.lines);
 
 /* ---- Dados para o gráfico de linhas ---- */
 const lineChartData = computed(() => {
-  const labels = dataSlice.value.map((item) => item.timestamp_br?.date?.slice(11, 16) || item.timestamp_br?.slice(11, 16) || '');
+  const labels = dataSlice.value.map((item) => item.timestamp_br?.slice(11, 16) || '');
   const datasets = [];
   activeLines.value.forEach((key) => {
     const serie = dataSlice.value.map((item) => (
       typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : Number(item[lineFields[key]]) || null
     ));
-    // Banda (faixa min/max)
     if (config.value.showBand) {
       const valid = serie.filter((v) => v != null);
       if (valid.length) {
@@ -366,7 +392,7 @@ const lineChartOptions = computed(() => ({
 
 /* ---- Dados para o gráfico de barras ---- */
 const barChartData = computed(() => {
-  const labels = dataSlice.value.map((item) => item.timestamp_br?.date?.slice(11, 16) || item.timestamp_br?.slice(11, 16) || '');
+  const labels = dataSlice.value.map((item) => item.timestamp_br?.slice(11, 16) || '');
   const datasets = activeLines.value.map((key) => ({
     label: lineLabels[key],
     data: dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : Number(item[lineFields[key]]) || null)),
@@ -400,13 +426,13 @@ const tableColumns = [
 ];
 const tableRows = computed(() => dataSlice.value
   .filter((item) => {
-    const dt = item.timestamp_br?.date ?? item.timestamp_br;
+    const dt = item.timestamp_br;
     if (!dt) return false;
     const min = dt.slice(14, 16);
     return min === '00' || min === '30';
   })
   .map((item) => {
-    const dt = item.timestamp_br?.date ?? item.timestamp_br ?? '';
+    const dt = item.timestamp_br ?? '';
     return {
       hora: dt.slice(11, 16),
       i15: item.intensidade_1_5m != null ? Number(item.intensidade_1_5m).toFixed(2) : '--',

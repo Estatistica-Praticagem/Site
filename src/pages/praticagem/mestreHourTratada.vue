@@ -573,7 +573,7 @@ function renderRainChart(data) {
 
 onMounted(async () => {
   try {
-    const response = await fetch(`/kevi/backend/praticagem/get_table_mestre_hour_tratada_bq.php?limit=${rowsPerPage.value}`);
+    const response = await fetch(`/praticagem/backend/praticagem/get_table_mestre_hour_tratada_bq.php?limit=${rowsPerPage.value}`);
     const result = await response.json();
     if (result.success && result.data?.length) {
       const flattened = result.data.map(flattenDates);

@@ -162,9 +162,10 @@ import {
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-const API_BASE = 'https://www.meusimulador.com/kevi/backend/praticagem';
+const API_BASE = 'https://www.meusimulador.com/praticagem/backend/praticagem';
 const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`;
 const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`;
+
 const DEPTHS = [
   { key: '1_5m', label: '1.5m', color: '#4f7fee' },
   { key: '3m', label: '3m', color: '#5cc77e' },
@@ -180,6 +181,58 @@ const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
 const mestreIntensityCol = (key) => `intensidade_${key}`;
 const prevCol = (key) => `valor_previsto_${key}`;
 const BAND_DELTA = 0.55;
+
+// Campos esperados sempre presentes nos registros mestre
+const ALL_MESTRE_COLS = [
+  'timestamp_br', 'timestamp_prev',
+  ...DEPTHS.flatMap((d) => [
+    `intensidade_${d.key}`,
+    `direcao_${d.key}`,
+    `enchente_vazante_${d.key}`,
+    `intensidade_${d.key}_ajustada`,
+    `direcao_${d.key}_deg`,
+  ]),
+];
+
+// Campos esperados sempre presentes nos registros previsão
+const ALL_PREV_COLS = [
+  'timestamp_br',
+  ...DEPTHS.map((d) => `valor_previsto_${d.key}`),
+];
+
+// ========= UTILIDADES ==========
+
+const numOrNull = (v) => {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'object' && Object.keys(v).length === 0) return null;
+  if (typeof v === 'string' && v.trim() === '') return null;
+  const num = Number(v);
+  return Number.isFinite(num) ? num : null;
+};
+const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
+
+// Garante todos os campos existem e são normatizados
+function normalizeMestreRow(r) {
+  const out = { ...r };
+  ALL_MESTRE_COLS.forEach((col) => {
+    if (!(col in out) || out[col] === undefined) out[col] = null;
+    if (col.startsWith('intensidade_')) out[col] = numOrNull(out[col]);
+  });
+  out.timestamp_br = normTs(out.timestamp_br);
+  out.timestamp_prev = normTs(out.timestamp_prev);
+  return out;
+}
+function normalizePrevRow(r) {
+  const out = { ...r };
+  ALL_PREV_COLS.forEach((col) => {
+    if (!(col in out) || out[col] === undefined) out[col] = null;
+    if (col.startsWith('valor_previsto_')) out[col] = numOrNull(out[col]);
+  });
+  out.timestamp_br = normTs(out.timestamp_br);
+  return out;
+}
+
+// ============ CONTROLE VUE ==============
 
 const config = ref({
   chartHeight: 320,
@@ -205,12 +258,13 @@ function getInitialDepths() {
   return ['3m'];
 }
 const selectedDepthKeys = ref(getInitialDepths());
-
 const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
 const mestre5min = ref([]); const prevHourly = ref([]); const prev5m = ref([]);
 watch(selectedDepthKeys, (val) => {
   localStorage.setItem(SELECTED_DEPTHS_KEY, JSON.stringify(val));
 }, { deep: true });
+
+// ================= AJAX =================
 
 async function fetchJSON(url) {
   const res = await fetch(url);
@@ -218,26 +272,22 @@ async function fetchJSON(url) {
   if (!json.success) throw new Error(json.erro || `Falha no endpoint: ${url}`);
   return json.data || [];
 }
-const numOrNull = (v) => {
-  if (v === null || v === undefined) return null;
-  if (typeof v === 'object' && Object.keys(v).length === 0) return null;
-  if (typeof v === 'string' && v.trim() === '') return null;
-  const num = Number(v);
-  return Number.isFinite(num) ? num : null;
-};
-const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
 
+// ========== AJUSTE PRINCIPAL: carregamento e normalização ==========
 async function loadAll() {
   loading.value = true; error.value = null;
   try {
     const [mestre, ph, p5] = await Promise.all([
-      fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=20000`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=10000&include_past=1`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=20000&include_past=1`),
+      fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=1000`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=400&include_past=1`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=1000&include_past=1`),
     ]);
-    mestre5min.value = mestre.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[mestreIntensityCol(d.key)] = numOrNull(r[mestreIntensityCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-    prevHourly.value = ph.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-    prev5m.value = p5.map((r) => { const out = { ...r, timestamp_br: normTs(r.timestamp_br) }; DEPTHS.forEach((d) => { out[prevCol(d.key)] = numOrNull(r[prevCol(d.key)]); }); return out; }).sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+    mestre5min.value = mestre.map(normalizeMestreRow)
+      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+    prevHourly.value = ph.map(normalizePrevRow)
+      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+    prev5m.value = p5.map(normalizePrevRow)
+      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
   } catch (e) { error.value = e.message || String(e); } finally {
     // eslint-disable-next-line no-use-before-define
     DEPTHS.forEach((d) => { cursor[d.key] = maxCursor(d.key); });
@@ -245,8 +295,11 @@ async function loadAll() {
   }
 }
 
+// ==================== GESTÃO DOS DADOS PARA O GRÁFICO ======================
+
 const windowSize = 288; const stepSize = 144;
 const cursor = reactive({}); DEPTHS.forEach((d) => { cursor[d.key] = 0; });
+
 // eslint-disable-next-line no-unused-vars
 const alignedTimestamps = (key) => {
   const allTs = [
