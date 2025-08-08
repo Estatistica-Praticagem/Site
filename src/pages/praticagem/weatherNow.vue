@@ -14,6 +14,8 @@
     <OpenWeatherForecast/>
     <div style="height:22px"></div>
     <WeatherForecastVisibility/>
+    <div style="height:22px"></div>
+    <WindyWidget/>
     <!-- <div style="height:22px"></div>
     <VerticalCurrentProfile/> -->
     <div style="height:22px"></div>
@@ -32,6 +34,7 @@ import CurrentComparison from 'src/components/praticagem/CurrentComparison.vue';
 import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastView.vue';
 import WeatherForecastVisibility from 'src/components/praticagem/WeatherForecastVisibility.vue';
 import FooterPraticagem from 'src/components/praticagem/FooterPraticagem.vue';
+import WindyWidget from 'src/components/praticagem/WindyWidget.vue';
 // import VerticalCurrentProfile from 'src/components/praticagem/VerticalCurrentProfile.vue';
 
 const store = useWeatherStore();
