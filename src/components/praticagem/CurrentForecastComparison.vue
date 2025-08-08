@@ -180,7 +180,7 @@ const DEPTHS = [
 const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
 const mestreIntensityCol = (key) => `intensidade_${key}`;
 const prevCol = (key) => `valor_previsto_${key}`;
-const BAND_DELTA = 0.55;
+const BAND_DELTA = 0.25;
 
 // Campos esperados sempre presentes nos registros mestre
 const ALL_MESTRE_COLS = [
