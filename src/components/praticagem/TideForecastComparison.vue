@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="row items-center justify-between q-mb-md">
       <div class="text-h6 text-primary text-weight-bold">
-        Comparação de Maré (Marinha x Medida x GA)
+        Comparação de Maré (Marinha × Medida × GA)
       </div>
       <div class="row items-center q-gutter-sm">
         <q-btn-toggle
@@ -130,6 +130,34 @@
               inline
             />
           </div>
+          <!-- Suavização GA -->
+          <div>
+            <div class="text-bold q-mb-xs">Suavização da Previsão GA</div>
+            <q-option-group
+              v-model="config.smoothingType"
+              :options="[
+                { label: 'Nenhuma', value: 'none' },
+                { label: 'Média móvel', value: 'moving' }
+              ]"
+              type="radio"
+              color="primary"
+              inline
+            />
+            <div v-if="config.smoothingType === 'moving'" class="q-mt-xs">
+              <q-slider
+                v-model="config.smoothingWindow"
+                :min="3"
+                :max="21"
+                :step="2"
+                color="primary"
+                label
+                style="max-width:180px"
+              />
+              <span class="q-ml-sm text-grey-7">
+                {{ config.smoothingWindow }} pts
+              </span>
+            </div>
+          </div>
           <!-- Tooltip scale MAIS AMPLA e posição -->
           <div>
             <div class="text-bold q-mb-xs">Tamanho do card de valores</div>
@@ -201,7 +229,7 @@
         <div :style="scrubDotStyle" />
       </div>
 
-      <!-- Tooltip custom (inline style completo) -->
+      <!-- Tooltip custom -->
       <div
         v-if="tooltip.active"
         :style="tooltipStyle"
@@ -320,11 +348,14 @@ const defaultConfig = () => ({
   viewType: 'chart',
   tooltipPosition: 'top-right',
   tooltipScale: 1,
-  bandDelta: 0.15,    // Ajustável
-  bandStyle: 'both',  // both | border | fill
-  lineWidth: 2,       // 2 ou 4
-  tooltipOffsetX: 0,  // NOVO ajuste do tooltip (horizontal)
-  tooltipOffsetY: 0,  // NOVO ajuste do tooltip (vertical)
+  bandDelta: 0.15,
+  bandStyle: 'both',
+  lineWidth: 2,
+  tooltipOffsetX: 0,
+  tooltipOffsetY: 0,
+  /* suavização */
+  smoothingType: 'none', // none | moving
+  smoothingWindow: 7, // jan. mínima 3 ímpar
 });
 const config = ref(defaultConfig());
 
@@ -341,9 +372,14 @@ const windowSize = 144;
 const stepSize = 72;
 
 const dataset = computed(() => {
-  const all = (weatherForecast.value || [])
-    .filter((item) => item.timestamp_prev && item.altura_prevista != null);
-  return all.slice().reverse();
+  try {
+    const all = (weatherForecast.value || [])
+      .filter((item) => item.timestamp_prev && item.altura_prevista != null);
+    return all.slice().reverse();
+  } catch (e) {
+    console.error('dataset error:', e);
+    return [];
+  }
 });
 const maxCursor = computed(() => Math.max(0, dataset.value.length - windowSize));
 const cursor = ref(maxCursor.value);
@@ -377,123 +413,169 @@ const activeLines = computed(() => config.value.lines);
 
 /* ---------------- Acerto/Erro ---------------- */
 const acertosInfo = computed(() => {
-  if (!config.value.showBand || !dataSlice.value.length) return { acertos: 0, total: 0, percAcerto: 0, percErro: 0 };
-  // Só faz sentido para "Previsão GA"
-  // eslint-disable-next-line no-confusing-arrow
-  const prevs = dataSlice.value.map(d => typeof d.altura_prevista === 'number' ? d.altura_prevista : null);
-  // eslint-disable-next-line no-confusing-arrow
-  const reais = dataSlice.value.map(d => typeof d.altura_real_getmare === 'number' ? d.altura_real_getmare : null);
-  let acertos = 0;
-  let total = 0;
-  for (let i = 0; i < prevs.length; i++) {
-    if (prevs[i] == null || reais[i] == null) continue;
-    const min = prevs[i] - config.value.bandDelta;
-    const max = prevs[i] + config.value.bandDelta;
-    if (reais[i] >= min && reais[i] <= max) acertos++;
-    total++;
+  try {
+    if (!config.value.showBand || !dataSlice.value.length) return { acertos: 0, total: 0, percAcerto: 0, percErro: 0 };
+    // eslint-disable-next-line no-confusing-arrow
+    const prevs = dataSlice.value.map(d => typeof d.altura_prevista === 'number' ? d.altura_prevista : null);
+    // eslint-disable-next-line no-confusing-arrow
+    const reais = dataSlice.value.map(d => typeof d.altura_real_getmare === 'number' ? d.altura_real_getmare : null);
+    let acertos = 0;
+    let total = 0;
+    for (let i = 0; i < prevs.length; i++) {
+      if (prevs[i] == null || reais[i] == null) continue;
+      const min = prevs[i] - config.value.bandDelta;
+      const max = prevs[i] + config.value.bandDelta;
+      if (reais[i] >= min && reais[i] <= max) acertos++;
+      total++;
+    }
+    const percAcerto = total ? Math.round(acertos/total*100) : 0;
+    const percErro = total ? 100 - percAcerto : 0;
+    return { acertos, total, percAcerto, percErro };
+  } catch (e) {
+    return { acertos: 0, total: 0, percAcerto: 0, percErro: 0 };
   }
-  const percAcerto = total ? Math.round(acertos/total*100) : 0;
-  const percErro = total ? 100 - percAcerto : 0;
-  return { acertos, total, percAcerto, percErro };
 });
+
+/* ---------------- Funções de suavização seguras ---------------- */
+function movingAvg(arr, win) {
+  // eslint-disable-next-line no-bitwise
+  const window = Math.max(3, win | 1);
+  const k = Math.floor(window / 2);
+  return arr.map((_, i) => {
+    let sum = 0, cnt = 0;
+    for (let j = i - k; j <= i + k; j++) {
+      if (j >= 0 && j < arr.length && typeof arr[j] === 'number') {
+        sum += arr[j];
+        cnt++;
+      }
+    }
+    return cnt ? sum / cnt : null;
+  });
+}
+function getSmoothedGA(raw, type, win) {
+  let arr = [...raw];
+  if (type === 'moving') {
+    arr = movingAvg(arr, win);
+  }
+  // fallback seguro:
+  if (
+    // eslint-disable-next-line operator-linebreak
+    !Array.isArray(arr) ||
+    // eslint-disable-next-line operator-linebreak
+    arr.length !== raw.length ||
+    arr.every(x => x == null)
+  ) {
+    arr = [...raw];
+  }
+  return arr;
+}
 
 /* ---------------- Chart Data ---------------- */
 const chartData = computed(() => {
-  const pointRadius = config.value.showPoints ? 2 : 0;
-  const labels = dataSlice.value.map((item) => item.timestamp_prev?.date?.slice(11, 16) || '');
-  const datasets = [];
+  try {
+    const pointRadius = config.value.showPoints ? 2 : 0;
+    const labels = dataSlice.value.map((item) => item.timestamp_prev?.date?.slice(11, 16) || '');
+    const datasets = [];
 
-  activeLines.value.forEach((key) => {
-    // Se for GA e banda ativada, coloca as linhas +bandDelta e -bandDelta na ORDEM CERTA!
-    if (key === 'ga' && config.value.showBand) {
-      const serie = dataSlice.value.map((item) => (typeof item[lineFields.ga] === 'number' ? item[lineFields.ga] : null));
-      const minus = serie.map((v) => (v != null ? v - config.value.bandDelta : null));
-      const plus = serie.map((v) => (v != null ? v + config.value.bandDelta : null));
-      const borderW = config.value.bandStyle === 'border' || config.value.bandStyle === 'both' ? 2 : 0;
-      const fillColor = config.value.bandStyle === 'fill' || config.value.bandStyle === 'both'
-        ? hexToRgba(activeLineColors.ga, 0.13)
-        : 'rgba(0,0,0,0)';
+    // Sempre monta a GA já considerando suavização e fallback
+    // eslint-disable-next-line no-confusing-arrow
+    let gaSerie = dataSlice.value.map(item =>
+      // eslint-disable-next-line implicit-arrow-linebreak
+      typeof item[lineFields.ga] === 'number' ? item[lineFields.ga] : null
+    // eslint-disable-next-line function-paren-newline
+    );
+    gaSerie = getSmoothedGA(gaSerie, config.value.smoothingType, config.value.smoothingWindow);
 
-      // Linha inferior (NÃO tem fill)
+    activeLines.value.forEach((key) => {
+      // Banda GA
+      if (key === 'ga' && config.value.showBand) {
+        const minus = gaSerie.map((v) => (v != null ? v - config.value.bandDelta : null));
+        const plus = gaSerie.map((v) => (v != null ? v + config.value.bandDelta : null));
+        const borderW = config.value.bandStyle === 'border' || config.value.bandStyle === 'both' ? 2 : 0;
+        const fillColor = config.value.bandStyle === 'fill' || config.value.bandStyle === 'both'
+          ? hexToRgba(activeLineColors.ga, 0.13)
+          : 'rgba(0,0,0,0)';
+        datasets.push({
+          // eslint-disable-next-line prefer-template
+          label: 'Previsão GA -' + config.value.bandDelta.toFixed(2),
+          data: minus,
+          borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
+          backgroundColor: 'rgba(0,0,0,0)',
+          borderWidth: borderW,
+          fill: false,
+          pointRadius,
+          tension: 0.32,
+          spanGaps: true,
+          order: 1,
+        });
+        datasets.push({
+          // eslint-disable-next-line prefer-template
+          label: 'Previsão GA +' + config.value.bandDelta.toFixed(2),
+          data: plus,
+          borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
+          backgroundColor: fillColor,
+          borderWidth: borderW,
+          fill: '-1',
+          pointRadius,
+          tension: 0.32,
+          spanGaps: true,
+          order: 1,
+        });
+        return;
+      }
+      // Banda demais linhas
+      if (config.value.showBand) {
+        const serie = dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null));
+        const valid = serie.filter((v) => v != null);
+        const minVal = Math.min(...valid);
+        const maxVal = Math.max(...valid);
+        const minArr = Array(labels.length).fill(minVal);
+        const maxArr = Array(labels.length).fill(maxVal);
+
+        datasets.push({
+          label: `${lineLabels[key]}_band_bottom`,
+          data: minArr,
+          borderColor: 'rgba(0,0,0,0)',
+          backgroundColor: 'rgba(0,0,0,0)',
+          fill: false,
+          pointRadius: 0,
+          order: 0,
+          hidden: true,
+          spanGaps: true,
+        });
+        datasets.push({
+          label: `${lineLabels[key]}_band_top`,
+          data: maxArr,
+          borderColor: 'rgba(0,0,0,0)',
+          backgroundColor: hexToRgba(activeLineColors[key], 0.12),
+          fill: '-1',
+          pointRadius: 0,
+          order: 0,
+          hidden: false,
+          spanGaps: true,
+        });
+      }
       datasets.push({
-        // eslint-disable-next-line prefer-template
-        label: 'Previsão GA -' + config.value.bandDelta.toFixed(2),
-        data: minus,
-        borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
-        backgroundColor: 'rgba(0,0,0,0)',
-        borderWidth: borderW,
-        fill: false,
-        pointRadius,
+        label: lineLabels[key],
+        data: key === 'ga'
+          ? gaSerie
+          : dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
+        borderColor: activeLineColors[key],
+        backgroundColor: `${activeLineColors[key]}33`,
         tension: 0.32,
-        spanGaps: true,
-        order: 1,
-      });
-
-      // Linha superior (preenche entre esta e a anterior se style=fill ou both)
-      datasets.push({
-        // eslint-disable-next-line prefer-template
-        label: 'Previsão GA +' + config.value.bandDelta.toFixed(2),
-        data: plus,
-        borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
-        backgroundColor: fillColor,
-        borderWidth: borderW,
-        fill: '-1',
         pointRadius,
-        tension: 0.32,
-        spanGaps: true,
-        order: 1,
-      });
-      // NÃO adiciona a linha central da previsão GA quando banda está ativa!
-      return;
-    }
-    // Banda padrão para as outras linhas (mantém como está)
-    if (config.value.showBand) {
-      const serie = dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null));
-      const valid = serie.filter((v) => v != null);
-      const minVal = Math.min(...valid);
-      const maxVal = Math.max(...valid);
-      const minArr = Array(labels.length).fill(minVal);
-      const maxArr = Array(labels.length).fill(maxVal);
-
-      datasets.push({
-        label: `${lineLabels[key]}_band_bottom`,
-        data: minArr,
-        borderColor: 'rgba(0,0,0,0)',
-        backgroundColor: 'rgba(0,0,0,0)',
+        borderWidth: config.value.lineWidth,
         fill: false,
-        pointRadius: 0,
-        order: 0,
-        hidden: true,
         spanGaps: true,
+        order: 2,
       });
-      datasets.push({
-        label: `${lineLabels[key]}_band_top`,
-        data: maxArr,
-        borderColor: 'rgba(0,0,0,0)',
-        backgroundColor: hexToRgba(activeLineColors[key], 0.12),
-        fill: '-1',
-        pointRadius: 0,
-        order: 0,
-        hidden: false,
-        spanGaps: true,
-      });
-    }
-    // Linha principal (apenas se não for o caso GA+banda)
-    datasets.push({
-      label: lineLabels[key],
-      data: dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
-      borderColor: activeLineColors[key],
-      backgroundColor: `${activeLineColors[key]}33`,
-      tension: 0.32,
-      pointRadius,
-      borderWidth: config.value.lineWidth,
-      fill: false,
-      spanGaps: true,
-      order: 2,
     });
-  });
 
-  return { labels, datasets };
+    return { labels, datasets };
+  } catch (e) {
+    console.error('chartData error:', e);
+    return { labels: [], datasets: [] };
+  }
 });
 
 /* ---------------- Chart.js lifecycle ---------------- */
@@ -501,7 +583,6 @@ const canvasRef = ref(null);
 const chartWrap = ref(null);
 let chartjs = null;
 
-// Tooltip custom (inline only)
 const tooltip = reactive({
   active: false,
   label: '',
@@ -511,8 +592,6 @@ const tooltip = reactive({
   timestamp: '',
   bandValues: null
 });
-
-/* ---------------- Tooltip Style (Card) ---------------- */
 const tooltipStyle = computed(() => {
   const baseBox = {
     position: 'absolute',
@@ -545,8 +624,9 @@ const tooltipStyle = computed(() => {
     default:
       style = { ...baseBox, left: 'auto', top: `${8 + config.value.tooltipOffsetY}px`, right: `${8 - config.value.tooltipOffsetX}px`, bottom: 'auto' };
   }
-  return style;s
+  return style;
 });
+
 // Ponteiro / scrub
 const scrubIndex = ref(null);
 const scrubPixel = ref(0);
@@ -573,116 +653,118 @@ const scrubDotStyle = {
 };
 
 function renderChart() {
-  if (!canvasRef.value) return;
-  if (chartjs) { chartjs.destroy(); chartjs = null; }
-
-  chartjs = new Chart(canvasRef.value.getContext('2d'), {
-    type: 'line',
-    data: chartData.value,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            boxWidth: 16,
-            font: { size: 15 },
-            filter: (item) => !item.text.includes('_band_'),
+  try {
+    if (!canvasRef.value) return;
+    if (chartjs) { chartjs.destroy(); chartjs = null; }
+    chartjs = new Chart(canvasRef.value.getContext('2d'), {
+      type: 'line',
+      data: chartData.value,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 16,
+              font: { size: 15 },
+              filter: (item) => !item.text.includes('_band_'),
+            },
+          },
+          tooltip: { enabled: false },
+        },
+        interaction: { intersect: false, mode: 'nearest', axis: 'x' },
+        scales: {
+          y: {
+            min: -0.5,
+            max: 1.5,
+            title: { display: true, text: 'Altura (m)', font: { size: 14 } },
+          },
+          x: {
+            title: { display: true, text: 'Hora', font: { size: 13 } },
+            ticks: { autoSkip: true, maxTicksLimit: 20 },
           },
         },
-        tooltip: { enabled: false },
-      },
-      interaction: { intersect: false, mode: 'nearest', axis: 'x' },
-      scales: {
-        y: {
-          min: -0.5,
-          max: 1.5,
-          title: { display: true, text: 'Altura (m)', font: { size: 14 } },
+        onHover: (event, elements, chart) => {
+          if (!elements.length) {
+            if (config.value.tooltipPosition === 'follow') tooltip.active = false;
+            showScrubPointer.value = false;
+            return;
+          }
+          const point = elements[0];
+          const idx = point.index;
+          scrubIndex.value = idx;
+          showScrubPointer.value = true;
+
+          const vals = {};
+          activeLines.value.forEach((key) => {
+            const ds = chartData.value.datasets.find((d) => d.label === lineLabels[key]);
+            const val = ds?.data?.[idx];
+            vals[lineLabels[key]] = {
+              value: val != null ? Number(val).toFixed(3) : '--',
+              color: activeLineColors[key],
+            };
+          });
+
+          tooltip.timestamp = '';
+          if (dataSlice.value[idx]?.timestamp_prev?.date) {
+            tooltip.timestamp = dataSlice.value[idx].timestamp_prev.date.replace(' ', ' • ');
+          }
+
+          tooltip.bandValues = null;
+          if (
+            // eslint-disable-next-line operator-linebreak
+            config.value.showBand &&
+            // eslint-disable-next-line operator-linebreak
+            activeLines.value.includes('ga') &&
+            typeof dataSlice.value[idx]?.altura_prevista === 'number'
+          ) {
+            tooltip.bandValues = {
+              minus: (dataSlice.value[idx].altura_prevista - config.value.bandDelta).toFixed(3),
+              plus: (dataSlice.value[idx].altura_prevista + config.value.bandDelta).toFixed(3),
+            };
+          }
+
+          if (config.value.tooltipPosition === 'follow') {
+            tooltip.left = event.offsetX + 8;
+            tooltip.top = event.offsetY + 8;
+          }
+          tooltip.label = chartData.value.labels[idx];
+          tooltip.values = vals;
+          tooltip.active = true;
         },
-        x: {
-          title: { display: true, text: 'Hora', font: { size: 13 } },
-          ticks: { autoSkip: true, maxTicksLimit: 20 },
-        },
-      },
-      onHover: (event, elements, chart) => {
-        if (!elements.length) {
+        onLeave: () => {
           if (config.value.tooltipPosition === 'follow') tooltip.active = false;
           showScrubPointer.value = false;
-          return;
-        }
-        const point = elements[0];
-        const idx = point.index;
-        scrubIndex.value = idx;
-        showScrubPointer.value = true;
-
-        const vals = {};
-        activeLines.value.forEach((key) => {
-          const ds = chartData.value.datasets.find((d) => d.label === lineLabels[key]);
-          const val = ds?.data?.[idx];
-          vals[lineLabels[key]] = {
-            value: val != null ? Number(val).toFixed(3) : '--',
-            color: activeLineColors[key],
-          };
-        });
-
-        // Adiciona info da timestamp do ponto
-        tooltip.timestamp = '';
-        if (dataSlice.value[idx]?.timestamp_prev?.date) {
-          tooltip.timestamp = dataSlice.value[idx].timestamp_prev.date.replace(' ', ' • ');
-        }
-
-        // --- AJUSTE SOLICITADO: mostra também os valores da banda se banda ativa ---
-        tooltip.bandValues = null;
-        if (
-          // eslint-disable-next-line operator-linebreak
-          config.value.showBand &&
-          // eslint-disable-next-line operator-linebreak
-          activeLines.value.includes('ga') &&
-          typeof dataSlice.value[idx]?.altura_prevista === 'number'
-        ) {
-          tooltip.bandValues = {
-            minus: (dataSlice.value[idx].altura_prevista - config.value.bandDelta).toFixed(3),
-            plus: (dataSlice.value[idx].altura_prevista + config.value.bandDelta).toFixed(3),
-          };
-        }
-
-        if (config.value.tooltipPosition === 'follow') {
-          tooltip.left = event.offsetX + 8;
-          tooltip.top = event.offsetY + 8;
-        }
-        tooltip.label = chartData.value.labels[idx];
-        tooltip.values = vals;
-        tooltip.active = true;
+        },
       },
-      onLeave: () => {
-        if (config.value.tooltipPosition === 'follow') tooltip.active = false;
-        showScrubPointer.value = false;
-      },
-    },
-    plugins: [{
-      id: 'scrubPointer',
-      afterDraw(chart) {
-        if (scrubIndex.value == null || !showScrubPointer.value) return;
-        const { ctx } = chart;
-        const x = chart.scales.x.getPixelForValue(scrubIndex.value);
-        const y0 = chart.scales.y.top;
-        const y1 = chart.scales.y.bottom;
+      plugins: [{
+        id: 'scrubPointer',
+        afterDraw(chart) {
+          if (scrubIndex.value == null || !showScrubPointer.value) return;
+          const { ctx } = chart;
+          const x = chart.scales.x.getPixelForValue(scrubIndex.value);
+          const y0 = chart.scales.y.top;
+          const y1 = chart.scales.y.bottom;
 
-        ctx.save();
-        ctx.strokeStyle = '#1e78db55';
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(x, y0);
-        ctx.lineTo(x, y1);
-        ctx.stroke();
-        ctx.restore();
+          ctx.save();
+          ctx.strokeStyle = '#1e78db55';
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, y0);
+          ctx.lineTo(x, y1);
+          ctx.stroke();
+          ctx.restore();
 
-        scrubPixel.value = x;
-      },
-    }],
-  });
+          scrubPixel.value = x;
+        },
+      }],
+    });
+  } catch (e) {
+    // Caso qualquer erro, não quebra o app
+    console.error('renderChart error:', e);
+  }
 }
 
 onMounted(() => nextTick(renderChart));
@@ -720,15 +802,25 @@ onUnmounted(() => {
 
 /* ---------------- BARRAS ---------------- */
 const barChartData = computed(() => {
-  const labels = dataSlice.value.map((item) => item.timestamp_prev?.date?.slice(11, 16) || '');
-  const datasets = activeLines.value.map((key) => ({
-    label: lineLabels[key],
-    data: dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
-    backgroundColor: activeLineColors[key],
-    borderRadius: 5,
-    maxBarThickness: 12,
-  }));
-  return { labels, datasets };
+  try {
+    const labels = dataSlice.value.map((item) => item.timestamp_prev?.date?.slice(11, 16) || '');
+    const datasets = activeLines.value.map((key) => ({
+      label: lineLabels[key],
+      data: key === 'ga'
+        ? getSmoothedGA(
+            dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
+            config.value.smoothingType,
+            config.value.smoothingWindow
+          )
+        : dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null)),
+      backgroundColor: activeLineColors[key],
+      borderRadius: 5,
+      maxBarThickness: 12,
+    }));
+    return { labels, datasets };
+  } catch (e) {
+    return { labels: [], datasets: [] };
+  }
 });
 const barChartOptions = computed(() => ({
   responsive: true,
