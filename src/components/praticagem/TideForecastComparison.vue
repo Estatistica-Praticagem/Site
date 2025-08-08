@@ -130,20 +130,31 @@
               inline
             />
           </div>
-          <!-- Tooltip -->
+          <!-- Tooltip scale MAIS AMPLA e posição -->
           <div>
             <div class="text-bold q-mb-xs">Tamanho do card de valores</div>
             <div class="row items-center q-gutter-sm">
               <q-slider
                 v-model="config.tooltipScale"
-                :min="0.8"
-                :max="2"
+                :min="0.2"
+                :max="3"
                 :step="0.05"
                 color="primary"
                 label
-                style="max-width:160px"
+                style="max-width:180px"
               />
               <span class="text-grey-7">{{ config.tooltipScale.toFixed(2) }}×</span>
+            </div>
+            <div class="row items-center q-mt-xs q-gutter-sm">
+              <div class="text-caption text-bold q-mb-xs">Deslocamento Card</div>
+              <div style="min-width:110px;">
+                <q-slider v-model="config.tooltipOffsetY" :min="-170" :max="170" :step="1" color="primary" label label-always/>
+                <div class="text-caption text-grey-7">Vertical: {{ config.tooltipOffsetY }}px</div>
+              </div>
+              <div style="min-width:110px;">
+                <q-slider v-model="config.tooltipOffsetX" :min="-470" :max="470" :step="1" color="primary" label label-always/>
+                <div class="text-caption text-grey-7">Horizontal: {{ config.tooltipOffsetX }}px</div>
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -207,6 +218,17 @@
             <b>{{ l }}:</b> {{ v.value }}
           </span>
         </div>
+        <!-- Aqui adiciona as bandas (quando showBand) -->
+        <template v-if="config.showBand && tooltip.bandValues">
+          <div class="q-mt-xs q-ml-xs" style="font-size:.96em;">
+            <span style="color:#1e78db;">Previsão GA -{{ config.bandDelta.toFixed(2) }}:</span>
+            <span style="margin-left:6px;">{{ tooltip.bandValues.minus }}</span>
+          </div>
+          <div class="q-mt-xs q-ml-xs" style="font-size:.96em;">
+            <span style="color:#1e78db;">Previsão GA +{{ config.bandDelta.toFixed(2) }}:</span>
+            <span style="margin-left:6px;">{{ tooltip.bandValues.plus }}</span>
+          </div>
+        </template>
         <div class="q-mt-xs text-caption" style="color:#849;">
           {{ tooltip.timestamp }}
         </div>
@@ -300,7 +322,9 @@ const defaultConfig = () => ({
   tooltipScale: 1,
   bandDelta: 0.15,    // Ajustável
   bandStyle: 'both',  // both | border | fill
-  lineWidth: 2        // 2 ou 4
+  lineWidth: 2,       // 2 ou 4
+  tooltipOffsetX: 0,  // NOVO ajuste do tooltip (horizontal)
+  tooltipOffsetY: 0,  // NOVO ajuste do tooltip (vertical)
 });
 const config = ref(defaultConfig());
 
@@ -485,8 +509,10 @@ const tooltip = reactive({
   left: 0,
   top: 0,
   timestamp: '',
+  bandValues: null
 });
 
+/* ---------------- Tooltip Style (Card) ---------------- */
 const tooltipStyle = computed(() => {
   const baseBox = {
     position: 'absolute',
@@ -507,21 +533,20 @@ const tooltipStyle = computed(() => {
   let style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' };
   switch (config.value.tooltipPosition) {
     case 'top-left':
-      style = { ...baseBox, left: '8px', top: '8px', right: 'auto', bottom: 'auto' }; break;
+      style = { ...baseBox, left: `${8 + config.value.tooltipOffsetX}px`, top: `${8 + config.value.tooltipOffsetY}px`, right: 'auto', bottom: 'auto' }; break;
     case 'top-right':
-      style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' }; break;
+      style = { ...baseBox, left: 'auto', top: `${8 + config.value.tooltipOffsetY}px`, right: `${8 - config.value.tooltipOffsetX}px`, bottom: 'auto' }; break;
     case 'bottom-left':
-      style = { ...baseBox, left: '8px', top: 'auto', right: 'auto', bottom: '8px' }; break;
+      style = { ...baseBox, left: `${8 + config.value.tooltipOffsetX}px`, top: 'auto', right: 'auto', bottom: `${8 - config.value.tooltipOffsetY}px` }; break;
     case 'bottom-right':
-      style = { ...baseBox, left: 'auto', top: 'auto', right: '8px', bottom: '8px' }; break;
+      style = { ...baseBox, left: 'auto', top: 'auto', right: `${8 - config.value.tooltipOffsetX}px`, bottom: `${8 - config.value.tooltipOffsetY}px` }; break;
     case 'follow':
-      style = { ...baseBox, left: `${tooltip.left}px`, top: `${tooltip.top}px`, right: 'auto', bottom: 'auto' }; break;
+      style = { ...baseBox, left: `${tooltip.left + config.value.tooltipOffsetX}px`, top: `${tooltip.top + config.value.tooltipOffsetY}px`, right: 'auto', bottom: 'auto' }; break;
     default:
-      style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' };
+      style = { ...baseBox, left: 'auto', top: `${8 + config.value.tooltipOffsetY}px`, right: `${8 - config.value.tooltipOffsetX}px`, bottom: 'auto' };
   }
-  return style;
+  return style;s
 });
-
 // Ponteiro / scrub
 const scrubIndex = ref(null);
 const scrubPixel = ref(0);
@@ -606,6 +631,21 @@ function renderChart() {
         tooltip.timestamp = '';
         if (dataSlice.value[idx]?.timestamp_prev?.date) {
           tooltip.timestamp = dataSlice.value[idx].timestamp_prev.date.replace(' ', ' • ');
+        }
+
+        // --- AJUSTE SOLICITADO: mostra também os valores da banda se banda ativa ---
+        tooltip.bandValues = null;
+        if (
+          // eslint-disable-next-line operator-linebreak
+          config.value.showBand &&
+          // eslint-disable-next-line operator-linebreak
+          activeLines.value.includes('ga') &&
+          typeof dataSlice.value[idx]?.altura_prevista === 'number'
+        ) {
+          tooltip.bandValues = {
+            minus: (dataSlice.value[idx].altura_prevista - config.value.bandDelta).toFixed(3),
+            plus: (dataSlice.value[idx].altura_prevista + config.value.bandDelta).toFixed(3),
+          };
         }
 
         if (config.value.tooltipPosition === 'follow') {
