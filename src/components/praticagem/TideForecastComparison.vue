@@ -5,7 +5,6 @@
       <div class="text-h6 text-primary text-weight-bold">
         Comparação de Maré (Marinha x Medida x GA)
       </div>
-
       <div class="row items-center q-gutter-sm">
         <q-btn-toggle
           v-model="config.viewType"
@@ -36,11 +35,8 @@
           <q-space />
           <q-btn icon="close" flat round dense @click="showConfig = false" />
         </q-card-section>
-
         <q-separator />
-
         <q-card-section class="q-gutter-md">
-
           <!-- Altura -->
           <div>
             <div class="text-bold q-mb-xs">Altura do Gráfico</div>
@@ -57,7 +53,6 @@
               <span class="q-ml-md text-grey-7">{{ config.chartHeight }} px</span>
             </div>
           </div>
-
           <!-- Pontos -->
           <div>
             <div class="text-bold q-mb-xs">Pontos no gráfico</div>
@@ -72,7 +67,6 @@
               inline
             />
           </div>
-
           <!-- Linhas visíveis -->
           <div>
             <div class="text-bold q-mb-xs">Linhas Visíveis</div>
@@ -87,7 +81,6 @@
               Pelo menos uma linha precisa estar selecionada.
             </span>
           </div>
-
           <!-- Bandas -->
           <div>
             <q-toggle
@@ -95,20 +88,52 @@
               color="primary"
               label="Exibir banda (faixa entre o menor e o maior valor que cada linha atingiu na janela atual)"
             />
+            <div v-if="config.showBand" class="q-mt-xs q-gutter-sm">
+              <div class="text-caption text-bold q-mb-xs">Largura da banda ±</div>
+              <q-slider
+                v-model="config.bandDelta"
+                :min="0.05"
+                :max="0.20"
+                :step="0.01"
+                color="primary"
+                label
+                style="max-width:180px"
+                :label-value="config.bandDelta.toFixed(2)"
+              />
+              <span class="q-ml-sm text-grey-7">{{ (config.bandDelta*2).toFixed(2) }} total</span>
+            </div>
+            <div v-if="config.showBand" class="q-mt-sm">
+              <q-option-group
+                v-model="config.bandStyle"
+                :options="[
+                  { label: 'Linha + Fundo', value: 'both' },
+                  { label: 'Só linha/borda', value: 'border' },
+                  { label: 'Só fundo', value: 'fill' }
+                ]"
+                type="radio"
+                color="primary"
+                inline
+              />
+            </div>
           </div>
-
+          <!-- Espessura linha -->
+          <div>
+            <div class="text-bold q-mb-xs">Espessura das Linhas</div>
+            <q-option-group
+              v-model="config.lineWidth"
+              :options="[
+                { label: 'Linha fina', value: 2 },
+                { label: 'Linha grossa', value: 4 }
+              ]"
+              type="radio"
+              color="primary"
+              inline
+            />
+          </div>
           <!-- Tooltip -->
           <div>
             <div class="text-bold q-mb-xs">Tamanho do card de valores</div>
             <div class="row items-center q-gutter-sm">
-              <!-- <q-select
-                v-model="config.tooltipPosition"
-                :options="tooltipPosOptions"
-                label="Posição"
-                dense
-                outlined
-                style="min-width: 180px"
-              /> -->
               <q-slider
                 v-model="config.tooltipScale"
                 :min="0.8"
@@ -121,11 +146,8 @@
               <span class="text-grey-7">{{ config.tooltipScale.toFixed(2) }}×</span>
             </div>
           </div>
-
         </q-card-section>
-
         <q-separator />
-
         <q-card-actions align="right">
           <q-btn flat label="Fechar" color="primary" v-close-popup />
         </q-card-actions>
@@ -185,6 +207,14 @@
             <b>{{ l }}:</b> {{ v.value }}
           </span>
         </div>
+        <div class="q-mt-xs text-caption" style="color:#849;">
+          {{ tooltip.timestamp }}
+        </div>
+      </div>
+      <!-- Acerto/Erro -->
+      <div v-if="config.showBand && acertosInfo.total > 0" class="row q-mt-md justify-center items-center">
+        <div style="font-size:1em; color:#167e31; margin-right:18px;">Acerto: <b>{{ acertosInfo.percAcerto }}%</b></div>
+        <div style="font-size:1em; color:#d32f2f;">Erro: <b>{{ acertosInfo.percErro }}%</b></div>
       </div>
     </div>
 
@@ -260,14 +290,6 @@ const lineLabels = {
   ga: 'Previsão GA',
 };
 
-// const tooltipPosOptions = [
-//   { label: 'Seguir o mouse', value: 'follow' },
-//   { label: 'Topo esquerdo', value: 'top-left' },
-//   { label: 'Topo direito', value: 'top-right' },
-//   { label: 'Base esquerda', value: 'bottom-left' },
-//   { label: 'Base direita', value: 'bottom-right' },
-// ];
-
 const defaultConfig = () => ({
   chartHeight: 320,
   showPoints: false,
@@ -276,8 +298,10 @@ const defaultConfig = () => ({
   viewType: 'chart',
   tooltipPosition: 'top-right',
   tooltipScale: 1,
+  bandDelta: 0.15,    // Ajustável
+  bandStyle: 'both',  // both | border | fill
+  lineWidth: 2        // 2 ou 4
 });
-
 const config = ref(defaultConfig());
 
 onMounted(() => {
@@ -327,6 +351,28 @@ function handleLineChange(lines) {
 }
 const activeLines = computed(() => config.value.lines);
 
+/* ---------------- Acerto/Erro ---------------- */
+const acertosInfo = computed(() => {
+  if (!config.value.showBand || !dataSlice.value.length) return { acertos: 0, total: 0, percAcerto: 0, percErro: 0 };
+  // Só faz sentido para "Previsão GA"
+  // eslint-disable-next-line no-confusing-arrow
+  const prevs = dataSlice.value.map(d => typeof d.altura_prevista === 'number' ? d.altura_prevista : null);
+  // eslint-disable-next-line no-confusing-arrow
+  const reais = dataSlice.value.map(d => typeof d.altura_real_getmare === 'number' ? d.altura_real_getmare : null);
+  let acertos = 0;
+  let total = 0;
+  for (let i = 0; i < prevs.length; i++) {
+    if (prevs[i] == null || reais[i] == null) continue;
+    const min = prevs[i] - config.value.bandDelta;
+    const max = prevs[i] + config.value.bandDelta;
+    if (reais[i] >= min && reais[i] <= max) acertos++;
+    total++;
+  }
+  const percAcerto = total ? Math.round(acertos/total*100) : 0;
+  const percErro = total ? 100 - percAcerto : 0;
+  return { acertos, total, percAcerto, percErro };
+});
+
 /* ---------------- Chart Data ---------------- */
 const chartData = computed(() => {
   const pointRadius = config.value.showPoints ? 2 : 0;
@@ -334,39 +380,40 @@ const chartData = computed(() => {
   const datasets = [];
 
   activeLines.value.forEach((key) => {
-    // Se for GA e banda ativada, coloca as linhas +0,15 e -0,15 na ORDEM CERTA!
+    // Se for GA e banda ativada, coloca as linhas +bandDelta e -bandDelta na ORDEM CERTA!
     if (key === 'ga' && config.value.showBand) {
       const serie = dataSlice.value.map((item) => (typeof item[lineFields.ga] === 'number' ? item[lineFields.ga] : null));
-      // -0.15 primeiro!
-      const minus = serie.map((v) => (v != null ? v - 0.15 : null));
-      const plus = serie.map((v) => (v != null ? v + 0.15 : null));
+      const minus = serie.map((v) => (v != null ? v - config.value.bandDelta : null));
+      const plus = serie.map((v) => (v != null ? v + config.value.bandDelta : null));
+      const borderW = config.value.bandStyle === 'border' || config.value.bandStyle === 'both' ? 2 : 0;
+      const fillColor = config.value.bandStyle === 'fill' || config.value.bandStyle === 'both'
+        ? hexToRgba(activeLineColors.ga, 0.13)
+        : 'rgba(0,0,0,0)';
 
       // Linha inferior (NÃO tem fill)
       datasets.push({
-        label: 'Previsão GA -0,15',
+        // eslint-disable-next-line prefer-template
+        label: 'Previsão GA -' + config.value.bandDelta.toFixed(2),
         data: minus,
-        // eslint-disable-next-line no-use-before-define
-        borderColor: hexToRgba(activeLineColors.ga, 0.90),
-        // eslint-disable-next-line no-use-before-define
-        backgroundColor: hexToRgba(activeLineColors.ga, 0.13),
-        borderWidth: 1.7,
-        fill: false, // Não preenche nada
+        borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
+        backgroundColor: 'rgba(0,0,0,0)',
+        borderWidth: borderW,
+        fill: false,
         pointRadius,
         tension: 0.32,
         spanGaps: true,
         order: 1,
       });
 
-      // Linha superior (preenche entre esta e a anterior)
+      // Linha superior (preenche entre esta e a anterior se style=fill ou both)
       datasets.push({
-        label: 'Previsão GA +0,15',
+        // eslint-disable-next-line prefer-template
+        label: 'Previsão GA +' + config.value.bandDelta.toFixed(2),
         data: plus,
-        // eslint-disable-next-line no-use-before-define
-        borderColor: hexToRgba(activeLineColors.ga, 0.90),
-        // eslint-disable-next-line no-use-before-define
-        backgroundColor: hexToRgba(activeLineColors.ga, 0.13),
-        borderWidth: 1.7,
-        fill: '-1', // Pinta entre +0,15 e -0,15
+        borderColor: borderW ? hexToRgba(activeLineColors.ga, 0.90) : 'rgba(0,0,0,0)',
+        backgroundColor: fillColor,
+        borderWidth: borderW,
+        fill: '-1',
         pointRadius,
         tension: 0.32,
         spanGaps: true,
@@ -375,7 +422,6 @@ const chartData = computed(() => {
       // NÃO adiciona a linha central da previsão GA quando banda está ativa!
       return;
     }
-
     // Banda padrão para as outras linhas (mantém como está)
     if (config.value.showBand) {
       const serie = dataSlice.value.map((item) => (typeof item[lineFields[key]] === 'number' ? item[lineFields[key]] : null));
@@ -400,7 +446,6 @@ const chartData = computed(() => {
         label: `${lineLabels[key]}_band_top`,
         data: maxArr,
         borderColor: 'rgba(0,0,0,0)',
-        // eslint-disable-next-line no-use-before-define
         backgroundColor: hexToRgba(activeLineColors[key], 0.12),
         fill: '-1',
         pointRadius: 0,
@@ -409,7 +454,6 @@ const chartData = computed(() => {
         spanGaps: true,
       });
     }
-
     // Linha principal (apenas se não for o caso GA+banda)
     datasets.push({
       label: lineLabels[key],
@@ -418,7 +462,7 @@ const chartData = computed(() => {
       backgroundColor: `${activeLineColors[key]}33`,
       tension: 0.32,
       pointRadius,
-      borderWidth: 2,
+      borderWidth: config.value.lineWidth,
       fill: false,
       spanGaps: true,
       order: 2,
@@ -440,9 +484,9 @@ const tooltip = reactive({
   values: {},
   left: 0,
   top: 0,
+  timestamp: '',
 });
 
-// estilo inline para tooltip – sempre definindo os 4 lados
 const tooltipStyle = computed(() => {
   const baseBox = {
     position: 'absolute',
@@ -460,49 +504,21 @@ const tooltipStyle = computed(() => {
     minWidth: '128px',
     transform: `scale(${config.value.tooltipScale})`,
   };
-
-  // default/fallback: top-right
-  let style = {
-    ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto',
-  };
-
+  let style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' };
   switch (config.value.tooltipPosition) {
     case 'top-left':
-      style = {
-        ...baseBox, left: '8px', top: '8px', right: 'auto', bottom: 'auto',
-      };
-      break;
+      style = { ...baseBox, left: '8px', top: '8px', right: 'auto', bottom: 'auto' }; break;
     case 'top-right':
-      style = {
-        ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto',
-      };
-      break;
+      style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' }; break;
     case 'bottom-left':
-      style = {
-        ...baseBox, left: '8px', top: 'auto', right: 'auto', bottom: '8px',
-      };
-      break;
+      style = { ...baseBox, left: '8px', top: 'auto', right: 'auto', bottom: '8px' }; break;
     case 'bottom-right':
-      style = {
-        ...baseBox, left: 'auto', top: 'auto', right: '8px', bottom: '8px',
-      };
-      break;
+      style = { ...baseBox, left: 'auto', top: 'auto', right: '8px', bottom: '8px' }; break;
     case 'follow':
-      style = {
-        ...baseBox,
-        left: `${tooltip.left}px`,
-        top: `${tooltip.top}px`,
-        right: 'auto',
-        bottom: 'auto',
-      };
-      break;
+      style = { ...baseBox, left: `${tooltip.left}px`, top: `${tooltip.top}px`, right: 'auto', bottom: 'auto' }; break;
     default:
-      // fallback seguro
-      style = {
-        ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto',
-      };
+      style = { ...baseBox, left: 'auto', top: '8px', right: '8px', bottom: 'auto' };
   }
-
   return style;
 });
 
@@ -565,7 +581,7 @@ function renderChart() {
           ticks: { autoSkip: true, maxTicksLimit: 20 },
         },
       },
-      onHover: (event, elements) => {
+      onHover: (event, elements, chart) => {
         if (!elements.length) {
           if (config.value.tooltipPosition === 'follow') tooltip.active = false;
           showScrubPointer.value = false;
@@ -586,6 +602,12 @@ function renderChart() {
           };
         });
 
+        // Adiciona info da timestamp do ponto
+        tooltip.timestamp = '';
+        if (dataSlice.value[idx]?.timestamp_prev?.date) {
+          tooltip.timestamp = dataSlice.value[idx].timestamp_prev.date.replace(' ', ' • ');
+        }
+
         if (config.value.tooltipPosition === 'follow') {
           tooltip.left = event.offsetX + 8;
           tooltip.top = event.offsetY + 8;
@@ -603,7 +625,6 @@ function renderChart() {
       id: 'scrubPointer',
       afterDraw(chart) {
         if (scrubIndex.value == null || !showScrubPointer.value) return;
-
         const { ctx } = chart;
         const x = chart.scales.x.getPixelForValue(scrubIndex.value);
         const y0 = chart.scales.y.top;
