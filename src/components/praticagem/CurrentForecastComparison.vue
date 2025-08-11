@@ -279,8 +279,8 @@ async function loadAll() {
   try {
     const [mestre, ph, p5] = await Promise.all([
       fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=1000`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=400&include_past=1`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=1000&include_past=1`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=1000&include_past=1`),
+      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=4000&include_past=1`),
     ]);
     mestre5min.value = mestre.map(normalizeMestreRow)
       .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));

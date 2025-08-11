@@ -58,8 +58,8 @@ $TABLE_HOURLY = 'local-bliss-359814.wherehouse_previsoes.prev_correnteza';
 $TABLE_5MIN   = 'local-bliss-359814.wherehouse_previsoes.prev_correnteza_5min';
 $tableFq      = $isHourly ? $TABLE_HOURLY : $TABLE_5MIN;
 
-// limit: padrão 1000, clamp 1..5000
-$limit = 1000;
+// limit: padrão 10000, clamp 1..5000
+$limit = 10000;
 if (isset($_GET['limit']) && is_numeric($_GET['limit'])) {
     $custom = (int)$_GET['limit'];
     if ($custom >= 1) {
