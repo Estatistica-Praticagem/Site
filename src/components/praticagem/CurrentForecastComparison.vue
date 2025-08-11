@@ -162,7 +162,7 @@ import {
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-const API_BASE = 'https://www.meusimulador.com/praticagem/backend/praticagem';
+const API_BASE = 'https://www.meusimulador.com/kevi/backend/praticagem';
 const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`;
 const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`;
 
@@ -324,15 +324,31 @@ const windowLabel = (key) => {
 };
 
 const getDepthSeries = (key) => {
-  const colHist = mestreIntensityCol(key); const colPrev = prevCol(key);
+  const colHist = mestreIntensityCol(key);
+  const colPrev = prevCol(key);
+  const colDirDeg = `direcao_${key}_deg`;
+  const colDirStr = `direcao_${key}`;
+
   const histMap = new Map(mestre5min.value.map((r) => [r.timestamp_br, numOrNull(r[colHist])]));
+  const dirDegMap = new Map(mestre5min.value.map((r) => [r.timestamp_br, numOrNull(r[colDirDeg])]));
+  const dirStrMap = new Map(mestre5min.value.map((r) => [r.timestamp_br, r[colDirStr]]));
+
   const prevRows = prevSource.value === '5min' ? prev5m.value : prevHourly.value;
   const prevMap = new Map(prevRows.map((r) => [r.timestamp_br, numOrNull(r[colPrev])]));
-  return dataSliceTimestamps(key).map((ts) => ({
-    timestamp: ts,
-    hist: histMap.get(ts) ?? null,
-    prev: prevMap.get(ts) ?? null,
-  }));
+
+  return dataSliceTimestamps(key).map((ts) => {
+    const rawHist = histMap.get(ts) ?? null;
+    const dirDeg = dirDegMap.get(ts);
+    const dirStr = dirStrMap.get(ts);
+    const sgn = signByDirection(dirDeg, dirStr);
+    const signedHist = (rawHist == null || sgn == null) ? rawHist : rawHist * sgn;
+
+    return {
+      timestamp: ts,
+      hist: signedHist,          // agora: enchente > 0, vazante < 0
+      prev: prevMap.get(ts) ?? null, // previsão permanece como vem
+    };
+  });
 };
 
 const lastScrubIdx = reactive({});
@@ -534,6 +550,56 @@ function hexToRgba(hex, alpha = 1) {
   // eslint-disable-next-line no-bitwise
   const b = bigint & 255;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// --- direção → sinal (+1 enchente, -1 vazante) ---
+function angDist(a, b) {
+  // distância angular mínima entre a e b (0..180)
+  return Math.abs(((a - b + 180) % 360) - 180);
+}
+function dirStringToDeg(s) {
+  if (!s) return null;
+  const t = String(s).trim().toUpperCase();
+  // mapeamento básico; ajuste se vierem outras variações
+  const map = {
+    N: 0,
+NNE: 22.5,
+NE: 45,
+ENE: 67.5,
+    E: 90,
+ESE: 112.5,
+SE: 135,
+SSE: 157.5,
+    S: 180,
+SSO: 202.5,
+SO: 225,
+OSO: 247.5,
+    O: 270,
+ONO: 292.5,
+NO: 315,
+NNO: 337.5,
+    W: 270,
+WNW: 292.5,
+NW: 315,
+NNW: 337.5, // caso venha em inglês
+    SSW: 202.5,
+SW: 225,
+WSW: 247.5,
+// eslint-disable-next-line no-dupe-keys
+ESE: 112.5,
+  };
+  // tenta match exato; se vier "N (10°)" ou algo assim, pega o primeiro token
+  const token = t.split(/[^A-Z]/)[0];
+  if (map[token] != null) return map[token];
+  // tenta extrair número em graus
+  const m = t.match(/(\d+(?:\.\d+)?)\s*°?/);
+  return m ? Number(m[1]) % 360 : null;
+}
+function signByDirection(deg, str) {
+  let d = (deg == null || !Number.isFinite(deg)) ? dirStringToDeg(str) : deg;
+  if (d == null) return null; // sem direção → não altera sinal
+  // decide pelo mais próximo: 0° (N) = enchente (+), 180° (S) = vazante (-)
+  return angDist(d, 0) <= angDist(d, 180) ? +1 : -1;
 }
 
 onMounted(async () => {

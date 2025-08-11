@@ -73,8 +73,7 @@ $bq = new BigQueryClient([
     'keyFilePath' => $credFile,
 ]);
 
-/* ─────────── Monta SQL (ABS para remover “-” nas previsões) ─────────── */
-/* ─────────── Monta SQL (ABS para remover “-” nas previsões) ─────────── */
+/* ─────────── SQL (preserva sinal; sem ABS) ─────────── */
 function buildSql(string $tableFq, int $limit): string {
     $isPrevHour = preg_match('/\.prev_correnteza$/', $tableFq) === 1;
     $isPrev5m   = preg_match('/\.prev_correnteza_5min$/', $tableFq) === 1;
@@ -83,8 +82,8 @@ function buildSql(string $tableFq, int $limit): string {
         $depths = ['1_5m','3m','6m','7_5m','9m','10_5m','12m','13_5m','superficie'];
         $cols = ["CAST(timestamp_br AS DATETIME) AS timestamp_br"];
         foreach ($depths as $d) {
-            // Usa ABS para remover o sinal negativo
-            $cols[] = "ABS(SAFE_CAST(valor_previsto_{$d} AS FLOAT64)) AS valor_previsto_{$d}";
+            // Sem ABS: preserva o sinal do BigQuery
+            $cols[] = "SAFE_CAST(valor_previsto_{$d} AS FLOAT64) AS valor_previsto_{$d}";
         }
         return sprintf(
             "SELECT\n  %s\nFROM `%s`\nORDER BY timestamp_br DESC\nLIMIT %d",
@@ -94,7 +93,7 @@ function buildSql(string $tableFq, int $limit): string {
         );
     }
 
-    // Qualquer outra tabela (ex.: mestre_*): retorna tudo como está
+    // Outras tabelas: retorna como está
     return sprintf(
         "SELECT * FROM `%s` ORDER BY timestamp_br DESC LIMIT %d",
         $tableFq,
@@ -102,13 +101,13 @@ function buildSql(string $tableFq, int $limit): string {
     );
 }
 
-
 $sql = buildSql($tableFq, $limit);
 
 /* ─────────── Execução e resposta ──────────────────── */
 try {
-    $queryJob = $bq->query($sql);
-    $results  = $bq->runQuery($queryJob);
+    // desliga cache do BQ pra não pegar resultado antigo
+    $query   = $bq->query($sql)->useLegacySql(false)->useQueryCache(false);
+    $results  = $bq->runQuery($query);
 
     $jobInfo = $results->job()->info();
     $status  = $jobInfo['status'] ?? [];
@@ -128,7 +127,7 @@ try {
         exit;
     }
 
-    // Converte resultados em array simples, convertendo campos array vazios em null
+    // Converte resultados em array simples, arrays vazios -> null
     $rows = [];
     foreach ($results as $row) {
         $item = iterator_to_array($row);
@@ -146,7 +145,7 @@ try {
         'table'   => $tableFq,
         'limit'   => $limit,
         'data'    => $rows,
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
 
 } catch (\Throwable $e) {
     http_response_code(500);
