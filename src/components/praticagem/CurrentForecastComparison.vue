@@ -156,15 +156,15 @@
 import {
   ref, computed, reactive, onMounted, watch, nextTick,
 } from 'vue';
+import { storeToRefs } from 'pinia';
 import {
   Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend, Filler,
 } from 'chart.js';
+import { useWeatherStore } from 'src/stores/weather';      // << usa o store
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
-const API_BASE = 'https://www.meusimulador.com/kevi/backend/praticagem';
-const ENDPOINT_MESTRE_5M = `${API_BASE}/get_table_mestre_5min_tratada_bq.php`;
-const ENDPOINT_PREV = `${API_BASE}/get_prev_correnteza_forecast_bq.php`;
+/* ====== REMOVIDO: API_BASE/ENDPOINT_*  (agora tudo vem do store) ====== */
 
 const DEPTHS = [
   { key: '1_5m', label: '1.5m', color: '#4f7fee' },
@@ -175,14 +175,14 @@ const DEPTHS = [
   { key: '10_5m', label: '10.5m', color: '#b03ad7' },
   { key: '12m', label: '12m', color: '#5e6c7d' },
   { key: '13_5m', label: '13.5m', color: '#43c3d6' },
-  { key: 'superficie', label: 'Superfície', color: '#e31b5c' },
+  // { key: 'superficie', label: 'Superfície', color: '#e31b5c' },
 ];
 const depthOptions = DEPTHS.map((d) => ({ label: d.label, key: d.key }));
 const mestreIntensityCol = (key) => `intensidade_${key}`;
 const prevCol = (key) => `valor_previsto_${key}`;
 const BAND_DELTA = 0.25;
 
-// Campos esperados sempre presentes nos registros mestre
+/* ===== Campos esperados ===== */
 const ALL_MESTRE_COLS = [
   'timestamp_br', 'timestamp_prev',
   ...DEPTHS.flatMap((d) => [
@@ -193,25 +193,25 @@ const ALL_MESTRE_COLS = [
     `direcao_${d.key}_deg`,
   ]),
 ];
-
-// Campos esperados sempre presentes nos registros previsão
 const ALL_PREV_COLS = [
   'timestamp_br',
   ...DEPTHS.map((d) => `valor_previsto_${d.key}`),
 ];
 
-// ========= UTILIDADES ==========
-
+/* ===== Utils ===== */
 const numOrNull = (v) => {
   if (v === null || v === undefined) return null;
   if (typeof v === 'object' && Object.keys(v).length === 0) return null;
   if (typeof v === 'string' && v.trim() === '') return null;
-  const num = Number(v);
-  return Number.isFinite(num) ? num : null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 };
-const normTs = (t) => (!t ? null : (typeof t === 'string' ? t.replace('T', ' ').slice(0, 19) : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
+const normTs = (t) => (!t
+  ? null
+  : (typeof t === 'string'
+      ? t.replace('T', ' ').slice(0, 19)
+      : (t.date ? String(t.date).replace('T', ' ').slice(0, 19) : String(t))));
 
-// Garante todos os campos existem e são normatizados
 function normalizeMestreRow(r) {
   const out = { ...r };
   ALL_MESTRE_COLS.forEach((col) => {
@@ -226,14 +226,13 @@ function normalizePrevRow(r) {
   const out = { ...r };
   ALL_PREV_COLS.forEach((col) => {
     if (!(col in out) || out[col] === undefined) out[col] = null;
-    if (col.startsWith('valor_previsto_')) out[col] = numOrNull(out[col]);
+    if (col.startsWith('valor_previsto_')) out[col] = numOrNull(out[col]); // preserva sinal
   });
   out.timestamp_br = normTs(out.timestamp_br);
   return out;
 }
 
-// ============ CONTROLE VUE ==============
-
+/* ====== CONTROLE VUE ====== */
 const config = ref({
   chartHeight: 320,
   showPoints: false,
@@ -241,66 +240,73 @@ const config = ref({
   bandDisplay: 'both',
 });
 const showConfig = ref(false);
-const loading = ref(false);
+const loading = ref(false);   // loading local pro combo das chamadas
 const error = ref(null);
 const prevSource = ref('5min');
 const prevSourceLabel = computed(() => (prevSource.value === '5min' ? '5-min' : 'horária'));
+
 const SELECTED_DEPTHS_KEY = 'correntezaSelectedDepths';
 function getInitialDepths() {
-  const saved = localStorage.getItem(SELECTED_DEPTHS_KEY);
-  if (saved) {
-    try {
-      const val = JSON.parse(saved);
-      if (Array.isArray(val) && val.length) return val;
-    // eslint-disable-next-line no-empty
-    } catch (e) {}
-  }
+  try {
+    const saved = localStorage.getItem(SELECTED_DEPTHS_KEY);
+    const val = saved ? JSON.parse(saved) : null;
+    if (Array.isArray(val) && val.length) return val;
+  } catch (e) {}
   return ['3m'];
 }
 const selectedDepthKeys = ref(getInitialDepths());
 const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
-const mestre5min = ref([]); const prevHourly = ref([]); const prev5m = ref([]);
 watch(selectedDepthKeys, (val) => {
   localStorage.setItem(SELECTED_DEPTHS_KEY, JSON.stringify(val));
 }, { deep: true });
 
-// ================= AJAX =================
+/* ====== STORE: usa dados do weather.js ====== */
+const weather = useWeatherStore();
+const {
+  weatherHistory,       // mestre 5m bruto
+  correnteza5Min,       // prev 5m bruta
+  correntezaHourly,     // prev hora bruta
+  error: storeError,
+} = storeToRefs(weather);
 
-async function fetchJSON(url) {
-  const res = await fetch(url);
-  const json = await res.json();
-  if (!json.success) throw new Error(json.erro || `Falha no endpoint: ${url}`);
-  return json.data || [];
+/* ====== Buffers locais normalizados (o chart já usa essas refs) ====== */
+const mestre5min = ref([]);
+const prev5m = ref([]);
+const prevHourly = ref([]);
+
+/* sincronia dos estados do store -> normalizados locais */
+function syncFromStore() {
+  mestre5min.value = (weatherHistory.value || []).map(normalizeMestreRow)
+    .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+  prev5m.value = (correnteza5Min.value || []).map(normalizePrevRow)
+    .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
+  prevHourly.value = (correntezaHourly.value || []).map(normalizePrevRow)
+    .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
 }
 
-// ========== AJUSTE PRINCIPAL: carregamento e normalização ==========
+/* ====== CARREGAMENTO usando o store ====== */
 async function loadAll() {
   loading.value = true; error.value = null;
   try {
-    const [mestre, ph, p5] = await Promise.all([
-      fetchJSON(`${ENDPOINT_MESTRE_5M}?limit=1000`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=hora&limit=1000&include_past=1`),
-      fetchJSON(`${ENDPOINT_PREV}?tabela=5min&limit=4000&include_past=1`),
+    await Promise.all([
+      weather.fetchHistory(1000),        // mestre 5-min
+      weather.fetchCorrenteza5Min(4000), // previsão 5-min
+      weather.fetchCorrentezaHourly(1000), // previsão horária
     ]);
-    mestre5min.value = mestre.map(normalizeMestreRow)
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-    prevHourly.value = ph.map(normalizePrevRow)
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-    prev5m.value = p5.map(normalizePrevRow)
-      .sort((a, b) => (a.timestamp_br > b.timestamp_br ? 1 : -1));
-  } catch (e) { error.value = e.message || String(e); } finally {
-    // eslint-disable-next-line no-use-before-define
+    syncFromStore();
+    // posiciona o cursor na cauda
     DEPTHS.forEach((d) => { cursor[d.key] = maxCursor(d.key); });
+  } catch (e) {
+    error.value = (storeError.value || e?.message || String(e));
+  } finally {
     loading.value = false;
   }
 }
 
-// ==================== GESTÃO DOS DADOS PARA O GRÁFICO ======================
-
+/* ====== GESTÃO DOS DADOS P/ GRÁFICO ====== */
 const windowSize = 288; const stepSize = 144;
 const cursor = reactive({}); DEPTHS.forEach((d) => { cursor[d.key] = 0; });
 
-// eslint-disable-next-line no-unused-vars
 const alignedTimestamps = (key) => {
   const allTs = [
     ...new Set([
@@ -311,9 +317,7 @@ const alignedTimestamps = (key) => {
   return allTs;
 };
 const maxCursor = (key) => Math.max(0, alignedTimestamps(key).length - windowSize);
-// eslint-disable-next-line no-use-before-define
 const prevWindow = (key) => { cursor[key] = Math.max(0, cursor[key] - stepSize); renderChart(key); };
-// eslint-disable-next-line no-use-before-define
 const nextWindow = (key) => { cursor[key] = Math.min(maxCursor(key), cursor[key] + stepSize); renderChart(key); };
 const dataSliceTimestamps = (key) => alignedTimestamps(key).slice(cursor[key], cursor[key] + windowSize);
 const windowLabel = (key) => {
@@ -345,8 +349,8 @@ const getDepthSeries = (key) => {
 
     return {
       timestamp: ts,
-      hist: signedHist,          // agora: enchente > 0, vazante < 0
-      prev: prevMap.get(ts) ?? null, // previsão permanece como vem
+      hist: signedHist,                  // enchente > 0, vazante < 0
+      prev: prevMap.get(ts) ?? null,     // previsão: já vem com sinal do backend
     };
   });
 };
@@ -361,12 +365,13 @@ const miniCardValue = computed(() => {
     const hist = serie[idx]?.hist;
     const prev = serie[idx]?.prev;
     out[d.key] = {
-      hist: hist !== null && hist !== undefined ? Number(hist).toFixed(3) : '--',
-      prev: prev !== null && prev !== undefined ? Number(prev).toFixed(3) : '--',
+      hist: hist != null ? Number(hist).toFixed(3) : '--',
+      prev: prev != null ? Number(prev).toFixed(3) : '--',
     };
   });
   return out;
 });
+
 const latestTimestamps = computed(() => {
   const out = {};
   DEPTHS.forEach((d) => {
@@ -377,28 +382,29 @@ const latestTimestamps = computed(() => {
   return out;
 });
 
+/* ===== Chart infra ===== */
 const canvasRefs = reactive({});
 function setCanvasRef(key, el) { if (el) canvasRefs[key] = el; }
 const chartjsObjs = {};
 const tooltip = reactive({});
 const tooltipStyle = {
   position: 'absolute',
-  zIndex: 99,
-  background: '#fff',
-  color: '#263238',
+zIndex: 99,
+background: '#fff',
+color: '#263238',
   borderRadius: '8px',
-  boxShadow: '0 6px 16px rgba(38,50,56,0.2)',
+boxShadow: '0 6px 16px rgba(38,50,56,0.2)',
   padding: '10px 14px 9px 12px',
-  pointerEvents: 'none',
+pointerEvents: 'none',
   fontSize: '1.06em',
-  lineHeight: '1.18em',
-  border: '1.5px solid #d7e9fa',
+lineHeight: '1.18em',
+border: '1.5px solid #d7e9fa',
   userSelect: 'none',
-  minWidth: '128px',
-  left: 'auto',
-  top: '-56px',
-  right: '8px',
-  bottom: 'auto',
+minWidth: '128px',
+left: 'auto',
+top: '-56px',
+right: '8px',
+bottom: 'auto',
 };
 function renderChart(key) {
   nextTick(() => {
@@ -419,70 +425,67 @@ function renderChart(key) {
         datasets.push({
           label: `Previsão ${d.label} -${BAND_DELTA.toFixed(2)}`,
           data: minus,
-          borderColor: d.color,
-          backgroundColor: 'rgba(0,0,0,0)',
+borderColor: d.color,
+backgroundColor: 'rgba(0,0,0,0)',
           fill: false,
-          pointRadius: 1.5,
-          borderWidth: 2,
-          order: 0,
-          hidden: false,
-          spanGaps: true,
+pointRadius: 1.5,
+borderWidth: 2,
+order: 0,
+hidden: false,
+spanGaps: true,
         });
         datasets.push({
           label: `Previsão ${d.label} +${BAND_DELTA.toFixed(2)}`,
           data: plus,
-          borderColor: d.color,
-          // eslint-disable-next-line no-use-before-define
+borderColor: d.color,
           backgroundColor: (config.value.bandDisplay === 'background' || config.value.bandDisplay === 'both') ? hexToRgba(d.color, 0.13) : 'rgba(0,0,0,0)',
           fill: (config.value.bandDisplay === 'background' || config.value.bandDisplay === 'both') ? '-1' : false,
           pointRadius: 1.5,
-          borderWidth: 2,
-          order: 0,
-          hidden: false,
-          spanGaps: true,
+borderWidth: 2,
+order: 0,
+hidden: false,
+spanGaps: true,
         });
       } else if (config.value.bandDisplay === 'background') {
         datasets.push({
           label: `Banda previsão ${d.label}`,
           data: plus,
-          borderColor: 'rgba(0,0,0,0)',
-          // eslint-disable-next-line no-use-before-define
+borderColor: 'rgba(0,0,0,0)',
           backgroundColor: hexToRgba(d.color, 0.13),
-          // eslint-disable-next-line no-use-before-define
           fill: { target: { value: minus }, above: hexToRgba(d.color, 0.13) },
           pointRadius: 0,
-          borderWidth: 0,
-          order: 0,
-          hidden: false,
-          spanGaps: true,
+borderWidth: 0,
+order: 0,
+hidden: false,
+spanGaps: true,
         });
       }
     }
     datasets.push({
       label: `Histórico ${d.label}`,
       data: histVals,
-      borderColor: '#1e78db',
-      backgroundColor: '#1e78db33',
+borderColor: '#1e78db',
+backgroundColor: '#1e78db33',
       tension: 0.32,
-      pointRadius,
-      borderWidth: 2,
-      fill: false,
-      spanGaps: true,
-      order: 2,
+pointRadius,
+borderWidth: 2,
+fill: false,
+spanGaps: true,
+order: 2,
     });
     if (!config.value.showBand) {
       datasets.push({
         label: `Previsão ${d.label}`,
         data: prevVals,
-        borderColor: d.color,
-        backgroundColor: `${d.color}33`,
+borderColor: d.color,
+backgroundColor: `${d.color}33`,
         borderDash: [6, 4],
-        tension: 0.32,
-        pointRadius,
-        borderWidth: 2,
+tension: 0.32,
+pointRadius,
+borderWidth: 2,
         fill: false,
-        spanGaps: true,
-        order: 2,
+spanGaps: true,
+order: 2,
       });
     }
 
@@ -491,13 +494,10 @@ function renderChart(key) {
       data: { labels, datasets },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
+maintainAspectRatio: false,
+animation: false,
         plugins: {
-          legend: {
-            position: 'top',
-            labels: { boxWidth: 16, font: { size: 15 }, filter: (item) => !item.text.includes('_band_') },
-          },
+          legend: { position: 'top', labels: { boxWidth: 16, font: { size: 15 }, filter: (i) => !i.text.includes('_band_') } },
           tooltip: { enabled: false },
         },
         interaction: { intersect: false, mode: 'nearest', axis: 'x' },
@@ -512,8 +512,8 @@ function renderChart(key) {
           tooltip[key] = {
             active: true,
             label: labels[idx],
-            hist: histVals[idx] !== null && histVals[idx] !== undefined ? Number(histVals[idx]).toFixed(3) : '--',
-            prev: prevVals[idx] !== null && prevVals[idx] !== undefined ? Number(prevVals[idx]).toFixed(3) : '--',
+            hist: histVals[idx] != null ? Number(histVals[idx]).toFixed(3) : '--',
+            prev: prevVals[idx] != null ? Number(prevVals[idx]).toFixed(3) : '--',
           };
         },
         onLeave: () => { tooltip[key] = { active: false }; lastScrubIdx[key] = null; },
@@ -527,14 +527,8 @@ function renderChart(key) {
           const x = chart.scales.x.getPixelForValue(idx);
           const y0 = chart.scales.y.top; const y1 = chart.scales.y.bottom;
           const { ctx } = chart;
-          ctx.save();
-          ctx.strokeStyle = '#1e78db55';
-          ctx.setLineDash([4, 4]);
-          ctx.beginPath();
-          ctx.moveTo(x, y0);
-          ctx.lineTo(x, y1);
-          ctx.stroke();
-          ctx.restore();
+          ctx.save(); ctx.strokeStyle = '#1e78db55'; ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y1); ctx.stroke(); ctx.restore();
         },
       }],
     });
@@ -552,70 +546,44 @@ function hexToRgba(hex, alpha = 1) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// --- direção → sinal (+1 enchente, -1 vazante) ---
-function angDist(a, b) {
-  // distância angular mínima entre a e b (0..180)
-  return Math.abs(((a - b + 180) % 360) - 180);
-}
+/* ===== direção → sinal do histórico ===== */
+function angDist(a, b) { return Math.abs(((a - b + 180) % 360) - 180); }
 function dirStringToDeg(s) {
   if (!s) return null;
   const t = String(s).trim().toUpperCase();
-  // mapeamento básico; ajuste se vierem outras variações
-  const map = {
-    N: 0,
-NNE: 22.5,
-NE: 45,
-ENE: 67.5,
-    E: 90,
-ESE: 112.5,
-SE: 135,
-SSE: 157.5,
-    S: 180,
-SSO: 202.5,
-SO: 225,
-OSO: 247.5,
-    O: 270,
-ONO: 292.5,
-NO: 315,
-NNO: 337.5,
-    W: 270,
-WNW: 292.5,
-NW: 315,
-NNW: 337.5, // caso venha em inglês
-    SSW: 202.5,
-SW: 225,
-WSW: 247.5,
-// eslint-disable-next-line no-dupe-keys
-ESE: 112.5,
-  };
-  // tenta match exato; se vier "N (10°)" ou algo assim, pega o primeiro token
+  // eslint-disable-next-line no-dupe-keys
+  const map = { N:0, NNE:22.5, NE:45, ENE:67.5, E:90, ESE:112.5, SE:135, SSE:157.5, S:180, SSO:202.5, SO:225, OSO:247.5, O:270, ONO:292.5, NO:315, NNO:337.5, W:270, WNW:292.5, NW:315, NNW:337.5, SSW:202.5, SW:225, WSW:247.5, ESE:112.5 };
   const token = t.split(/[^A-Z]/)[0];
   if (map[token] != null) return map[token];
-  // tenta extrair número em graus
   const m = t.match(/(\d+(?:\.\d+)?)\s*°?/);
   return m ? Number(m[1]) % 360 : null;
 }
 function signByDirection(deg, str) {
-  let d = (deg == null || !Number.isFinite(deg)) ? dirStringToDeg(str) : deg;
-  if (d == null) return null; // sem direção → não altera sinal
-  // decide pelo mais próximo: 0° (N) = enchente (+), 180° (S) = vazante (-)
+  const d = (deg == null || !Number.isFinite(deg)) ? dirStringToDeg(str) : deg;
+  if (d == null) return null;
   return angDist(d, 0) <= angDist(d, 180) ? +1 : -1;
 }
 
+/* ===== Lifecycle & watchers ===== */
 onMounted(async () => {
   await loadAll();
   nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
 });
+
+// re-render quando mudar visibilidade/config
 watch(
   [visibleDepths, prevSource, () => config.value.showBand, () => config.value.showPoints, () => config.value.bandDisplay, () => config.value.chartHeight],
   () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
   { deep: true },
 );
-watch(
-  [mestre5min, prev5m, prevHourly],
-  () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
-  { deep: true },
-);
+
+// re-sync quando o store atualizar arrays
+watch([weatherHistory, correnteza5Min, correntezaHourly], () => {
+  syncFromStore();
+  nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
+}, { deep: true });
+
+/* Exposição pra template */
 </script>
 
 <style scoped>
