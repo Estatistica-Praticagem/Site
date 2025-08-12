@@ -341,22 +341,28 @@ const lineLabels = {
 };
 
 const defaultConfig = () => ({
-  chartHeight: 320,
-  showPoints: false,
-  showBand: false,
-  lines: ['marinha', 'real', 'ga'],
-  viewType: 'chart',
+  chartHeight: 500,        // Altura do gráfico: 500 px
+  showPoints: false,       // Sem bolinhas
+  lines: ['marinha', 'real', 'ga'], // Marinha + Medida + GA
+  viewType: 'chart',       // Abre no gráfico de linha
+
+  // Banda visível (GA ± delta) + “Só fundo”
+  showBand: true,
+  bandDelta: 0.10,         // 0.20 total (mostrado no UI)
+  bandStyle: 'fill',       // "Só fundo"
+
+  // Espessura e tooltip
+  lineWidth: 2,            // Linha fina
   tooltipPosition: 'top-right',
-  tooltipScale: 1,
-  bandDelta: 0.15,
-  bandStyle: 'both',
-  lineWidth: 2,
-  tooltipOffsetX: 0,
-  tooltipOffsetY: 0,
-  /* suavização */
-  smoothingType: 'none', // none | moving
-  smoothingWindow: 7, // jan. mínima 3 ímpar
+  tooltipScale: 0.8,       // 0.80x
+  tooltipOffsetX: 114,     // Deslocamento X
+  tooltipOffsetY: -76,     // Deslocamento Y
+
+  // Suavização GA
+  smoothingType: 'moving', // Média móvel
+  smoothingWindow: 7,      // 7 pts
 });
+
 const config = ref(defaultConfig());
 
 onMounted(() => {

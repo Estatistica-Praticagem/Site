@@ -120,7 +120,7 @@
               <q-slider
                 v-model="config.bandDelta"
                 :min="0.05"
-                :max="0.30"
+                :max="0.50"
                 :step="0.01"
                 color="primary"
                 label
@@ -175,7 +175,7 @@
               inline
             />
             <div v-if="config.smoothingType === 'sma' || config.smoothingType === 'triangular'" class="q-mt-xs row items-center q-gutter-sm">
-              <div class="text-caption text-bold">Janela (ímpar)</div>
+              <div class="text-caption text-bold">Janela</div>
               <q-slider
                 v-model="config.smoothingWindow"
                 :min="3"
@@ -488,27 +488,32 @@ function hexToRgba(hex, alpha = 1) {
 
 /* ===== CONTROLE VUE ===== */
 const defaultConfig = () => ({
-  chartHeight: 320,
-  showValuesMode: 'tooltip', // tooltip | boxes
+  chartHeight: 370,
+  showValuesMode: 'tooltip',
   showPoints: false,
-  showBand: false,
-  bandDelta: 0.15,
-  bandStyle: 'both',        // both | border | fill
-  lineWidth: 1,             // fina de verdade
+
+  showBand: true,
+  bandDelta: 0.25,          // 0.50 total inicial (porque é ±0.25)
+  bandStyle: 'fill',        // "Só fundo"
+
+  lineWidth: 1,
   tooltipScale: 1,
-  tooltipPosition: 'top-right', // top-left | top-right | bottom-left | bottom-right | follow
+  tooltipPosition: 'top-right',
   tooltipOffsetX: 0,
   tooltipOffsetY: 0,
-  yMode: 'auto',            // auto | fixed
+
+  yMode: 'auto',
   yMin: -3,
   yMax: 3,
+
   // suavização
-  smoothingType: 'none',    // none | sma | ema | triangular
-  smoothingWindow: 7,       // ímpar
-  smoothingAlpha: 0.2,      // EMA alpha
-  // legado (se existia no localStorage)
+  smoothingType: 'triangular',
+  smoothingWindow: 15,
+  smoothingAlpha: 0.2,
+
   bandDisplay: 'both',
 });
+
 const CONFIG_KEY = 'correntezaConfigV1';
 const config = ref(defaultConfig());
 const showConfig = ref(false);
