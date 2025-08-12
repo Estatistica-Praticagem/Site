@@ -69,11 +69,81 @@ $bq = new BigQueryClient([
 
 /* ─────────── Consulta SQL ─────────────────────────── */
 $sql = "
-  SELECT *
-  FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
-  ORDER BY timestamp_br DESC
-  LIMIT $limit
+SELECT
+  timestamp_br,
+  ts_hour,
+  umidade,
+  pressao,
+  ventointensidade,
+  ventonum,
+  temperatura,
+  sensacaotermica,
+  altura_medida_getcontrols,
+
+  intensidade_15m,  direcao_15m,
+  intensidade_13_5m, direcao_13_5m,
+  intensidade_12m,  direcao_12m,
+  intensidade_10_5m, direcao_10_5m,
+  intensidade_9m,   direcao_9m,
+  intensidade_7_5m, direcao_7_5m,
+  intensidade_superficie, direcao_superficie,
+  intensidade_6m,  direcao_6m,
+  intensidade_3m,  direcao_3m,
+  intensidade_1_5m, direcao_1_5m,
+
+  altura_prev_getmare,
+  altura_real_getmare,
+  ventodirecao,
+  status,
+  data_station_davis,
+  data_inicio,
+  numero,
+  descricao,
+  `data`,
+  tipo,
+  data_lua,
+  nascer_do_sol,
+  por_do_sol,
+  matutino,
+  vespertino,
+  tipo_mare_getcontrols,
+  data_mare_getcontrols,
+  data_hidromares,
+  data_mare_getmare,
+  data_mare_real_getmare,
+  api_mare,
+  api_hidromares,
+  api_estatistica,
+  motivo,
+
+  direcao_15m_deg,
+  direcao_13_5m_deg,
+  direcao_12m_deg,
+  direcao_10_5m_deg,
+  direcao_9m_deg,
+  direcao_7_5m_deg,
+  direcao_6m_deg,
+  direcao_3m_deg,
+  direcao_1_5m_deg,
+
+  enchente_vazante_15m,  intensidade_15m_ajustada,
+  enchente_vazante_13_5m, intensidade_13_5m_ajustada,
+  enchente_vazante_12m,  intensidade_12m_ajustada,
+  enchente_vazante_10_5m, intensidade_10_5m_ajustada,
+  enchente_vazante_9m,   intensidade_9m_ajustada,
+  enchente_vazante_7_5m, intensidade_7_5m_ajustada,
+  enchente_vazante_6m,   intensidade_6m_ajustada,
+  enchente_vazante_3m,   intensidade_3m_ajustada,
+  enchente_vazante_1_5m, intensidade_1_5m_ajustada,
+  enchente_vazante,
+
+  altura_prevista,
+  timestamp_prev
+FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
+ORDER BY timestamp_br DESC
+LIMIT $limit
 ";
+
 
 try {
     $results = $bq->runQuery($bq->query($sql));

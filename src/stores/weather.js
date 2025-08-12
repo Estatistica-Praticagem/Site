@@ -46,7 +46,7 @@ export const useWeatherStore = defineStore('weather', {
       } finally { this.loading = false; }
     },
 
-    async fetchHistory(limit = 1000) {
+    async fetchHistory(limit = 4000) {
       this.loading = true; this.error = null;
       try {
         const res = await fetch(q(EP.mestre5min, { limit }));

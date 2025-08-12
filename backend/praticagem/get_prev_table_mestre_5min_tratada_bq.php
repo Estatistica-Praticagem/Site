@@ -68,8 +68,7 @@ $bq = new BigQueryClient([
 
 /* ─────────── Consulta SQL ─────────────────────────── */
 $sql = "
-  SELECT *
-  FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
+  SELECT timestamp_prev, altura_prevista, altura_real_getmare, altura_prev_getmare FROM `local-bliss-359814.wherehouse_tratado.mestre_5min_tratada`
   ORDER BY timestamp_prev DESC
   LIMIT $limit
 ";
