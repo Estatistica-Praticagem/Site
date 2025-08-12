@@ -36,3 +36,6 @@ yarn-error.log*
 # local .env files
 .env.local*
 caminho/para/service-account.json
+
+# GCP service account
+backend/Chave-BQ/local-bliss-359814-77f4ec3f5fce.json
