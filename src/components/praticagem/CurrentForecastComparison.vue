@@ -312,7 +312,7 @@
           </div>
 
           <div class="tide-chart-container" ref="chartWrap" :style="{ height: config.chartHeight + 'px' }">
-            <canvas :ref="el => setCanvasRef(d.key, el)" :height="config.chartHeight" style="width:100%;"></canvas>
+            <canvas :ref="el => setCanvasRef(d.key, el)" :style="{ width:'100%', height: config.chartHeight + 'px' }"></canvas>
 
             <!-- Tooltip (apenas se modo tooltip) -->
             <div v-if="config.showValuesMode === 'tooltip' && tooltip[d.key]?.active" :style="tooltipBoxStyle(d.key)">
@@ -345,15 +345,11 @@
 
 <script setup>
 import {
-  ref, computed, reactive, onMounted, watch, nextTick,
+  ref, computed, reactive, onMounted, watch, nextTick, onBeforeUnmount,
 } from 'vue';
 import { storeToRefs } from 'pinia';
-import {
-  Chart, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip as ChartTooltip, Legend, Filler,
-} from 'chart.js';
+import Chart from 'chart.js/auto'; // ✅ registra tudo automaticamente
 import { useWeatherStore } from 'src/stores/weather';
-
-Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, ChartTooltip, Legend, Filler);
 
 /* ===== Profundidades ===== */
 const DEPTHS = [
@@ -419,6 +415,23 @@ function normalizePrevRow(r) {
   });
   out.timestamp_br = normTs(out.timestamp_br);
   return out;
+}
+
+const renderRAF = {};
+function scheduleRender(key) {
+  if (renderRAF[key]) cancelAnimationFrame(renderRAF[key]);
+  renderRAF[key] = requestAnimationFrame(() => {
+    renderRAF[key] = 0;
+    renderChartNow(key);
+  });
+}
+
+function destroyChart(key) {
+  const el = canvasRefs[key];
+  if (!el) return;
+  const existing = Chart.getChart(el);
+  if (existing) existing.destroy();
+  if (chartjsObjs[key]) { try { chartjsObjs[key].destroy(); } catch {} chartjsObjs[key] = null; }
 }
 
 /* ===== Direção → sinal do histórico ===== */
@@ -560,7 +573,7 @@ async function loadAll() {
   try {
     await Promise.all([
       weather.fetchHistory(1000),
-      weather.fetchCorrenteza5Min(4000),
+      weather.fetchCorrenteza5Min(1000),
       weather.fetchCorrentezaHourly(1000),
     ]);
     syncFromStore();
@@ -586,8 +599,8 @@ const alignedTimestamps = (key) => {
   return allTs;
 };
 const maxCursor = (key) => Math.max(0, alignedTimestamps(key).length - windowSize);
-const prevWindow = (key) => { cursor[key] = Math.max(0, cursor[key] - stepSize); renderChart(key); };
-const nextWindow = (key) => { cursor[key] = Math.min(maxCursor(key), cursor[key] + stepSize); renderChart(key); };
+const prevWindow = (key) => { cursor[key] = Math.max(0, cursor[key] - stepSize); scheduleRender(key); };
+const nextWindow = (key) => { cursor[key] = Math.min(maxCursor(key), cursor[key] + stepSize); scheduleRender(key); };
 const dataSliceTimestamps = (key) => alignedTimestamps(key).slice(cursor[key], cursor[key] + windowSize);
 const windowLabel = (key) => {
   const ts = dataSliceTimestamps(key);
@@ -761,7 +774,14 @@ const tooltipBoxStyle = (key) => {
 
 /* ===== Chart infra ===== */
 const canvasRefs = reactive({});
-function setCanvasRef(key, el) { if (el) canvasRefs[key] = el; }
+function setCanvasRef(key, el) {
+  const prev = canvasRefs[key];
+  if (prev && prev !== el) {
+    const c = Chart.getChart(prev);
+    if (c) c.destroy();
+  }
+  if (el) canvasRefs[key] = el;
+}
 const chartjsObjs = {};
 
 /* ===== Render por gráfico (profundidade) ===== */
@@ -784,10 +804,13 @@ function computeYScale(histVals, prevVals) {
   return { min: Number((min - pad).toFixed(2)), max: Number((max + pad).toFixed(2)) };
 }
 
-function renderChart(key) {
+function renderChartNow(key) {
   nextTick(() => {
     if (!canvasRefs[key]) return;
-    if (chartjsObjs[key]) { chartjsObjs[key].destroy(); chartjsObjs[key] = null; }
+
+    // destrói qualquer instância anterior daquele canvas
+    destroyChart(key);
+
     const d = DEPTHS.find((x) => x.key === key);
     const pointRadius = config.value.showPoints ? 2 : 0;
     const serie = getDepthSeries(key);
@@ -938,7 +961,7 @@ function renderChart(key) {
 /* ===== Lifecycle & watchers ===== */
 onMounted(async () => {
   await loadAll();
-  nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
+  nextTick(() => visibleDepths.value.forEach((d) => scheduleRender(d.key)));
 });
 
 watch(
@@ -962,14 +985,18 @@ watch(
     () => config.value.chartHeight,
     () => config.value.showValuesMode,
   ],
-  () => nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key))),
+  () => nextTick(() => visibleDepths.value.forEach((d) => scheduleRender(d.key))),
   { deep: true },
 );
 
 watch([weatherHistory, correnteza5Min, correntezaHourly], () => {
   syncFromStore();
-  nextTick(() => visibleDepths.value.forEach((d) => renderChart(d.key)));
+  nextTick(() => visibleDepths.value.forEach((d) => scheduleRender(d.key)));
 }, { deep: true });
+
+onBeforeUnmount(() => {
+  Object.keys(canvasRefs).forEach((k) => destroyChart(k));
+});
 </script>
 
 <style scoped>

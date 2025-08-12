@@ -46,7 +46,7 @@ export const useWeatherStore = defineStore('weather', {
       } finally { this.loading = false; }
     },
 
-    async fetchHistory(limit = 4000) {
+    async fetchHistory(limit = 1000) {
       this.loading = true; this.error = null;
       try {
         const res = await fetch(q(EP.mestre5min, { limit }));
@@ -84,7 +84,7 @@ export const useWeatherStore = defineStore('weather', {
 
     /* ====================== CORRENTEZA ====================== */
     // Endpoint unificado (hora/5min) — ajuste 'tabela' e 'limit'
-    async fetchCorrenteza({ tabela = '5min', limit = 4000 } = {}) {
+    async fetchCorrenteza({ tabela = '5min', limit = 1000 } = {}) {
       const url = q(EP.correntezaUnified, { tabela, limit });
       const res = await fetch(url, { method: 'GET' });
       const json = await res.json();
@@ -105,7 +105,7 @@ export const useWeatherStore = defineStore('weather', {
       } finally { this.loading = false; }
     },
 
-    async fetchCorrenteza5Min(limit = 4000) {
+    async fetchCorrenteza5Min(limit = 1000) {
       this.loading = true; this.error = null;
       try {
         this.correnteza5Min = await this.fetchCorrenteza({ tabela: '5min', limit });
