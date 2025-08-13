@@ -22,7 +22,7 @@
         />
       </g>
 
-      <!-- Seta Direcional -->
+      <!-- Seta Direcional (INVERTIDA: +180°) -->
       <text
         :x="mid"
         :y="mid - radius / 1.4"
@@ -31,7 +31,7 @@
         :fill="arrowColor"
         :stroke="showBorder ? borderColor : 'none'"
         :stroke-width="showBorder ? 1.5 : 0"
-        :transform="`rotate(${props.value} ${mid} ${mid})`"
+        :transform="`rotate(${headingOut} ${mid} ${mid})`"
         style="cursor: pointer"
         @click="showConfig = !showConfig"
       >
@@ -44,7 +44,8 @@
         {{ intVal }}
       </text>
       <text :x="mid" :y="mid+20" text-anchor="middle" font-size="10" fill="#789">kts</text>
-      <text :x="mid" :y="mid+35" text-anchor="middle" font-size="12" fill="#888">{{ grau }}°</text>
+      <!-- Mostra o ângulo PARA ONDE VAI (value + 180) -->
+      <text :x="mid" :y="mid+35" text-anchor="middle" font-size="12" fill="#888">{{ grauOut }}°</text>
 
       <!-- Rosa dos Ventos -->
       <text :x="mid" :y="18" text-anchor="middle" font-size="9" fill="#1976d2">N</text>
@@ -82,12 +83,10 @@
 </template>
 
 <script setup>
-import {
-  ref, computed, watch, onMounted,
-} from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 
 const props = defineProps({
-  value: { type: Number, default: 0 }, // direção vento
+  value: { type: Number, default: 0 }, // direção DO VENTO (de onde vem)
   intensidade: { type: Number, default: 0 }, // intensidade em kts
   max: { type: Number, default: 60 },
   size: { type: Number, default: 110 },
@@ -103,13 +102,9 @@ function windColor(kts) {
 }
 
 function resetToDefault() {
-  // eslint-disable-next-line no-use-before-define
   arrowSize.value = 22;
-  // eslint-disable-next-line no-use-before-define
   showBorder.value = true;
-  // eslint-disable-next-line no-use-before-define
   arrowColor.value = '#0d47a1';
-  // eslint-disable-next-line no-use-before-define
   borderColor.value = '#1976d2';
 }
 
@@ -120,7 +115,6 @@ const innerR = computed(() => props.size / 2.9);
 
 // ARCO
 function polarToCartesian(cx, cy, r, angleInDegrees) {
-  // eslint-disable-next-line no-mixed-operators
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
   return { x: cx + (r * Math.cos(angleInRadians)), y: cy + (r * Math.sin(angleInRadians)) };
 }
@@ -133,11 +127,20 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 const arc = computed(() => (Math.min(props.intensidade, props.max) / props.max) * 270);
 const arcPath = computed(() => describeArc(mid.value, mid.value, radius.value, 0, arc.value));
 
-// TEXTO
-// eslint-disable-next-line no-restricted-globals
-const grau = computed(() => (isNaN(props.value) ? '--' : props.value.toFixed(1)));
-// eslint-disable-next-line no-restricted-globals
-const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(1)));
+// TEXTO (valores numéricos) — normaliza e inverte
+const grauIn = computed(() => {
+  const raw = Number(props.value);
+  const v = Number.isFinite(raw) ? raw : 0;
+  return ((v % 360) + 360) % 360;           // 0..359
+});
+const grauOut = computed(() => (grauIn.value + 180) % 360); // para onde vai
+const intVal = computed(() => {
+  const raw = Number(props.intensidade);
+  return Number.isFinite(raw) ? raw.toFixed(1) : '--';
+});
+
+// ÂNGULO usado na rotação da seta (invertido)
+const headingOut = computed(() => grauOut.value);
 
 // CONFIGURAÇÕES DE SETA COM LOCALSTORAGE
 const configKey = 'windArrowConfig';

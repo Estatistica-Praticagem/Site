@@ -15,7 +15,7 @@
         :fill="arrowColor"
         :stroke="showBorder ? borderColor : 'none'"
         :stroke-width="showBorder ? 1 : 0"
-        :transform="`rotate(${props.deg} 18 18)`"
+        :transform="`rotate(${degOut} 18 18)`"
         style="cursor: pointer"
         @click="showConfig = !showConfig"
       >
@@ -71,6 +71,13 @@ import {
 const props = defineProps({
   deg: { type: Number, default: 0 },
 });
+
+// Normaliza o ângulo de entrada e inverte (para onde vai = +180°)
+const degIn = computed(() => {
+  const v = Number(props.deg);
+  return Number.isFinite(v) ? ((v % 360) + 360) % 360 : 0;
+});
+const degOut = computed(() => (degIn.value + 180) % 360);
 
 // LocalStorage global para todas as setas
 const configKey = 'globalWindArrowConfig';
