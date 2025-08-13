@@ -65,6 +65,7 @@
               </span>
             </div>
 
+            <!-- Relógio -->
             <CurrentGauge
               :intensidade="parseFloat(weather[info.int] ?? 0)"
               :value="parseFloat(weather[info.dir] ?? 0)"
@@ -73,6 +74,12 @@
               :size="computedGaugeSize"
               :lang="config.dirLang"
             />
+
+            <!-- Intensidade abaixo do relógio -->
+            <div class="intensity-row q-mt-sm">
+              <span class="int-value">{{ fmtKts(weather[info.int]) }}</span>
+              <span class="int-unit">kts</span>
+            </div>
           </q-card>
         </div>
       </div>
@@ -150,7 +157,7 @@
     </q-dialog>
 
     <!-- Info detalhada - status -->
-    <q-card class="q-pa-md bg-white shadow-2" style="border-radius:16px;max-width:1200px;margin:auto;">
+    <!-- <q-card class="q-pa-md bg-white shadow-2" style="border-radius:16px;max-width:1200px;margin:auto;">
       <div class="text-h6 text-weight-bold text-primary">Situação</div>
       <div class="text-body1 q-mb-xs">
         <b>{{ weather.status ?? '--' }}</b>
@@ -159,7 +166,7 @@
         </span>
       </div>
       <div class="text-caption text-grey-8">Leitura: {{ weather.timestamp_br?.date ?? '--' }}</div>
-    </q-card>
+    </q-card> -->
   </div>
 </template>
 
@@ -215,15 +222,16 @@ const computedGaugeSize = computed(() => {
   return 100;
 });
 
-// Dimensões do card acompanham o tamanho
+// Dimensões do card acompanham o tamanho (reservei um pouco mais para a linha de intensidade)
 const cardDims = computed(() => {
   const s = computedGaugeSize.value;
   return {
     cardW: Math.round(s + 20),
-    cardMinH: Math.round(s + 58),
+    cardMinH: Math.round(s + 76),
   };
 });
 
+// Campos exibidos conforme config
 const filteredCampos = computed(() => correnteCamposAll.filter((c) => config.value.visibleProfs.includes(c.profKey)));
 
 function dirSigla(info) {
@@ -235,6 +243,12 @@ function dirTooltip(info) {
   if (!info.deg || !weather.value) return '';
   const sigla = weather.value[info.deg];
   return sigla || '';
+}
+
+// Formata intensidade em kts
+function fmtKts(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toFixed(2) : '--';
 }
 
 watch(config, () => {
@@ -265,7 +279,7 @@ watch(config, () => {
   border-radius: 13px;
   box-shadow: 0 1px 6px #e0e0e033;
   width: 100%;
-  padding: 6px 2px 2px 2px;
+  padding: 6px 2px 8px 2px; /* um pouco mais embaixo para a linha da intensidade */
   margin: 0;
 }
 .relogio-label {
@@ -274,6 +288,25 @@ watch(config, () => {
   margin-bottom: 0;
   color: #1565c0;
 }
+
+/* linha da intensidade abaixo do gauge */
+.intensity-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-top: 6px;
+  gap: 4px;
+}
+.int-value {
+  font-weight: 700;
+  color: #263238;
+  font-variant-numeric: tabular-nums;
+}
+.int-unit {
+  font-size: 0.85em;
+  color: #607d8b;
+}
+
 @media (max-width: 1100px) {
   .relogio-grid { max-width: 100vw; }
 }

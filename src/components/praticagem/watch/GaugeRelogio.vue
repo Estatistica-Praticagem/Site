@@ -1,119 +1,215 @@
 <template>
-  <div>
-    <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" class="gauge-svg" @click="showConfig = !showConfig">
-      <!-- Círculo principal -->
+  <div class="gauge-wrap">
+    <!-- RELÓGIO (clique para abrir configurações) -->
+    <svg
+      :width="size"
+      :height="size"
+      :viewBox="`0 0 ${size} ${size}`"
+      class="gauge-svg"
+      @click="showConfig = true"
+      style="cursor: pointer"
+    >
+      <defs>
+        <radialGradient :id="gradId" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="100%" stop-color="#f2f6fb" />
+        </radialGradient>
+      </defs>
+
+      <!-- Círculo externo do relógio -->
       <circle
         :cx="center"
         :cy="center"
-        :r="center-6"
-        :fill="circleFill"
-        :stroke="showClockBorder ? clockBorderColor : 'none'"
-        :stroke-width="showClockBorder ? 1.5 : 0"
+        :r="radius"
+        :fill="clockFill"
+        :stroke="clockStroke"
+        :stroke-width="cfg.showBorder ? 1 : 0"
       />
 
-      <!-- Seta (3 estilos), cor pela intensidade -->
+      <!-- Seta -->
       <text
         :x="center"
-        :y="center - size * 0.32"
+        :y="center - radius * 0.70"
         text-anchor="middle"
         dominant-baseline="middle"
-        :font-size="arrowPx"
-        :fill="intensityColor"
+        :font-size="cfg.arrowSizePx"
+        :fill="arrowColor"
         :transform="`rotate(${pointerAngle} ${center} ${center})`"
-        style="cursor: pointer; user-select: none;"
+        style="user-select:none"
       >
         {{ arrowGlyph }}
       </text>
 
-      <!-- Miolo + Leitura -->
-      <circle :cx="center" :cy="center" :r="size*0.18" fill="#fff" stroke="#e3e3e3" stroke-width="2"/>
-      <text :x="center" :y="center+5" text-anchor="middle" :font-size="size*0.15" fill="#333" font-weight="bold">
+      <!-- Miolo (círculo interno) -->
+      <circle
+        :cx="center"
+        :cy="center"
+        :r="size * 0.18"
+        fill="#fff"
+        stroke="#e3e3e3"
+        stroke-width="2"
+      />
+      <!-- Valor de intensidade no miolo (mantido) -->
+      <text
+        :x="center"
+        :y="center + size * 0.04"
+        text-anchor="middle"
+        :font-size="size * 0.15"
+        fill="#333"
+        font-weight="bold"
+        style="font-variant-numeric: tabular-nums;"
+      >
         {{ intVal }}
       </text>
-      <text :x="center" :y="center+size*0.17" text-anchor="middle" :font-size="size*0.09" fill="#789">
-        kts
-      </text>
-      <text :x="center" :y="center+size*0.32" text-anchor="middle" :font-size="size*0.10" fill="#888">
-        {{ grau }}°
+      <text
+        :x="center"
+        :y="center + size * 0.15"
+        text-anchor="middle"
+        :font-size="size * 0.09"
+        fill="#789"
+      >
+        {{ unidadeLabel }}
       </text>
 
-      <!-- Rosa dos ventos (mostra/menos destaque/oculta) -->
-      <template v-if="lettersMode !== 'hide'">
-        <text :x="center" :y="size*0.14" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.N }}</text>
-        <text :x="center" :y="size*0.95" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.S }}</text>
-        <text :x="size*0.11" :y="center+4" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.W }}</text>
-        <text :x="size*0.89" :y="center+4" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.E }}</text>
-      </template>
+      <!-- (REMOVIDO) Label de graus -->
+
+      <!-- Rosa dos ventos -->
+      <g v-if="cfg.lettersMode !== 'hide'">
+        <text
+          :x="center"
+          :y="size * 0.14"
+          text-anchor="middle"
+          :font-size="size * 0.08"
+          :fill="lettersFill"
+          :opacity="lettersOpacity"
+        >{{ labels.N }}</text>
+
+        <text
+          :x="center"
+          :y="size * 0.95"
+          text-anchor="middle"
+          :font-size="size * 0.08"
+          :fill="lettersFill"
+          :opacity="lettersOpacity"
+        >{{ labels.S }}</text>
+
+        <text
+          :x="size * 0.11"
+          :y="center + 4"
+          text-anchor="middle"
+          :font-size="size * 0.08"
+          :fill="lettersFill"
+          :opacity="lettersOpacity"
+        >{{ labels.W }}</text>
+
+        <text
+          :x="size * 0.89"
+          :y="center + 4"
+          text-anchor="middle"
+          :font-size="size * 0.08"
+          :fill="lettersFill"
+          :opacity="lettersOpacity"
+        >{{ labels.E }}</text>
+      </g>
     </svg>
 
-    <!-- Painel de Config do relógio -->
-    <q-card v-if="showConfig" class="q-mt-sm q-pa-md bg-grey-1 shadow-2" style="max-width: 320px">
-      <div class="text-subtitle2 q-mb-sm">Configurações do Relógio</div>
+    <!-- DIALOG DE CONFIGURAÇÃO (overlay largo e responsivo) -->
+    <q-dialog v-model="showConfig" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="cfg-card">
+        <q-card-section class="row items-center">
+          <div class="text-h6 text-primary">Configurações do Relógio</div>
+          <q-space />
+          <q-btn icon="close" flat round dense @click="showConfig = false" />
+        </q-card-section>
 
-      <!-- Para reduzir cor: escolher alvo da cor -->
-      <q-option-group
-        v-model="colorTarget"
-        type="radio"
-        :options="[
-          { label: 'Cor só na seta', value: 'arrow' },
-          { label: 'Cor na seta e no relógio', value: 'both' }
-        ]"
-        color="primary"
-        class="q-mb-md"
-      />
+        <q-separator />
 
-      <!-- Borda do relógio (fina por padrão) -->
-      <q-toggle
-        v-model="showClockBorder"
-        label="Mostrar borda do relógio"
-        color="primary"
-        class="q-mb-md"
-      />
+        <q-card-section class="q-gutter-md">
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Cor de status aplicada em</div>
+              <q-option-group
+                v-model="cfg.colorScope"
+                type="radio"
+                color="primary"
+                :options="[
+                  { label: 'Só na seta', value: 'arrow' },
+                  { label: 'Seta e relógio', value: 'both' }
+                ]"
+              />
+            </div>
 
-      <!-- Seta -->
-      <q-option-group
-        v-model="arrowStyle"
-        type="radio"
-        :options="[
-          { label: 'Seta clássica ↑', value: 'classic' },
-          { label: 'Seta sólida ▲', value: 'solid' },
-          { label: 'Seta teclado ⇧', value: 'kbd' }
-        ]"
-        color="primary"
-        class="q-mb-md"
-      />
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Borda do relógio</div>
+              <q-toggle v-model="cfg.showBorder" label="Mostrar borda fina" color="primary" />
+            </div>
+          </div>
 
-      <q-slider
-        v-model="arrowScale"
-        label
-        label-always
-        :min="0.7"
-        :max="2.0"
-        :step="0.05"
-        color="primary"
-        class="q-mb-md"
-      >
-        <template #prepend>Tamanho da seta</template>
-      </q-slider>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Tipo de seta</div>
+              <q-option-group
+                v-model="cfg.arrowType"
+                type="radio"
+                color="primary"
+                :options="[
+                  { label: 'Teclado (⇧)', value: 'keyboard' },
+                  { label: 'Clássica (↑)', value: 'classic' },
+                  { label: 'Sólida (▲)', value: 'solid' }
+                ]"
+              />
+            </div>
 
-      <!-- Letras -->
-      <q-option-group
-        v-model="lettersMode"
-        type="radio"
-        :options="[
-          { label: 'Mostrar letras', value: 'show' },
-          { label: 'Letras mais opacas', value: 'dim' },
-          { label: 'Ocultar letras', value: 'hide' }
-        ]"
-        color="primary"
-        class="q-mb-md"
-      />
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Tamanho da seta</div>
+              <q-slider
+                v-model="cfg.arrowSizePx"
+                :min="12" :max="40" :step="1"
+                color="primary"
+                label
+                label-always
+              />
+            </div>
+          </div>
 
-      <div class="row q-gutter-sm q-mt-md">
-        <q-btn label="Fechar" color="primary" @click="showConfig = false" flat />
-        <q-btn label="Restaurar padrão" color="warning" flat @click="resetToDefault" />
-      </div>
-    </q-card>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Idioma das letras</div>
+              <q-option-group
+                v-model="cfg.lang"
+                type="radio"
+                color="primary"
+                :options="[
+                  { label: 'Português (N L S O)', value: 'pt' },
+                  { label: 'Inglês (N E S W)', value: 'en' }
+                ]"
+              />
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <div class="text-bold q-mb-xs">Letras da rosa dos ventos</div>
+              <q-option-group
+                v-model="cfg.lettersMode"
+                type="radio"
+                color="primary"
+                :options="[
+                  { label: 'Visíveis', value: 'show' },
+                  { label: 'Mais opacas', value: 'dim' },
+                  { label: 'Ocultas', value: 'hide' }
+                ]"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat label="Fechar" color="primary" v-close-popup />
+          <q-btn flat label="Restaurar padrão" color="warning" @click="resetToDefault" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
@@ -121,107 +217,124 @@
 import { computed, ref, onMounted, watch } from 'vue';
 
 const props = defineProps({
-  value: { type: Number, default: 0 },         // direção da corrente (graus)
-  intensidade: { type: Number, default: 0 },   // kts
+  value: { type: Number, default: 0 },          // direção (para onde vai)
+  intensidade: { type: Number, default: 0 },    // kts
   max: { type: Number, default: 6 },
   size: { type: Number, default: 110 },
-  lang: { type: String, default: 'pt' },       // 'pt' ou 'en' — vem do PAI
+
+  // props de entrada (usadas como default ao abrir o componente)
+  lang: { type: String, default: 'pt' },        // 'pt' | 'en'
+  unidade: { type: String, default: 'kts' },
 });
 
 const center = computed(() => props.size / 2);
+const radius = computed(() => props.size / 2 - 6);
+const gradId = `gaugeGrad_${Math.floor(Math.random() * 1e8)}`;
 
-// ===== Cores por intensidade =====
-function intensityHex(val) {
-  if (val <= 2) return '#43a047';   // verde
-  if (val <= 4) return '#fbc02d';   // amarelo
-  return '#e53935';                 // vermelho
-}
-function hexToRgba(hex, alpha = 0.16) {
-  const h = hex.replace('#', '');
-  const n = parseInt(h, 16);
-  // eslint-disable-next-line no-bitwise
-  const r = (n >> 16) & 255;
-  // eslint-disable-next-line no-bitwise
-  const g = (n >> 8) & 255;
-  // eslint-disable-next-line no-bitwise
-  const b = n & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-const intensityColor = computed(() => intensityHex(props.intensidade || 0));
-
-// Controle de onde aplicar a cor (reduz “muita cor” por padrão)
-const colorTarget = ref('arrow'); // 'arrow' | 'both'
-const circleFill = computed(() => (colorTarget.value === 'both' ? hexToRgba(intensityColor.value, 0.16) : '#ffffff'));
-
-// Borda do relógio (fina por padrão)
-const showClockBorder = ref(true);
-const clockBorderColor = '#cfd8dc';
-
-// ===== Direção / leitura =====
-const pointerAngle = computed(() => {
-  const v = Number(props.value) || 0;
-  return ((v % 360) + 360) % 360;
-});
-const grau = computed(() => (Number.isFinite(props.value) ? Number(props.value).toFixed(1) : '--'));
-const intVal = computed(() => (Number.isFinite(props.intensidade) ? Number(props.intensidade).toFixed(2) : '--'));
-
-// ===== Seta (3 estilos + escala) =====
-const storageKey = 'currentGaugePrefs_v2';
 const showConfig = ref(false);
-const arrowStyle = ref('kbd');    // 'classic' | 'solid' | 'kbd'
-const arrowScale = ref(1.0);
-const arrowGlyph = computed(() => (arrowStyle.value === 'solid' ? '▲' : arrowStyle.value === 'kbd' ? '⇧' : '↑'));
-const arrowPx = computed(() => Math.round(props.size * 0.26 * arrowScale.value));
 
-// ===== Letras da rosa dos ventos (idioma vindo do pai) =====
-const lettersMode = ref('show'); // 'show' | 'dim' | 'hide'
-const lettersFill = '#1976d2';
-const lettersOpacity = computed(() => (lettersMode.value === 'dim' ? 0.55 : 1.0));
-const labels = computed(() => {
-  if ((props.lang || 'pt').toLowerCase() === 'en') {
-    return { N: 'N', E: 'E', S: 'S', W: 'W' };
-  }
-  // pt
-  return { N: 'N', E: 'L', S: 'S', W: 'O' };
+// ---- CONFIG LOCAL (com persistência) ----
+const cfg = ref({
+  showBorder: false,
+  colorScope: 'arrow',      // 'arrow' | 'both'
+  arrowType: 'keyboard',    // 'keyboard' | 'classic' | 'solid'
+  arrowSizePx: 20,
+  lang: props.lang,         // 'pt' | 'en'
+  lettersMode: 'dim',       // 'show' | 'dim' | 'hide'
 });
+const LS_KEY = 'currentGauge_config_v1';
 
-// ===== Persistência =====
 onMounted(() => {
-  const saved = localStorage.getItem(storageKey);
+  const saved = localStorage.getItem(LS_KEY);
   if (saved) {
     try {
-      const cfg = JSON.parse(saved);
-      colorTarget.value   = cfg.colorTarget   ?? colorTarget.value;
-      showClockBorder.value = cfg.showClockBorder ?? showClockBorder.value;
-      arrowStyle.value    = cfg.arrowStyle    ?? arrowStyle.value;
-      arrowScale.value    = cfg.arrowScale    ?? arrowScale.value;
-      lettersMode.value   = cfg.lettersMode   ?? lettersMode.value;
-    } catch (e) {
-      console.warn('Erro ao carregar prefs do relógio:', e);
-    }
+      Object.assign(cfg.value, JSON.parse(saved));
+    } catch (e) { /* noop */ }
   }
 });
-watch([colorTarget, showClockBorder, arrowStyle, arrowScale, lettersMode], () => {
-  const cfg = {
-    colorTarget: colorTarget.value,
-    showClockBorder: showClockBorder.value,
-    arrowStyle: arrowStyle.value,
-    arrowScale: arrowScale.value,
-    lettersMode: lettersMode.value,
-  };
-  localStorage.setItem(storageKey, JSON.stringify(cfg));
+watch(cfg, () => {
+  localStorage.setItem(LS_KEY, JSON.stringify(cfg.value));
 }, { deep: true });
 
-// Reset
 function resetToDefault() {
-  colorTarget.value = 'arrow';
-  showClockBorder.value = true;     // borda fina ligada
-  arrowStyle.value = 'kbd';
-  arrowScale.value = 1.0;
-  lettersMode.value = 'show';
+  cfg.value = {
+    showBorder: false,
+    colorScope: 'arrow',
+    arrowType: 'keyboard',
+    arrowSizePx: 20,
+    lang: 'pt',
+    lettersMode: 'dim',
+  };
 }
+
+// ---- Cores por intensidade (kts) ----
+function colorByIntensity(kts) {
+  if (!(typeof kts === 'number') || Number.isNaN(kts)) return '#1976d2';
+  if (kts >= 4) return '#e53935';   // vermelho
+  if (kts >= 2) return '#fbc02d';   // amarelo
+  return '#43a047';                 // verde
+}
+const statusColor = computed(() => colorByIntensity(props.intensidade));
+
+function hexToRgba(hex, alpha = 1) {
+  const h = hex.replace('#', '');
+  const bigint = parseInt(h, 16);
+  // eslint-disable-next-line no-bitwise
+  const r = (bigint >> 16) & 255;
+  // eslint-disable-next-line no-bitwise
+  const g = (bigint >> 8) & 255;
+  // eslint-disable-next-line no-bitwise
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Relógio: preenchimento/borda reagem à opção "both"
+const clockFill = computed(() => (
+  cfg.value.colorScope === 'both'
+    ? hexToRgba(statusColor.value, 0.14)
+    : `url(#${gradId})`
+));
+const clockStroke = computed(() => (cfg.value.colorScope === 'both' ? statusColor.value : '#cfd8dc'));
+
+// Seta
+const arrowColor = computed(() => statusColor.value);
+const pointerAngle = computed(() => {
+  const v = Number.isFinite(props.value) ? props.value : 0;
+  return ((v % 360) + 360) % 360;
+});
+const arrowGlyph = computed(() => {
+  if (cfg.value.arrowType === 'solid') return '▲';
+  if (cfg.value.arrowType === 'classic') return '↑';
+  return '⇧'; // keyboard (padrão)
+});
+
+// Letras/idioma
+const labels = computed(() => (
+  cfg.value.lang === 'en'
+    ? { N: 'N', S: 'S', E: 'E', W: 'W' }
+    : { N: 'N', S: 'S', E: 'L', W: 'O' }
+));
+const lettersFill = computed(() => '#1976d2');
+const lettersOpacity = computed(() => (cfg.value.lettersMode === 'dim' ? 0.45 : 1));
+
+// Valor e unidade no miolo
+const intVal = computed(() => (Number.isFinite(props.intensidade) ? props.intensidade.toFixed(2) : '--'));
+const unidadeLabel = computed(() => (props.unidade || '').toString());
 </script>
 
 <style scoped>
-.gauge-svg { display: block; }
+.gauge-wrap {
+  display: inline-block;
+}
+.gauge-svg {
+  display: block;
+}
+
+/* Dialog largo e confortável */
+.cfg-card {
+  width: min(720px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 16px;
+}
 </style>
