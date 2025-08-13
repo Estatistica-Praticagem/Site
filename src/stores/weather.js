@@ -1,7 +1,7 @@
 // src/stores/weather.js
 import { defineStore } from 'pinia';
 
-const HOST = 'https://www.meusimulador.com/kevi';
+const HOST = 'https://www.meusimulador.com/praticagem';
 const API_BASE = `${HOST}/backend/praticagem`;
 
 // Endpoints centralizados (ajuste aqui e vale pro app todo)
