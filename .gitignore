@@ -36,3 +36,4 @@ yarn-error.log*
 # local .env files
 .env.local*
 backend/Chave-BQ/local-bliss-359814-77f4ec3f5fce.json
+backend/Chave-BQ/*.json
