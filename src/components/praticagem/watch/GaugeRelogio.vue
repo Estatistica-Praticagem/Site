@@ -1,88 +1,227 @@
 <template>
-  <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" class="gauge-svg">
-    ...
-    <circle :cx="center" :cy="center" :r="center-6" fill="url(#grad1)" stroke="#cfd8dc" stroke-width="3"/>
-    ...
-    <g :transform="'rotate(-135 ' + center + ' ' + center + ')'">
-      <path
-        :d="arcPath"
-        :stroke="corIntensidade(intensidade)"
-        stroke-width="8"
-        fill="none"
-        stroke-linecap="round"
+  <div>
+    <svg :width="size" :height="size" :viewBox="`0 0 ${size} ${size}`" class="gauge-svg" @click="showConfig = !showConfig">
+      <!-- Círculo principal -->
+      <circle
+        :cx="center"
+        :cy="center"
+        :r="center-6"
+        :fill="circleFill"
+        :stroke="showClockBorder ? clockBorderColor : 'none'"
+        :stroke-width="showClockBorder ? 1.5 : 0"
       />
-    </g>
-    <g :style="pointerStyle">
-      <rect :x="center-2" :y="center-size*0.28" width="4" :height="size*0.27" rx="2" fill="#1976d2" />
-      <polygon :points="pointerPolygon" fill="#0d47a1"/>
-    </g>
-    <circle :cx="center" :cy="center" :r="size*0.18" fill="#fff" stroke="#e3e3e3" stroke-width="2"/>
-    <text :x="center" :y="center+5" text-anchor="middle" :font-size="size*0.15" fill="#333" font-weight="bold">
-      {{ intVal }}
-    </text>
-    <text :x="center" :y="center+size*0.17" text-anchor="middle" :font-size="size*0.09" fill="#789">kts</text>
-    <text :x="center" :y="center+size*0.32" text-anchor="middle" :font-size="size*0.1" fill="#888">{{ grau }}°</text>
-    <text :x="center" :y="size*0.14" text-anchor="middle" :font-size="size*0.08" fill="#1976d2">N</text>
-    <text :x="center" :y="size*0.95" text-anchor="middle" :font-size="size*0.08" fill="#1976d2">S</text>
-    <text :x="size*0.11" :y="center+4" text-anchor="middle" :font-size="size*0.08" fill="#1976d2">O</text>
-    <text :x="size*0.89" :y="center+4" text-anchor="middle" :font-size="size*0.08" fill="#1976d2">L</text>
-  </svg>
+
+      <!-- Seta (3 estilos), cor pela intensidade -->
+      <text
+        :x="center"
+        :y="center - size * 0.32"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        :font-size="arrowPx"
+        :fill="intensityColor"
+        :transform="`rotate(${pointerAngle} ${center} ${center})`"
+        style="cursor: pointer; user-select: none;"
+      >
+        {{ arrowGlyph }}
+      </text>
+
+      <!-- Miolo + Leitura -->
+      <circle :cx="center" :cy="center" :r="size*0.18" fill="#fff" stroke="#e3e3e3" stroke-width="2"/>
+      <text :x="center" :y="center+5" text-anchor="middle" :font-size="size*0.15" fill="#333" font-weight="bold">
+        {{ intVal }}
+      </text>
+      <text :x="center" :y="center+size*0.17" text-anchor="middle" :font-size="size*0.09" fill="#789">
+        kts
+      </text>
+      <text :x="center" :y="center+size*0.32" text-anchor="middle" :font-size="size*0.10" fill="#888">
+        {{ grau }}°
+      </text>
+
+      <!-- Rosa dos ventos (mostra/menos destaque/oculta) -->
+      <template v-if="lettersMode !== 'hide'">
+        <text :x="center" :y="size*0.14" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.N }}</text>
+        <text :x="center" :y="size*0.95" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.S }}</text>
+        <text :x="size*0.11" :y="center+4" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.W }}</text>
+        <text :x="size*0.89" :y="center+4" text-anchor="middle" :font-size="size*0.08" :fill="lettersFill" :opacity="lettersOpacity">{{ labels.E }}</text>
+      </template>
+    </svg>
+
+    <!-- Painel de Config do relógio -->
+    <q-card v-if="showConfig" class="q-mt-sm q-pa-md bg-grey-1 shadow-2" style="max-width: 320px">
+      <div class="text-subtitle2 q-mb-sm">Configurações do Relógio</div>
+
+      <!-- Para reduzir cor: escolher alvo da cor -->
+      <q-option-group
+        v-model="colorTarget"
+        type="radio"
+        :options="[
+          { label: 'Cor só na seta', value: 'arrow' },
+          { label: 'Cor na seta e no relógio', value: 'both' }
+        ]"
+        color="primary"
+        class="q-mb-md"
+      />
+
+      <!-- Borda do relógio (fina por padrão) -->
+      <q-toggle
+        v-model="showClockBorder"
+        label="Mostrar borda do relógio"
+        color="primary"
+        class="q-mb-md"
+      />
+
+      <!-- Seta -->
+      <q-option-group
+        v-model="arrowStyle"
+        type="radio"
+        :options="[
+          { label: 'Seta clássica ↑', value: 'classic' },
+          { label: 'Seta sólida ▲', value: 'solid' },
+          { label: 'Seta teclado ⇧', value: 'kbd' }
+        ]"
+        color="primary"
+        class="q-mb-md"
+      />
+
+      <q-slider
+        v-model="arrowScale"
+        label
+        label-always
+        :min="0.7"
+        :max="2.0"
+        :step="0.05"
+        color="primary"
+        class="q-mb-md"
+      >
+        <template #prepend>Tamanho da seta</template>
+      </q-slider>
+
+      <!-- Letras -->
+      <q-option-group
+        v-model="lettersMode"
+        type="radio"
+        :options="[
+          { label: 'Mostrar letras', value: 'show' },
+          { label: 'Letras mais opacas', value: 'dim' },
+          { label: 'Ocultar letras', value: 'hide' }
+        ]"
+        color="primary"
+        class="q-mb-md"
+      />
+
+      <div class="row q-gutter-sm q-mt-md">
+        <q-btn label="Fechar" color="primary" @click="showConfig = false" flat />
+        <q-btn label="Restaurar padrão" color="warning" flat @click="resetToDefault" />
+      </div>
+    </q-card>
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 
 const props = defineProps({
-  value: { type: Number, default: 0 },
-  intensidade: { type: Number, default: 0 },
+  value: { type: Number, default: 0 },         // direção da corrente (graus)
+  intensidade: { type: Number, default: 0 },   // kts
   max: { type: Number, default: 6 },
-  size: { type: Number, default: 110 }, // <-- adicionado!
+  size: { type: Number, default: 110 },
+  lang: { type: String, default: 'pt' },       // 'pt' ou 'en' — vem do PAI
 });
 
 const center = computed(() => props.size / 2);
 
-function corIntensidade(val) {
-  if (val <= 2) return '#43a047';
-  if (val <= 4) return '#fbc02d';
-  return '#e53935';
+// ===== Cores por intensidade =====
+function intensityHex(val) {
+  if (val <= 2) return '#43a047';   // verde
+  if (val <= 4) return '#fbc02d';   // amarelo
+  return '#e53935';                 // vermelho
 }
-function polarToCartesian(cx, cy, r, angleInDegrees) {
-  // eslint-disable-next-line no-mixed-operators
-  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-  return {
-    x: cx + (r * Math.cos(angleInRadians)),
-    y: cy + (r * Math.sin(angleInRadians)),
-  };
+function hexToRgba(hex, alpha = 0.16) {
+  const h = hex.replace('#', '');
+  const n = parseInt(h, 16);
+  // eslint-disable-next-line no-bitwise
+  const r = (n >> 16) & 255;
+  // eslint-disable-next-line no-bitwise
+  const g = (n >> 8) & 255;
+  // eslint-disable-next-line no-bitwise
+  const b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
-function describeArc(cx, cy, r, startAngle, endAngle) {
-  const start = polarToCartesian(cx, cy, r, endAngle);
-  const end = polarToCartesian(cx, cy, r, startAngle);
-  const arcSweep = endAngle - startAngle <= 180 ? '0' : '1';
-  return [
-    'M', start.x, start.y,
-    'A', r, r, 0, arcSweep, 0, end.x, end.y,
-  ].join(' ');
-}
-const arc = computed(() => (Math.min(props.intensidade, props.max) / props.max) * 270);
-const pointerAngle = computed(() => props.value % 360);
+const intensityColor = computed(() => intensityHex(props.intensidade || 0));
 
-// eslint-disable-next-line no-restricted-globals
-const grau = computed(() => (isNaN(props.value) ? '--' : props.value.toFixed(1)));
-// eslint-disable-next-line no-restricted-globals
-const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(2)));
-const pointerStyle = computed(() => ({
-  transform: `rotate(${pointerAngle.value}deg)`,
-  transformOrigin: `${center.value}px ${center.value}px`,
-}));
-const arcPath = computed(() => describeArc(center.value, center.value, center.value - 9, 0, arc.value));
-const pointerPolygon = computed(() => {
-  // Triângulo para o ponteiro (ajustado para size)
-  // ponta, lado dir, base, lado esq
-  const c = center.value;
-  const tip = [c, c - props.size * 0.34];
-  const right = [c + props.size * 0.045, c - props.size * 0.21];
-  const base = [c, c - props.size * 0.24];
-  const left = [c - props.size * 0.045, c - props.size * 0.21];
-  return `${tip} ${right} ${base} ${left}`;
+// Controle de onde aplicar a cor (reduz “muita cor” por padrão)
+const colorTarget = ref('arrow'); // 'arrow' | 'both'
+const circleFill = computed(() => (colorTarget.value === 'both' ? hexToRgba(intensityColor.value, 0.16) : '#ffffff'));
+
+// Borda do relógio (fina por padrão)
+const showClockBorder = ref(true);
+const clockBorderColor = '#cfd8dc';
+
+// ===== Direção / leitura =====
+const pointerAngle = computed(() => {
+  const v = Number(props.value) || 0;
+  return ((v % 360) + 360) % 360;
 });
+const grau = computed(() => (Number.isFinite(props.value) ? Number(props.value).toFixed(1) : '--'));
+const intVal = computed(() => (Number.isFinite(props.intensidade) ? Number(props.intensidade).toFixed(2) : '--'));
+
+// ===== Seta (3 estilos + escala) =====
+const storageKey = 'currentGaugePrefs_v2';
+const showConfig = ref(false);
+const arrowStyle = ref('kbd');    // 'classic' | 'solid' | 'kbd'
+const arrowScale = ref(1.0);
+const arrowGlyph = computed(() => (arrowStyle.value === 'solid' ? '▲' : arrowStyle.value === 'kbd' ? '⇧' : '↑'));
+const arrowPx = computed(() => Math.round(props.size * 0.26 * arrowScale.value));
+
+// ===== Letras da rosa dos ventos (idioma vindo do pai) =====
+const lettersMode = ref('show'); // 'show' | 'dim' | 'hide'
+const lettersFill = '#1976d2';
+const lettersOpacity = computed(() => (lettersMode.value === 'dim' ? 0.55 : 1.0));
+const labels = computed(() => {
+  if ((props.lang || 'pt').toLowerCase() === 'en') {
+    return { N: 'N', E: 'E', S: 'S', W: 'W' };
+  }
+  // pt
+  return { N: 'N', E: 'L', S: 'S', W: 'O' };
+});
+
+// ===== Persistência =====
+onMounted(() => {
+  const saved = localStorage.getItem(storageKey);
+  if (saved) {
+    try {
+      const cfg = JSON.parse(saved);
+      colorTarget.value   = cfg.colorTarget   ?? colorTarget.value;
+      showClockBorder.value = cfg.showClockBorder ?? showClockBorder.value;
+      arrowStyle.value    = cfg.arrowStyle    ?? arrowStyle.value;
+      arrowScale.value    = cfg.arrowScale    ?? arrowScale.value;
+      lettersMode.value   = cfg.lettersMode   ?? lettersMode.value;
+    } catch (e) {
+      console.warn('Erro ao carregar prefs do relógio:', e);
+    }
+  }
+});
+watch([colorTarget, showClockBorder, arrowStyle, arrowScale, lettersMode], () => {
+  const cfg = {
+    colorTarget: colorTarget.value,
+    showClockBorder: showClockBorder.value,
+    arrowStyle: arrowStyle.value,
+    arrowScale: arrowScale.value,
+    lettersMode: lettersMode.value,
+  };
+  localStorage.setItem(storageKey, JSON.stringify(cfg));
+}, { deep: true });
+
+// Reset
+function resetToDefault() {
+  colorTarget.value = 'arrow';
+  showClockBorder.value = true;     // borda fina ligada
+  arrowStyle.value = 'kbd';
+  arrowScale.value = 1.0;
+  lettersMode.value = 'show';
+}
 </script>
+
+<style scoped>
+.gauge-svg { display: block; }
+</style>

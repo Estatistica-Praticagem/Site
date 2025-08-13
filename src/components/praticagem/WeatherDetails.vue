@@ -36,13 +36,27 @@
           class="q-ml-xs"
         />
       </div>
+
       <div class="row relogio-grid">
         <div
           v-for="info in filteredCampos"
           :key="info.label"
           class="g-rel-col"
+          :style="{
+            minWidth: cardDims.cardW + 'px',
+            maxWidth: cardDims.cardW + 'px',
+          }"
         >
-          <q-card flat bordered class="relogio-card">
+          <q-card
+            flat
+            bordered
+            class="relogio-card"
+            :style="{
+              minHeight: cardDims.cardMinH + 'px',
+              maxWidth: cardDims.cardW + 'px',
+              width: cardDims.cardW + 'px'
+            }"
+          >
             <div class="text-bold text-primary q-mb-xs relogio-label">
               {{ info.label }}
               <span v-if="dirSigla(info)">
@@ -50,13 +64,14 @@
                 <span class="q-ml-xs" style="font-size:0.94em;">({{ dirSigla(info) }})</span>
               </span>
             </div>
+
             <CurrentGauge
               :intensidade="parseFloat(weather[info.int] ?? 0)"
               :value="parseFloat(weather[info.dir] ?? 0)"
               :max="6"
               unidade="kts"
-              :profundidade="info.label"
               :size="computedGaugeSize"
+              :lang="config.dirLang"
             />
           </q-card>
         </div>
@@ -85,6 +100,7 @@
               type="radio"
             />
           </div>
+
           <div class="q-mb-sm">
             <div class="text-bold q-mb-xs">Tamanho dos Relógios:</div>
             <q-option-group
@@ -113,6 +129,7 @@
               />
             </div>
           </div>
+
           <div>
             <div class="text-bold q-mb-xs">Profundidades exibidas:</div>
             <q-option-group
@@ -148,203 +165,39 @@
 
 <script setup>
 import { storeToRefs } from 'pinia';
-import {
-  ref, computed, watch, onMounted,
-} from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import CurrentGauge from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import VerticalCurrentProfile from 'src/components/praticagem/VerticalCurrentProfile.vue';
 import { useWeatherStore } from 'src/stores/weather';
 
-const DIR_SIGLAS = {
-  pt: {
-    N: 'N',
-    NNE: 'NNE',
-    NE: 'NE',
-    ENE: 'ENE',
-    E: 'E',
-    ESE: 'ESE',
-    SE: 'SE',
-    SSE: 'SSE',
-    S: 'S',
-    SSO: 'SSO',
-    SO: 'SO',
-    OSO: 'OSO',
-    O: 'O',
-    ONO: 'ONO',
-    NO: 'NO',
-    NNO: 'NNO',
-  },
-  en: {
-    N: 'N',
-    NNE: 'NNE',
-    NE: 'NE',
-    ENE: 'ENE',
-    E: 'E',
-    ESE: 'ESE',
-    SE: 'SE',
-    SSE: 'SSE',
-    S: 'S',
-    SSW: 'SSW',
-    SW: 'SW',
-    WSW: 'WSW',
-    W: 'W',
-    WNW: 'WNW',
-    NW: 'NW',
-    NNW: 'NNW',
-  },
-};
-const DIR_TOOLTIPS = {
-  pt: {
-    N: 'Norte',
-    NNE: 'Norte-Nordeste',
-    NE: 'Nordeste',
-    ENE: 'Leste-Nordeste',
-    E: 'Leste',
-    ESE: 'Leste-Sudeste',
-    SE: 'Sudeste',
-    SSE: 'Sul-Sudeste',
-    S: 'Sul',
-    SSO: 'Sul-Sudoeste',
-    SO: 'Sudoeste',
-    OSO: 'Oeste-Sudoeste',
-    O: 'Oeste',
-    ONO: 'Oeste-Noroeste',
-    NO: 'Noroeste',
-    NNO: 'Norte-Noroeste',
-  },
-  en: {
-    N: 'North',
-    NNE: 'North-Northeast',
-    NE: 'Northeast',
-    ENE: 'East-Northeast',
-    E: 'East',
-    ESE: 'East-Southeast',
-    SE: 'Southeast',
-    SSE: 'South-Southeast',
-    S: 'South',
-    SSW: 'South-Southwest',
-    SW: 'Southwest',
-    WSW: 'West-Southwest',
-    W: 'West',
-    WNW: 'West-Northwest',
-    NW: 'Northwest',
-    NNW: 'North-Northwest',
-  },
-};
-
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
-const viewMode = ref('gauges'); // default
+const viewMode = ref('gauges');
 const showConfig = ref(false);
 
-// Todos os níveis disponíveis, campos do JSON:
+// Campos disponíveis
 const correnteCamposAll = [
-  {
-    label: 'Superfície',
-    int: 'intensidade_superficie',
-    dir: 'direcao_superficie',
-    deg: null,
-    ench: null,
-    intAj: null,
-    profKey: 'superficie',
-  },
-  {
-    label: '1.5m',
-    int: 'intensidade_1_5m',
-    dir: 'direcao_1_5m',
-    deg: 'direcao_1_5m_deg',
-    ench: 'enchente_vazante_1_5m',
-    intAj: 'intensidade_1_5m_ajustada',
-    profKey: '1_5m',
-  },
-  {
-    label: '3m',
-    int: 'intensidade_3m',
-    dir: 'direcao_3m',
-    deg: 'direcao_3m_deg',
-    ench: 'enchente_vazante_3m',
-    intAj: 'intensidade_3m_ajustada',
-    profKey: '3m',
-  },
-  {
-    label: '6m',
-    int: 'intensidade_6m',
-    dir: 'direcao_6m',
-    deg: 'direcao_6m_deg',
-    ench: 'enchente_vazante_6m',
-    intAj: 'intensidade_6m_ajustada',
-    profKey: '6m',
-  },
-  {
-    label: '7.5m',
-    int: 'intensidade_7_5m',
-    dir: 'direcao_7_5m',
-    deg: 'direcao_7_5m_deg',
-    ench: 'enchente_vazante_7_5m',
-    intAj: 'intensidade_7_5m_ajustada',
-    profKey: '7_5m',
-  },
-  {
-    label: '9m',
-    int: 'intensidade_9m',
-    dir: 'direcao_9m',
-    deg: 'direcao_9m_deg',
-    ench: 'enchente_vazante_9m',
-    intAj: 'intensidade_9m_ajustada',
-    profKey: '9m',
-  },
-  {
-    label: '10.5m',
-    int: 'intensidade_10_5m',
-    dir: 'direcao_10_5m',
-    deg: 'direcao_10_5m_deg',
-    ench: 'enchente_vazante_10_5m',
-    intAj: 'intensidade_10_5m_ajustada',
-    profKey: '10_5m',
-  },
-  {
-    label: '12m',
-    int: 'intensidade_12m',
-    dir: 'direcao_12m',
-    deg: 'direcao_12m_deg',
-    ench: 'enchente_vazante_12m',
-    intAj: 'intensidade_12m_ajustada',
-    profKey: '12m',
-  },
-  {
-    label: '13.5m',
-    int: 'intensidade_13_5m',
-    dir: 'direcao_13_5m',
-    deg: 'direcao_13_5m_deg',
-    ench: 'enchente_vazante_13_5m',
-    intAj: 'intensidade_13_5m_ajustada',
-    profKey: '13_5m',
-  },
-  {
-    label: '15m',
-    int: 'intensidade_15m',
-    dir: 'direcao_15m',
-    deg: 'direcao_15m_deg',
-    ench: 'enchente_vazante_15m',
-    intAj: 'intensidade_15m_ajustada',
-    profKey: '15m',
-  },
+  { label: 'Superfície', int: 'intensidade_superficie', dir: 'direcao_superficie', deg: null, ench: null, intAj: null, profKey: 'superficie' },
+  { label: '1.5m', int: 'intensidade_1_5m', dir: 'direcao_1_5m', deg: 'direcao_1_5m_deg', ench: 'enchente_vazante_1_5m', intAj: 'intensidade_1_5m_ajustada', profKey: '1_5m' },
+  { label: '3m', int: 'intensidade_3m', dir: 'direcao_3m', deg: 'direcao_3m_deg', ench: 'enchente_vazante_3m', intAj: 'intensidade_3m_ajustada', profKey: '3m' },
+  { label: '6m', int: 'intensidade_6m', dir: 'direcao_6m', deg: 'direcao_6m_deg', ench: 'enchente_vazante_6m', intAj: 'intensidade_6m_ajustada', profKey: '6m' },
+  { label: '7.5m', int: 'intensidade_7_5m', dir: 'direcao_7_5m', deg: 'direcao_7_5m_deg', ench: 'enchente_vazante_7_5m', intAj: 'intensidade_7_5m_ajustada', profKey: '7_5m' },
+  { label: '9m', int: 'intensidade_9m', dir: 'direcao_9m', deg: 'direcao_9m_deg', ench: 'enchente_vazante_9m', intAj: 'intensidade_9m_ajustada', profKey: '9m' },
+  { label: '10.5m', int: 'intensidade_10_5m', dir: 'direcao_10_5m', deg: 'direcao_10_5m_deg', ench: 'enchente_vazante_10_5m', intAj: 'intensidade_10_5m_ajustada', profKey: '10_5m' },
+  { label: '12m', int: 'intensidade_12m', dir: 'direcao_12m', deg: 'direcao_12m_deg', ench: 'enchente_vazante_12m', intAj: 'intensidade_12m_ajustada', profKey: '12m' },
+  { label: '13.5m', int: 'intensidade_13_5m', dir: 'direcao_13_5m', deg: 'direcao_13_5m_deg', ench: 'enchente_vazante_13_5m', intAj: 'intensidade_13_5m_ajustada', profKey: '13_5m' },
+  { label: '15m', int: 'intensidade_15m', dir: 'direcao_15m', deg: 'direcao_15m_deg', ench: 'enchente_vazante_15m', intAj: 'intensidade_15m_ajustada', profKey: '15m' },
 ];
 
-// opções para a tela de configurações (checklist)
-const profOptions = correnteCamposAll.map((c) => ({
-  label: c.label,
-  value: c.profKey,
-}));
+const profOptions = correnteCamposAll.map((c) => ({ label: c.label, value: c.profKey }));
 
 const defaultConfig = () => ({
   dirLang: 'pt',
-  gaugeSizeMode: 'md', // 'sm', 'md', 'lg', 'custom'
+  gaugeSizeMode: 'md',
   gaugeSizeCustom: 100,
   visibleProfs: correnteCamposAll.map((c) => c.profKey),
 });
 const config = ref({ ...defaultConfig() });
 
-// Carrega config do localStorage ou usa defaults
 onMounted(() => {
   const saved = localStorage.getItem('currentProfileConfig');
   if (saved) Object.assign(config.value, JSON.parse(saved));
@@ -354,7 +207,6 @@ const saveConfig = () => {
   showConfig.value = false;
 };
 
-// Computed para tamanho do relógio
 const computedGaugeSize = computed(() => {
   if (config.value.gaugeSizeMode === 'sm') return 80;
   if (config.value.gaugeSizeMode === 'md') return 100;
@@ -363,38 +215,39 @@ const computedGaugeSize = computed(() => {
   return 100;
 });
 
-// Mantém só os campos marcados pelo usuário
+// Dimensões do card acompanham o tamanho
+const cardDims = computed(() => {
+  const s = computedGaugeSize.value;
+  return {
+    cardW: Math.round(s + 20),
+    cardMinH: Math.round(s + 58),
+  };
+});
+
 const filteredCampos = computed(() => correnteCamposAll.filter((c) => config.value.visibleProfs.includes(c.profKey)));
 
-// Direção: retorna sigla
 function dirSigla(info) {
   if (!info.deg || !weather.value) return null;
-  const degKey = info.deg;
-  const sigla = weather.value[degKey];
-  if (!sigla) return null;
-  return DIR_SIGLAS[config.value.dirLang][sigla] || sigla;
+  const sigla = weather.value[info.deg];
+  return sigla || null;
 }
 function dirTooltip(info) {
   if (!info.deg || !weather.value) return '';
-  const degKey = info.deg;
-  const sigla = weather.value[degKey];
-  if (!sigla) return '';
-  return DIR_TOOLTIPS[config.value.dirLang][sigla] || sigla;
+  const sigla = weather.value[info.deg];
+  return sigla || '';
 }
 
-// Atualiza localStorage sempre que config mudar
 watch(config, () => {
   localStorage.setItem('currentProfileConfig', JSON.stringify(config.value));
 }, { deep: true });
-
 </script>
 
 <style scoped>
 .relogio-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.3rem;
-  justify-content: flex-start;
+  gap: 0.6rem 0.4rem;
+  justify-content: center; /* CENTRALIZADO */
   align-items: stretch;
   margin-bottom: 20px;
   max-width: 1100px;
@@ -402,9 +255,6 @@ watch(config, () => {
   margin-right: auto;
 }
 .g-rel-col {
-  flex: 1 1 120px;
-  min-width: 110px;
-  max-width: 155px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -414,8 +264,6 @@ watch(config, () => {
 .relogio-card {
   border-radius: 13px;
   box-shadow: 0 1px 6px #e0e0e033;
-  min-height: 164px;
-  max-width: 145px;
   width: 100%;
   padding: 6px 2px 2px 2px;
   margin: 0;
@@ -428,14 +276,5 @@ watch(config, () => {
 }
 @media (max-width: 1100px) {
   .relogio-grid { max-width: 100vw; }
-}
-@media (max-width: 850px) {
-  .relogio-grid { gap: 0.3rem 0.2rem; }
-  .g-rel-col { min-width: 94px; max-width: 120px; }
-  .relogio-card { min-height: 120px; max-width: 120px; }
-}
-@media (max-width: 700px) {
-  .g-rel-col { min-width: 88px; max-width: 110px; }
-  .relogio-card { min-height: 100px; max-width: 108px; }
 }
 </style>
