@@ -57,7 +57,7 @@
               width: cardDims.cardW + 'px'
             }"
           >
-            <div class="text-bold text-primary q-mb-xs relogio-label">
+            <div class="text-bold text-primary q-mb-xs relogio-label text-center">
               {{ info.label }}
               <span v-if="dirSigla(info)">
                 <q-tooltip anchor="top middle">{{ dirTooltip(info) }}</q-tooltip>
