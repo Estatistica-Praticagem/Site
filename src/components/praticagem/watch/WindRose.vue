@@ -40,9 +40,7 @@
         filter="url(#shadow)"
       />
 
-      <!-- Linhas, textos, ponteiro, centro... (igual antes) -->
-      <!-- ... (copie tudo igual, não muda nada) ... -->
-      <!-- Coloque aqui os elementos do template anterior: linhas, textos das direções, ponteiro, centro etc -->
+      <!-- Linhas e diagonais -->
       <g>
         <line :x1="center" :y1="center-((center-3)*0.82)" :x2="center" :y2="center+((center-3)*0.82)" stroke="#bbccdd" stroke-width="2.5"/>
         <line :x1="center-((center-3)*0.82)" :y1="center" :x2="center+((center-3)*0.82)" :y2="center" stroke="#bbccdd" stroke-width="2.5"/>
@@ -87,7 +85,7 @@
         />
       </g>
 
-      <!-- Centro -->
+      <!-- Centro / Valor -->
       <circle :cx="center" :cy="center" :r="size*0.17" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
       <text
         :x="center"
@@ -115,12 +113,8 @@ const props = defineProps({
 });
 
 const dirMap = {
-  pt: {
-    N: 'N', S: 'S', E: 'L', W: 'O', NE: 'NL', NW: 'NO', SE: 'SL', SW: 'SO',
-  },
-  en: {
-    N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', NW: 'NW', SE: 'SE', SW: 'SW',
-  },
+  pt: { N: 'N', S: 'S', E: 'L', W: 'O', NE: 'NL', NW: 'NO', SE: 'SL', SW: 'SO' },
+  en: { N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', NW: 'NW', SE: 'SE', SW: 'SW' },
 };
 const dirs = computed(() => dirMap[props.lang] || dirMap.pt);
 
@@ -132,32 +126,29 @@ function corIntensidade(val) {
   if (val <= 35) return '#fbc02d';
   return '#e53935';
 }
-
-// Cálculo do arco externo
 function polarToCartesian(cx, cy, r, angleInDegrees) {
-  // eslint-disable-next-line no-mixed-operators
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-  return {
-    x: cx + (r * Math.cos(angleInRadians)),
-    y: cy + (r * Math.sin(angleInRadians)),
-  };
+  return { x: cx + (r * Math.cos(angleInRadians)), y: cy + (r * Math.sin(angleInRadians)) };
 }
 function describeArc(cx, cy, r, startAngle, endAngle) {
   const start = polarToCartesian(cx, cy, r, endAngle);
   const end = polarToCartesian(cx, cy, r, startAngle);
   const arcSweep = endAngle - startAngle <= 180 ? '0' : '1';
-  return [
-    'M', start.x, start.y,
-    'A', r, r, 0, arcSweep, 0, end.x, end.y,
-  ].join(' ');
+  return ['M', start.x, start.y, 'A', r, r, 0, arcSweep, 0, end.x, end.y].join(' ');
 }
 const arco = computed(() => (Math.min(props.intensidade, props.max) / props.max) * 270);
-// Aqui aumenta o raio: center + (alguma fração), fora do círculo
 const arcPath = computed(() => describeArc(center.value, center.value, center.value - 1, 0, arco.value));
 const pointerColor = computed(() => corIntensidade(props.intensidade));
 // ----- FIM ARCO INTENSIDADE -----
 
-const pointerAngle = computed(() => (90 - (props.direction || 0)) % 360);
+// ✅ INVERTE A DIREÇÃO: adiciona 180° (para onde vai)
+const pointerAngle = computed(() => {
+  const dir = Number.isFinite(props.direction) ? props.direction : 0;
+  // mapeamento original era (90 - dir); agora somamos +180 e normalizamos
+  const angle = 90 - ((dir + 180) % 360);
+  return ((angle % 360) + 360) % 360; // garante 0–359
+});
+
 const len = computed(() => center.value * 0.65 + center.value * 0.35 * Math.min((props.intensidade || 0) / props.max, 1));
 // eslint-disable-next-line no-restricted-globals
 const intVal = computed(() => (isNaN(props.intensidade) ? '--' : props.intensidade.toFixed(2)));
