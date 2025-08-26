@@ -52,7 +52,6 @@
 
     <!-- Configurações -->
     <q-dialog v-model="showConfig" persistent>
-      <!-- mais transparência + leve blur -->
       <q-card style="min-width:360px;max-width:97vw; background: rgba(255,255,255,0.72); backdrop-filter: blur(2px);">
         <q-card-section class="row items-center q-pa-sm">
           <div class="text-h6 text-primary">Configurações (todas as profundidades)</div>
@@ -61,6 +60,27 @@
         </q-card-section>
         <q-separator />
         <q-card-section class="q-gutter-md">
+          <!-- NOVO: Modo de exibição dos cards -->
+          <div>
+            <div class="text-bold q-mb-xs">Exibição dos cards</div>
+            <q-option-group
+              v-model="config.cardsViewMode"
+              :options="[
+                { label: 'Em grade (vertical)', value: 'grid' },
+                { label: 'Carrossel (horizontal)', value: 'carousel' }
+              ]"
+              type="radio"
+              color="primary"
+              inline
+            />
+            <div class="q-mt-sm q-ml-sm flex items-center">
+              <q-icon name="grid_view" color="primary" size="26px" v-if="config.cardsViewMode==='grid'" />
+              <q-icon name="view_carousel" color="primary" size="28px" v-else />
+              <span class="q-ml-sm text-grey-7">
+                {{ config.cardsViewMode === 'carousel' ? 'Cards aparecem 1 por vez, navegação lateral' : 'Vários cards na tela, modo grade' }}
+              </span>
+            </div>
+          </div>
           <!-- Altura -->
           <div>
             <div class="text-bold q-mb-xs">Altura do gráfico</div>
@@ -77,7 +97,6 @@
               <span class="q-ml-md text-grey-7">{{ config.chartHeight }} px</span>
             </div>
           </div>
-
           <!-- Exibição dos valores -->
           <div>
             <div class="text-bold q-mb-xs">Exibição dos valores</div>
@@ -92,7 +111,6 @@
               inline
             />
           </div>
-
           <!-- Pontos -->
           <div>
             <div class="text-bold q-mb-xs">Pontos no gráfico</div>
@@ -107,7 +125,6 @@
               inline
             />
           </div>
-
           <!-- Banda -->
           <div>
             <q-toggle
@@ -143,7 +160,6 @@
               />
             </div>
           </div>
-
           <!-- Espessura linha -->
           <div>
             <div class="text-bold q-mb-xs">Espessura das Linhas</div>
@@ -158,7 +174,6 @@
               inline
             />
           </div>
-
           <!-- Suavização da Previsão -->
           <div>
             <div class="text-bold q-mb-xs">Suavização da previsão</div>
@@ -201,7 +216,6 @@
               />
             </div>
           </div>
-
           <!-- Tooltip -->
           <div>
             <div class="text-bold q-mb-xs">Tamanho do card de valores</div>
@@ -243,7 +257,6 @@
               </div>
             </div>
           </div>
-
           <!-- Escala Y -->
           <div>
             <div class="text-bold q-mb-xs">Escala do eixo Y</div>
@@ -276,8 +289,91 @@
       </q-card>
     </q-dialog>
 
-    <!-- Cards por profundidade -->
-    <div class="row q-col-gutter-md">
+    <!-- Cards por profundidade: MODO CARROSSEL -->
+    <div v-if="config.cardsViewMode === 'carousel'" class="tide-carousel q-mt-md">
+      <div class="tide-carousel-nav" style="position:relative;">
+        <!-- Seta esquerda sobreposta -->
+        <q-btn
+          flat
+          round
+          icon="chevron_left"
+          @click="carouselPrev"
+          :disable="carouselIndex <= 0"
+          aria-label="Anterior"
+          class="tide-carousel-arrow left"
+        />
+        <transition name="fade-slide" mode="out-in">
+          <div
+            v-if="visibleDepths.length"
+            :key="visibleDepths[carouselIndex]?.key"
+            class="tide-carousel-card-wrap"
+          >
+            <q-card class="q-pa-md bg-white shadow-2 tide-carousel-card tide-compare-card">
+              <div class="row items-center justify-between q-mb-xs">
+                <div class="text-subtitle1 text-primary text-weight-bold">
+                  Intensidade {{ visibleDepths[carouselIndex]?.label }} — Histórico x Previsão ({{ prevSourceLabel }})
+                </div>
+                <div v-if="latestTimestamps[visibleDepths[carouselIndex]?.key]" class="text-caption text-grey-7">
+                  Atualizado: {{ latestTimestamps[visibleDepths[carouselIndex]?.key] }}
+                </div>
+              </div>
+              <div v-if="config.showValuesMode === 'boxes'" class="row q-gutter-md tide-mini-card-row q-mb-md">
+                <div class="tide-mini-value-card">
+                  <div class="text-caption text-grey-7">Histórico</div>
+                  <div class="text-h6 text-primary">
+                    {{ miniCardValue[visibleDepths[carouselIndex]?.key]?.hist !== null ? miniCardValue[visibleDepths[carouselIndex]?.key]?.hist : '--' }}
+                  </div>
+                </div>
+                <div class="tide-mini-value-card">
+                  <div class="text-caption text-grey-7">Previsão</div>
+                  <div class="text-h6" :style="{ color: visibleDepths[carouselIndex]?.color }">
+                    {{ miniCardValue[visibleDepths[carouselIndex]?.key]?.prev !== null ? miniCardValue[visibleDepths[carouselIndex]?.key]?.prev : '--' }}
+                  </div>
+                </div>
+              </div>
+              <div class="row items-center q-mb-xs">
+                <q-btn dense flat icon="chevron_left" @click="prevWindow(visibleDepths[carouselIndex]?.key)" :disable="cursor[visibleDepths[carouselIndex]?.key] <= 0" class="q-mr-xs" />
+                <span class="text-caption">{{ windowLabel(visibleDepths[carouselIndex]?.key) }}</span>
+                <q-btn dense flat icon="chevron_right" @click="nextWindow(visibleDepths[carouselIndex]?.key)" :disable="cursor[visibleDepths[carouselIndex]?.key] >= maxCursor(visibleDepths[carouselIndex]?.key)" class="q-ml-xs" />
+              </div>
+              <div class="tide-chart-container" ref="chartWrap" :style="{ height: config.chartHeight + 'px' }">
+                <canvas :ref="el => setCanvasRef(visibleDepths[carouselIndex]?.key, el)" :style="{ width:'100%', height: config.chartHeight + 'px' }"></canvas>
+                <div v-if="config.showValuesMode === 'tooltip' && tooltip[visibleDepths[carouselIndex]?.key]?.active" :style="tooltipBoxStyle(visibleDepths[carouselIndex]?.key)">
+                  <div class="text-caption" style="font-weight:bold;">
+                    {{ tooltip[visibleDepths[carouselIndex]?.key].label }}
+                  </div>
+                  <div class="q-mt-xs">
+                    <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[visibleDepths[carouselIndex]?.key].hist }}</span><br>
+                    <span :style="{color: visibleDepths[carouselIndex]?.color}"><b>Previsão:</b> {{ tooltip[visibleDepths[carouselIndex]?.key].prev }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-if="config.showBand && acertoErro[visibleDepths[carouselIndex]?.key]?.total > 0" class="row q-mt-sm justify-center items-center">
+                <div style="font-size:1.08em; color:#167e31; margin-right:18px;">
+                  Acerto: <b>{{ acertoErro[visibleDepths[carouselIndex]?.key].percAcerto }}%</b>
+                </div>
+              </div>
+            </q-card>
+          </div>
+        </transition>
+        <!-- Seta direita sobreposta -->
+        <q-btn
+          flat
+          round
+          icon="chevron_right"
+          @click="carouselNext"
+          :disable="carouselIndex >= visibleDepths.length - 1"
+          aria-label="Próximo"
+          class="tide-carousel-arrow right"
+        />
+      </div>
+      <div class="text-center q-mt-sm text-grey-7" v-if="visibleDepths.length > 1">
+        Profundidade {{ carouselIndex + 1 }} / {{ visibleDepths.length }}
+      </div>
+    </div>
+
+    <!-- MODO GRADE NORMAL -->
+    <div v-else class="row q-col-gutter-md">
       <div v-for="d in visibleDepths" :key="d.key" class="col-12 col-md-6 col-lg-4">
         <q-card class="q-pa-md bg-white shadow-2 tide-compare-card">
           <div class="row items-center justify-between q-mb-xs">
@@ -288,8 +384,6 @@
               Atualizado: {{ latestTimestamps[d.key] }}
             </div>
           </div>
-
-          <!-- Caixinhas (opcional conforme config) -->
           <div v-if="config.showValuesMode === 'boxes'" class="row q-gutter-md tide-mini-card-row q-mb-md">
             <div class="tide-mini-value-card">
               <div class="text-caption text-grey-7">Histórico</div>
@@ -304,17 +398,13 @@
               </div>
             </div>
           </div>
-
           <div class="row items-center q-mb-xs">
             <q-btn dense flat icon="chevron_left" @click="prevWindow(d.key)" :disable="cursor[d.key] <= 0" class="q-mr-xs" />
             <span class="text-caption">{{ windowLabel(d.key) }}</span>
             <q-btn dense flat icon="chevron_right" @click="nextWindow(d.key)" :disable="cursor[d.key] >= maxCursor(d.key)" class="q-ml-xs" />
           </div>
-
           <div class="tide-chart-container" ref="chartWrap" :style="{ height: config.chartHeight + 'px' }">
             <canvas :ref="el => setCanvasRef(d.key, el)" :style="{ width:'100%', height: config.chartHeight + 'px' }"></canvas>
-
-            <!-- Tooltip (apenas se modo tooltip) -->
             <div v-if="config.showValuesMode === 'tooltip' && tooltip[d.key]?.active" :style="tooltipBoxStyle(d.key)">
               <div class="text-caption" style="font-weight:bold;">
                 {{ tooltip[d.key].label }}
@@ -325,20 +415,14 @@
               </div>
             </div>
           </div>
-
-          <!-- Big numbers: Acerto/Erro (por profundidade) -->
           <div v-if="config.showBand && acertoErro[d.key]?.total > 0" class="row q-mt-sm justify-center items-center">
             <div style="font-size:1.08em; color:#167e31; margin-right:18px;">
               Acerto: <b>{{ acertoErro[d.key].percAcerto }}%</b>
-            </div>
-            <div style="font-size:1.08em; color:#d32f2f;">
-              <!-- Erro: <b>{{ acertoErro[d.key].percErro }}%</b> -->
             </div>
           </div>
         </q-card>
       </div>
     </div>
-
     <div class="q-mt-md text-negative" v-if="error">{{ error }}</div>
   </div>
 </template>
@@ -512,8 +596,11 @@ const defaultConfig = () => ({
   smoothingAlpha: 0.2,
 
   bandDisplay: 'both',
+
+  cardsViewMode: localStorage.getItem('tideCardsViewMode') || 'grid',
 });
 
+const carouselIndex = ref(0);
 const CONFIG_KEY = 'correntezaConfigV1';
 const config = ref(defaultConfig());
 const showConfig = ref(false);
@@ -526,6 +613,11 @@ onMounted(() => {
     } catch {}
   }
 });
+watch(carouselIndex, (val) => {
+  const d = visibleDepths.value[val];
+  if (d) nextTick(() => scheduleRender(d.key));
+});
+
 watch(config, () => {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(config.value));
 }, { deep: true });
@@ -545,7 +637,16 @@ function getInitialDepths() {
   return ['3m'];
 }
 const selectedDepthKeys = ref(getInitialDepths());
+
 const visibleDepths = computed(() => DEPTHS.filter((d) => selectedDepthKeys.value.includes(d.key)));
+
+watch(visibleDepths, (list) => {
+  if (carouselIndex.value > list.length - 1) carouselIndex.value = list.length - 1;
+  if (carouselIndex.value < 0) carouselIndex.value = 0;
+});
+function carouselPrev() { carouselIndex.value = Math.max(0, carouselIndex.value - 1); }
+function carouselNext() { carouselIndex.value = Math.min(visibleDepths.value.length - 1, carouselIndex.value + 1); }
+
 watch(selectedDepthKeys, (val) => {
   localStorage.setItem(SELECTED_DEPTHS_KEY, JSON.stringify(val));
 }, { deep: true });
@@ -1004,21 +1105,125 @@ onBeforeUnmount(() => {
 });
 </script>
 
+<!-- CSS atualizado com setas pequenas, redondas e sobrepostas -->
 <style scoped>
-.tide-compare-card { border-radius: 14px; margin-bottom: 18px; }
+.tide-compare-card {
+  border-radius: 14px;
+  margin-bottom: 18px;
+  transition: box-shadow .2s, transform .16s;
+}
+
+.tide-carousel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  position: relative; /* necessário para posicionar as setas sobrepostas */
+}
+
+.tide-carousel-nav {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+}
+
+/* Botões de seta sobrepostos e circulares */
+.tide-carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  font-size: 1.2em;
+  color: #fff !important;
+  background: #3482ef;
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  z-index: 5;
+}
+
+/* Hover com efeito leve */
+.tide-carousel-arrow:hover {
+  background: #1e65d6;
+  transform: translateY(-50%) scale(1.05);
+}
+
+/* Esquerda */
+.tide-carousel-arrow.left {
+  left: -10px; /* sobrepõe o gráfico */
+}
+
+/* Direita */
+.tide-carousel-arrow.right {
+  right: -10px; /* sobrepõe o gráfico */
+}
+
+/* Estado desativado */
+.tide-carousel-arrow:disabled {
+  opacity: 0.5;
+  background: #b8b8b8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Container dos cards */
+.tide-carousel-card-wrap {
+  width: 100%;
+  max-width: 440px;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.tide-carousel-card {
+  border: 2.5px solid #3482ef33;
+  box-shadow: 0 6px 32px #003e7a18, 0 1.5px 6px #a5b8d722;
+  animation: scaleIn 0.36s cubic-bezier(.4,.16,.2,1) both;
+  margin: 0 auto;
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(.98) translateY(16px);}
+  60% { opacity: 1; transform: scale(1.02);}
+  100% { opacity: 1; transform: scale(1);}
+}
+
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: opacity .28s, transform .24s cubic-bezier(.6,.4,.3,1);
+}
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(36px);
+}
+
+.tide-carousel .q-btn[disabled] {
+  pointer-events: none;
+}
+
 .tide-mini-card-row {
   justify-content: flex-start;
   margin-bottom: 0.6rem;
   margin-top: 0.6rem;
 }
+
 .tide-mini-value-card {
   background: #f6f8fc;
   border-radius: 9px;
   min-width: 92px;
   padding: 7px 18px 5px 18px;
   box-shadow: 0 2px 8px #e9eef3a9;
-  display: flex; flex-direction: column; align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
+
 .tide-chart-container {
   width: 100%;
   min-height: 240px;
@@ -1026,11 +1231,23 @@ onBeforeUnmount(() => {
   height: 320px;
   position: relative;
 }
+
 .tide-toggle { min-width: 180px; }
+
 @media (max-width: 700px) {
   .tide-compare-card { margin-bottom: 12px; }
   .tide-mini-value-card { min-width: 70px; font-size: 0.98em; }
   .tide-chart-container { min-height: 160px; max-height: 700px; height: 180px; }
   .tide-toggle { min-width: 120px; }
+  .tide-carousel-card-wrap, .tide-carousel-card { max-width: 98vw; }
+
+  /* Ajuste mobile: setas menores e um pouco mais para dentro */
+  .tide-carousel-arrow {
+    width: 28px;
+    height: 28px;
+    font-size: 1em;
+  }
+  .tide-carousel-arrow.left { left: -6px; }
+  .tide-carousel-arrow.right { right: -6px; }
 }
 </style>

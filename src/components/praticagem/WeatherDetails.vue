@@ -1,6 +1,6 @@
 <template>
   <div style="margin-bottom:0;">
-    <!-- Botão: Relógios ou Gráficos -->
+    <!-- Botão: Relógios, Gráficos, Previsão -->
     <div class="q-mb-md flex items-center gap-3 justify-center">
       <q-btn-toggle
         v-model="viewMode"
@@ -10,14 +10,22 @@
         text-color="primary"
         :options="[
           { label: 'Relógios', value: 'gauges' },
-          { label: 'Gráficos', value: 'profile' }
+          { label: 'Gráficos', value: 'profile' },
+          { label: 'Previsão', value: 'forecast' }
         ]"
       />
     </div>
 
+    <!-- Previsão -->
+    <CurrentForecastComparison
+      v-if="viewMode === 'forecast'"
+      :weather="weather"
+      :corrente-campos="filteredCampos"
+    />
+
     <!-- Gráfico de Perfil Vertical -->
     <VerticalCurrentProfile
-      v-if="viewMode === 'profile'"
+      v-else-if="viewMode === 'profile'"
       :weather="weather"
       :corrente-campos="filteredCampos"
     />
@@ -155,18 +163,6 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
-
-    <!-- Info detalhada - status -->
-    <!-- <q-card class="q-pa-md bg-white shadow-2" style="border-radius:16px;max-width:1200px;margin:auto;">
-      <div class="text-h6 text-weight-bold text-primary">Situação</div>
-      <div class="text-body1 q-mb-xs">
-        <b>{{ weather.status ?? '--' }}</b>
-        <span v-if="weather.motivo" class="q-ml-sm text-negative">
-          ({{ weather.motivo }})
-        </span>
-      </div>
-      <div class="text-caption text-grey-8">Leitura: {{ weather.timestamp_br?.date ?? '--' }}</div>
-    </q-card> -->
   </div>
 </template>
 
@@ -175,13 +171,17 @@ import { storeToRefs } from 'pinia';
 import { ref, computed, watch, onMounted } from 'vue';
 import CurrentGauge from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import VerticalCurrentProfile from 'src/components/praticagem/VerticalCurrentProfile.vue';
+import CurrentForecastComparison from 'src/components/praticagem/CurrentForecastComparison.vue'; // <-- ADD ISSO!
 import { useWeatherStore } from 'src/stores/weather';
 
 const { weatherLast: weather } = storeToRefs(useWeatherStore());
-const viewMode = ref('gauges');
-const showConfig = ref(false);
 
-// Campos disponíveis
+// Carrega viewMode do localStorage, padrão 'gauges'
+const viewMode = ref(localStorage.getItem('currentProfileViewMode') || 'gauges');
+watch(viewMode, (val) => localStorage.setItem('currentProfileViewMode', val));
+
+// O resto igual:
+const showConfig = ref(false);
 const correnteCamposAll = [
   { label: 'Superfície', int: 'intensidade_superficie', dir: 'direcao_superficie', deg: null, ench: null, intAj: null, profKey: 'superficie' },
   { label: '1.5m', int: 'intensidade_1_5m', dir: 'direcao_1_5m', deg: 'direcao_1_5m_deg', ench: 'enchente_vazante_1_5m', intAj: 'intensidade_1_5m_ajustada', profKey: '1_5m' },
@@ -194,7 +194,6 @@ const correnteCamposAll = [
   { label: '13.5m', int: 'intensidade_13_5m', dir: 'direcao_13_5m', deg: 'direcao_13_5m_deg', ench: 'enchente_vazante_13_5m', intAj: 'intensidade_13_5m_ajustada', profKey: '13_5m' },
   { label: '15m', int: 'intensidade_15m', dir: 'direcao_15m', deg: 'direcao_15m_deg', ench: 'enchente_vazante_15m', intAj: 'intensidade_15m_ajustada', profKey: '15m' },
 ];
-
 const profOptions = correnteCamposAll.map((c) => ({ label: c.label, value: c.profKey }));
 
 const defaultConfig = () => ({
@@ -222,7 +221,6 @@ const computedGaugeSize = computed(() => {
   return 100;
 });
 
-// Dimensões do card acompanham o tamanho (reservei um pouco mais para a linha de intensidade)
 const cardDims = computed(() => {
   const s = computedGaugeSize.value;
   return {
@@ -230,8 +228,6 @@ const cardDims = computed(() => {
     cardMinH: Math.round(s + 76),
   };
 });
-
-// Campos exibidos conforme config
 const filteredCampos = computed(() => correnteCamposAll.filter((c) => config.value.visibleProfs.includes(c.profKey)));
 
 function dirSigla(info) {
@@ -244,18 +240,14 @@ function dirTooltip(info) {
   const sigla = weather.value[info.deg];
   return sigla || '';
 }
-
-// Formata intensidade em kts
 function fmtKts(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n.toFixed(2) : '--';
 }
-
 watch(config, () => {
   localStorage.setItem('currentProfileConfig', JSON.stringify(config.value));
 }, { deep: true });
 </script>
-
 <style scoped>
 .relogio-grid {
   display: flex;
