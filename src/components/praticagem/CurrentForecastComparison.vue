@@ -289,77 +289,77 @@
       </q-card>
     </q-dialog>
 
-    <!-- Cards por profundidade: MODO CARROSSEL -->
+    <!-- Cards por profundidade: MODO CARROSSEL (agora monta todos) -->
     <div v-if="config.cardsViewMode === 'carousel'" class="tide-carousel q-mt-md">
       <div class="tide-carousel-nav" style="position:relative;">
         <!-- Seta esquerda sobreposta -->
         <q-btn
-          flat
-          round
+          flat round
           icon="chevron_left"
           @click="carouselPrev"
           :disable="carouselIndex <= 0"
           aria-label="Anterior"
           class="tide-carousel-arrow left"
         />
-        <transition name="fade-slide" mode="out-in">
+        <div style="flex:1; display:flex; justify-content:center; align-items:center; position:relative;">
+          <!-- MONTA TODOS OS CARDS, só 1 aparece -->
           <div
-            v-if="visibleDepths.length"
-            :key="visibleDepths[carouselIndex]?.key"
+            v-for="(d, idx) in visibleDepths"
+            :key="d.key"
             class="tide-carousel-card-wrap"
+            :style="{ display: idx === carouselIndex ? 'block' : 'none' }"
           >
             <q-card class="q-pa-md bg-white shadow-2 tide-carousel-card tide-compare-card">
               <div class="row items-center justify-between q-mb-xs">
                 <div class="text-subtitle1 text-primary text-weight-bold">
-                  Intensidade {{ visibleDepths[carouselIndex]?.label }} — Histórico x Previsão ({{ prevSourceLabel }})
+                  Intensidade {{ d.label }} — Histórico x Previsão ({{ prevSourceLabel }})
                 </div>
-                <div v-if="latestTimestamps[visibleDepths[carouselIndex]?.key]" class="text-caption text-grey-7">
-                  Atualizado: {{ latestTimestamps[visibleDepths[carouselIndex]?.key] }}
+                <div v-if="latestTimestamps[d.key]" class="text-caption text-grey-7">
+                  Atualizado: {{ latestTimestamps[d.key] }}
                 </div>
               </div>
               <div v-if="config.showValuesMode === 'boxes'" class="row q-gutter-md tide-mini-card-row q-mb-md">
                 <div class="tide-mini-value-card">
                   <div class="text-caption text-grey-7">Histórico</div>
                   <div class="text-h6 text-primary">
-                    {{ miniCardValue[visibleDepths[carouselIndex]?.key]?.hist !== null ? miniCardValue[visibleDepths[carouselIndex]?.key]?.hist : '--' }}
+                    {{ miniCardValue[d.key]?.hist !== null ? miniCardValue[d.key]?.hist : '--' }}
                   </div>
                 </div>
                 <div class="tide-mini-value-card">
                   <div class="text-caption text-grey-7">Previsão</div>
-                  <div class="text-h6" :style="{ color: visibleDepths[carouselIndex]?.color }">
-                    {{ miniCardValue[visibleDepths[carouselIndex]?.key]?.prev !== null ? miniCardValue[visibleDepths[carouselIndex]?.key]?.prev : '--' }}
+                  <div class="text-h6" :style="{ color: d.color }">
+                    {{ miniCardValue[d.key]?.prev !== null ? miniCardValue[d.key]?.prev : '--' }}
                   </div>
                 </div>
               </div>
               <div class="row items-center q-mb-xs">
-                <q-btn dense flat icon="chevron_left" @click="prevWindow(visibleDepths[carouselIndex]?.key)" :disable="cursor[visibleDepths[carouselIndex]?.key] <= 0" class="q-mr-xs" />
-                <span class="text-caption">{{ windowLabel(visibleDepths[carouselIndex]?.key) }}</span>
-                <q-btn dense flat icon="chevron_right" @click="nextWindow(visibleDepths[carouselIndex]?.key)" :disable="cursor[visibleDepths[carouselIndex]?.key] >= maxCursor(visibleDepths[carouselIndex]?.key)" class="q-ml-xs" />
+                <q-btn dense flat icon="chevron_left" @click="prevWindow(d.key)" :disable="cursor[d.key] <= 0" class="q-mr-xs" />
+                <span class="text-caption">{{ windowLabel(d.key) }}</span>
+                <q-btn dense flat icon="chevron_right" @click="nextWindow(d.key)" :disable="cursor[d.key] >= maxCursor(d.key)" class="q-ml-xs" />
               </div>
               <div class="tide-chart-container" ref="chartWrap" :style="{ height: config.chartHeight + 'px' }">
-                <canvas :ref="el => setCanvasRef(visibleDepths[carouselIndex]?.key, el)" :style="{ width:'100%', height: config.chartHeight + 'px' }"></canvas>
-                <div v-if="config.showValuesMode === 'tooltip' && tooltip[visibleDepths[carouselIndex]?.key]?.active" :style="tooltipBoxStyle(visibleDepths[carouselIndex]?.key)">
+                <canvas :ref="el => setCanvasRef(d.key, el)" :style="{ width:'100%', height: config.chartHeight + 'px' }"></canvas>
+                <div v-if="config.showValuesMode === 'tooltip' && tooltip[d.key]?.active" :style="tooltipBoxStyle(d.key)">
                   <div class="text-caption" style="font-weight:bold;">
-                    {{ tooltip[visibleDepths[carouselIndex]?.key].label }}
+                    {{ tooltip[d.key].label }}
                   </div>
                   <div class="q-mt-xs">
-                    <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[visibleDepths[carouselIndex]?.key].hist }}</span><br>
-                    <span :style="{color: visibleDepths[carouselIndex]?.color}"><b>Previsão:</b> {{ tooltip[visibleDepths[carouselIndex]?.key].prev }}</span>
+                    <span style="color:#1e78db"><b>Histórico:</b> {{ tooltip[d.key].hist }}</span><br>
+                    <span :style="{color: d.color}"><b>Previsão:</b> {{ tooltip[d.key].prev }}</span>
                   </div>
                 </div>
               </div>
-              <div v-if="config.showBand && acertoErro[visibleDepths[carouselIndex]?.key]?.total > 0" class="row q-mt-sm justify-center items-center">
+              <div v-if="config.showBand && acertoErro[d.key]?.total > 0" class="row q-mt-sm justify-center items-center">
                 <div style="font-size:1.08em; color:#167e31; margin-right:18px;">
-                  Acerto: <b>{{ acertoErro[visibleDepths[carouselIndex]?.key].percAcerto }}%</b>
+                  Acerto: <b>{{ acertoErro[d.key].percAcerto }}%</b>
                 </div>
               </div>
             </q-card>
           </div>
-        </transition>
+        </div>
         <!-- Seta direita sobreposta -->
         <q-btn
-          flat
-          round
+          flat round
           icon="chevron_right"
           @click="carouselNext"
           :disable="carouselIndex >= visibleDepths.length - 1"
