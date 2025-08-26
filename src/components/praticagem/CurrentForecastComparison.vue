@@ -332,7 +332,7 @@
               Acerto: <b>{{ acertoErro[d.key].percAcerto }}%</b>
             </div>
             <div style="font-size:1.08em; color:#d32f2f;">
-              Erro: <b>{{ acertoErro[d.key].percErro }}%</b>
+              <!-- Erro: <b>{{ acertoErro[d.key].percErro }}%</b> -->
             </div>
           </div>
         </q-card>

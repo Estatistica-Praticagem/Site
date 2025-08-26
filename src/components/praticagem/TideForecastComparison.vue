@@ -264,7 +264,7 @@
       <!-- Acerto/Erro -->
       <div v-if="config.showBand && acertosInfo.total > 0" class="row q-mt-md justify-center items-center">
         <div style="font-size:1em; color:#167e31; margin-right:18px;">Acerto: <b>{{ acertosInfo.percAcerto }}%</b></div>
-        <div style="font-size:1em; color:#d32f2f;">Erro: <b>{{ acertosInfo.percErro }}%</b></div>
+        <!-- <div style="font-size:1em; color:#d32f2f;">Erro: <b>{{ acertosInfo.percErro }}%</b></div> -->
       </div>
     </div>
 

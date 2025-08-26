@@ -138,21 +138,22 @@
       >
         {{ glyphChar }}
       </text>
-      <!-- c) Bolinha -->
-      <circle
-        v-else-if="arrowStyle === 'circle'"
-        :cx="center"
-        :cy="center - len"
-        :r="size * 0.11 * arrowScale"
-        :fill="pointerColor"
-        :stroke="showBorder ? borderColor : 'none'"
-        :stroke-width="showBorder ? 2 : 0"
-        :filter="`url(#${shadowId})`"
-        style="transition: fill .3s;"
-      />
+      <!-- c) Bolinha (agora rotacionada corretamente) -->
+      <g v-else-if="arrowStyle === 'circle'" :transform="`rotate(${pointerAngle} ${center} ${center})`">
+        <circle
+          :cx="center"
+          :cy="center - len"
+          :r="size * 0.11 * arrowScale"
+          :fill="pointerColor"
+          :stroke="showBorder ? borderColor : 'none'"
+          :stroke-width="showBorder ? 2 : 0"
+          :filter="`url(#${shadowId})`"
+          style="transition: fill .3s;"
+        />
+      </g>
 
       <!-- Centro / Valor -->
-      <circle :cx="center" :cy="center" :r="size*0.17" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
+      <circle v-if="showCenterCircle" :cx="center" :cy="center" :r="size*0.17" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
       <text
         :x="center"
         :y="center+(size*0.075)"
@@ -260,6 +261,10 @@
                 { label: 'Ponta para fora', value: 'in' }
               ]"
             />
+            <!-- NOVA OPÇÃO: rotacionar seta 180° -->
+            <q-toggle v-model="rotatePointer180" label="Rotacionar seta 180° (padrão ativado)" color="primary" class="q-mt-xs"/>
+            <!-- NOVA OPÇÃO: círculo central -->
+            <q-toggle v-model="showCenterCircle" label="Exibir círculo central do relógio" color="primary" class="q-mt-xs"/>
           </div>
           <!-- Letras -->
           <div>
@@ -326,6 +331,7 @@ const showConfig   = ref(false);
 const bgMode     = ref('solid');
 const showGuides = ref(true);
 const showArc    = ref(true);
+const showCenterCircle = ref(true);
 
 const colorScope  = ref('arrow');
 const colorMode   = ref('auto');
@@ -338,7 +344,8 @@ const arrowStyle  = ref('glyph3');
 const arrowScale  = ref(1.1);
 const showBorder  = ref(false);
 const borderColor = ref('#0d47a1');
-const arrowTip    = ref('in');  // NOVO: 'in' (default) ou 'out'
+const arrowTip    = ref('in');
+const rotatePointer180 = ref(true); // default: ativado
 
 const lettersMode = ref('faint');
 const langChoice  = ref('auto');
@@ -351,6 +358,7 @@ onMounted(() => {
     bgMode.value     = o.bgMode ?? bgMode.value;
     showGuides.value = o.showGuides ?? showGuides.value;
     showArc.value    = o.showArc ?? showArc.value;
+    showCenterCircle.value = o.showCenterCircle ?? showCenterCircle.value;
     colorScope.value  = o.colorScope ?? colorScope.value;
     colorMode.value   = o.colorMode ?? colorMode.value;
     manualColor.value = o.manualColor ?? manualColor.value;
@@ -362,17 +370,19 @@ onMounted(() => {
     showBorder.value  = o.showBorder ?? showBorder.value;
     borderColor.value = o.borderColor ?? borderColor.value;
     arrowTip.value    = o.arrowTip ?? arrowTip.value;
+    rotatePointer180.value = o.rotatePointer180 ?? rotatePointer180.value;
     lettersMode.value = o.lettersMode ?? lettersMode.value;
     langChoice.value  = o.langChoice ?? langChoice.value;
   } catch {}
 });
 watch(
-  [bgMode, showGuides, showArc, colorScope, colorMode, manualColor, customLow, customMid, customHigh, arrowStyle, arrowScale, showBorder, borderColor, arrowTip, lettersMode, langChoice],
+  [bgMode, showGuides, showArc, showCenterCircle, colorScope, colorMode, manualColor, customLow, customMid, customHigh, arrowStyle, arrowScale, showBorder, borderColor, arrowTip, rotatePointer180, lettersMode, langChoice],
   () => {
     const o = {
       bgMode: bgMode.value,
       showGuides: showGuides.value,
       showArc: showArc.value,
+      showCenterCircle: showCenterCircle.value,
       colorScope: colorScope.value,
       colorMode: colorMode.value,
       manualColor: manualColor.value,
@@ -384,6 +394,7 @@ watch(
       showBorder: showBorder.value,
       borderColor: borderColor.value,
       arrowTip: arrowTip.value,
+      rotatePointer180: rotatePointer180.value,
       lettersMode: lettersMode.value,
       langChoice: langChoice.value,
     };
@@ -425,9 +436,11 @@ const gradTint2 = computed(() => mix(pointerColor.value, '#ffffff', 0.25));
 const gradStop1 = computed(() => (colorScope.value === 'both' ? gradTint1.value : gradBase1));
 const gradStop2 = computed(() => (colorScope.value === 'both' ? gradTint2.value : gradBase2));
 
+// AQUI: +180° só se toggle ativado!
 const pointerAngle = computed(() => {
   const dir = Number.isFinite(props.direction) ? props.direction : 0;
-  const angle = 90 - ((dir + 180) % 360);
+  const add180 = rotatePointer180.value ? 180 : 0;
+  const angle = 90 - ((dir + add180) % 360);
   return ((angle % 360) + 360) % 360;
 });
 const len = computed(() => center.value * (0.55 + 0.35 * Math.min((props.intensidade || 0) / Math.max(props.max, 1), 1)));
@@ -509,6 +522,7 @@ function resetToDefault() {
   bgMode.value = 'solid';
   showGuides.value = true;
   showArc.value = true;
+  showCenterCircle.value = true;
   colorScope.value = 'arrow';
   colorMode.value = 'auto';
   manualColor.value = '#1976d2';
@@ -520,6 +534,7 @@ function resetToDefault() {
   showBorder.value = false;
   borderColor.value = '#0d47a1';
   arrowTip.value = 'in';
+  rotatePointer180.value = true;
   lettersMode.value = 'faint';
   langChoice.value = 'auto';
 }
