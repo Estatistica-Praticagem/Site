@@ -7,18 +7,12 @@
     <div style="height:22px"></div>
     <TideForecastComparison />
     <div style="height:22px"></div>
-    <CurrentForecastComparison/>
-    <div style="height:22px"></div>
     <OpenWeatherForecast/>
     <div style="height:22px"></div>
     <WeatherForecastVisibility/>
     <div style="height:22px"></div>
     <WindyWidget/>
-    <!-- <div style="height:22px"></div>
-    <VerticalCurrentProfile/> -->
     <div style="height:40px"></div>
-    <!-- <CurrentComparison/> -->
-    <!-- <div style="height:22px"></div> -->
     <FooterPraticagem/>
   </q-page>
 </template>
@@ -29,13 +23,10 @@ import { useWeatherStore } from 'src/stores/weather';
 import WeatherView from 'src/components/praticagem/WeatherView.vue';
 import WeatherDetails from 'src/components/praticagem/WeatherDetails.vue';
 import TideForecastComparison from 'src/components/praticagem/TideForecastComparison.vue';
-import CurrentForecastComparison from 'src/components/praticagem/CurrentForecastComparison.vue';
-// import CurrentComparison from 'src/components/praticagem/CurrentComparison.vue';
 import OpenWeatherForecast from 'src/components/praticagem/WeatherForecastView.vue';
 import WeatherForecastVisibility from 'src/components/praticagem/WeatherForecastVisibility.vue';
 import FooterPraticagem from 'src/components/praticagem/FooterPraticagem.vue';
 import WindyWidget from 'src/components/praticagem/WindyWidget.vue';
-// import VerticalCurrentProfile from 'src/components/praticagem/VerticalCurrentProfile.vue';
 
 const store = useWeatherStore();
 
