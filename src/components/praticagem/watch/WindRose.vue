@@ -257,8 +257,8 @@
               color="primary"
               class="q-mt-xs"
               :options="[
-                { label: 'Ponta para dentro (padrão)', value: 'out' },
-                { label: 'Ponta para fora', value: 'in' }
+                { label: 'Ponta para dentro (padrão)', value: 'in' },
+                { label: 'Ponta para fora', value: 'out' }
               ]"
             />
             <!-- NOVA OPÇÃO: rotacionar seta 180° -->
@@ -456,7 +456,7 @@ const polygonPoints = computed(() => {
   const l = len.value;
   const c = center.value;
   const w = props.size * 0.045 * arrowScale.value;
-  if (arrowTip.value === 'out') {
+  if (arrowTip.value === 'in') {
     // Ponta para fora
     return `
       ${c},${c - l + props.size * 0.12 * arrowScale.value}
@@ -475,9 +475,9 @@ const polygonPoints = computed(() => {
   }
 });
 const glyphChar = computed(() => {
-  if (arrowStyle.value === 'glyph2') return arrowTip.value === 'out' ? '▼' : '▲';
-  if (arrowStyle.value === 'glyph3') return arrowTip.value === 'out' ? '⇩' : '⇧';
-  return arrowTip.value === 'out' ? '↓' : '↑';
+  if (arrowStyle.value === 'glyph2') return arrowTip.value === 'in' ? '▼' : '▲';
+  if (arrowStyle.value === 'glyph3') return arrowTip.value === 'in' ? '⇩' : '⇧';
+  return arrowTip.value === 'in' ? '↓' : '↑';
 });
 const glyphFontSize = computed(() => (props.size * 0.36) * arrowScale.value);
 
