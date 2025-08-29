@@ -20,6 +20,8 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useWeatherStore } from 'src/stores/weather';
+import { useTorreRealTimeStore } from 'stores/torreRealTime';
+
 import WeatherView from 'src/components/praticagem/WeatherView.vue';
 import WeatherDetails from 'src/components/praticagem/WeatherDetails.vue';
 import TideForecastComparison from 'src/components/praticagem/TideForecastComparison.vue';
@@ -29,7 +31,7 @@ import FooterPraticagem from 'src/components/praticagem/FooterPraticagem.vue';
 import WindyWidget from 'src/components/praticagem/WindyWidget.vue';
 
 const store = useWeatherStore();
-
+const torreStore = useTorreRealTimeStore();
 onMounted(() => {
   store.fetchLast();
   store.fetchHistory();
@@ -37,5 +39,6 @@ onMounted(() => {
   store.fetchOpenWeatherForecast();
   store.fetchCorrenteza5Min(2000); // 5-min
   store.fetchCorrentezaHourly(168); // horária, últimos 7 dias
+  torreStore.fetchDadosEmTempoReal();
 });
 </script>
