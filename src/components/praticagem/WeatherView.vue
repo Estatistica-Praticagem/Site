@@ -20,6 +20,9 @@
             <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
           </div>
           <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
+          <div class="text-caption text-right q-mt-xs q-mr-sm">
+            {{ origemLabel }}
+          </div>
           <div class="row q-gutter-md">
             <div v-if="settings.showTemp">
               <div class="text-caption">TEMPERATURA</div>
@@ -54,9 +57,7 @@
             <div class="q-mr-md">
               <div class="text-caption">LEITURA</div>
               <div class="text-bold">
-                {{ weather.timestamp_br?.date
-                  ? new Date(weather.timestamp_br.date).toLocaleString('pt-BR')
-                  : (weather.leitura ?? '--') }}
+                {{ leituraFormatada }}
               </div>
             </div>
             <div>
@@ -113,6 +114,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
+import { useTorreRealTimeStore } from 'stores/torreRealTime';
 import GaugeRelogio from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import WindRose from 'src/components/praticagem/watch/WindRose.vue';
 import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
@@ -133,22 +135,77 @@ const defaultSettings = {
 
 const settings = ref({ ...defaultSettings });
 
-// Carrega config ao abrir o painel
 function loadConfig() {
   try {
     const data = JSON.parse(localStorage.getItem('weatherPanelConfig'));
     if (data) Object.assign(settings.value, data);
-  // eslint-disable-next-line no-empty
   } catch {}
 }
 onMounted(loadConfig);
 
-// Recebe atualização do filho (config)
 function onConfigUpdate(newSettings) {
   Object.assign(settings.value, newSettings);
 }
 
-const { weatherLast: weather } = storeToRefs(useWeatherStore());
+// Função robusta para interpretar datas BR 'DD/MM/YYYY HH:mm'
+function parseDateBR(str) {
+  if (!str || typeof str !== 'string') return null;
+  const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}))?/);
+  if (!m) return null;
+  const [_, dd, mm, yyyy, hh = '00', min = '00'] = m;
+  return new Date(`${yyyy}-${mm}-${dd}T${hh}:${min}:00`);
+}
+
+// Stores
+const { weatherLast } = storeToRefs(useWeatherStore());
+const { controls, mare, loading: torreLoading, error: torreError } = storeToRefs(useTorreRealTimeStore());
+
+// Computed: monta objeto unificado com prioridade torre > backend
+const weather = computed(() => {
+  if (controls.value && mare.value) {
+    // Pega temperatura, vento etc. da estação, altura_real_getmare da maré
+    return {
+      ...controls.value.stationDavis,
+      ...controls.value,
+      altura_real_getmare: mare.value.regs?.find(r => r.tipo === 'R')?.valor ?? null,
+      leitura: controls.value.stationDavis?.timestamp || controls.value.timestamp,
+      status: controls.value.barraStatus?.status, // <-- Corrigido!
+      // outros campos que precisar
+    }
+  }
+  // Fallback: backend
+  return weatherLast.value;
+});
+
+// Label de origem dos dados
+const origemLabel = computed(() => {
+  if (controls.value && mare.value) return '⏱️ Dados em tempo real (torre)';
+  if (weatherLast.value) return '📦 Último registro (backend)';
+  return '—';
+});
+
+// Leituras formatadas (datetime do dado)
+const leituraFormatada = computed(() => {
+  const leitura = weather.value?.timestamp_br?.date || weather.value?.leitura;
+  if (!leitura) return '--';
+
+  // 1. Tenta ISO (YYYY-MM-DDTHH:mm)
+  if (typeof leitura === 'string' && !leitura.includes('/')) {
+    const d = new Date(leitura);
+    // eslint-disable-next-line no-restricted-globals
+    if (!isNaN(d.getTime())) return d.toLocaleString('pt-BR');
+  }
+
+  // 2. Tenta BR (DD/MM/YYYY HH:mm)
+  const d = parseDateBR(leitura);
+  // eslint-disable-next-line no-restricted-globals
+  if (d && !isNaN(d.getTime())) {
+    return d.toLocaleString('pt-BR');
+  }
+
+  // 3. Se não deu, retorna original
+  return leitura;
+});
 
 // Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
 const ventoDirCardinal = computed(() => weather.value?.ventodirecao || weather.value?.vento_dir || null);
@@ -158,7 +215,6 @@ const ventoDir = computed(() => {
   const vnum = weather.value?.ventonum;
   // eslint-disable-next-line no-restricted-globals
   if (typeof vnum === 'number' && !isNaN(vnum)) return vnum;
-  // eslint-disable-next-line no-use-before-define
   return cardinalToDegree(ventoDirCardinal.value);
 });
 
@@ -167,7 +223,6 @@ const windDirLabel = computed(() => (
   ventoDirCardinal.value
     ? ` ${ventoDirCardinal.value.toUpperCase()}`
     : (typeof weather.value?.ventonum === 'number'
-      // eslint-disable-next-line no-use-before-define
       ? degreeToCardinal(weather.value.ventonum)
       : '')
 ));
@@ -178,44 +233,44 @@ function cardinalToDegree(cardinal) {
   const c = cardinal.trim().toUpperCase().replace(/[^A-Z]/g, '');
   const map = {
     N: 0,
-    NNE: 22.5,
-    NE: 45,
-    ENE: 67.5,
-    E: 90,
-    ESE: 112.5,
-    SE: 135,
-    SSE: 157.5,
+NNE: 22.5,
+NE: 45,
+ENE: 67.5,
+E: 90,
+ESE: 112.5,
+SE: 135,
+SSE: 157.5,
     S: 180,
-    SSO: 202.5,
-    SO: 225,
-    OSO: 247.5,
-    O: 270,
-    ONO: 292.5,
-    NO: 315,
-    NNO: 337.5,
+SSO: 202.5,
+SO: 225,
+OSO: 247.5,
+O: 270,
+ONO: 292.5,
+NO: 315,
+NNO: 337.5,
     W: 270,
-    WSW: 247.5,
-    SW: 225,
-    SSW: 202.5,
-    NW: 315,
-    NNW: 337.5,
-    WNW: 292.5,
+WSW: 247.5,
+SW: 225,
+SSW: 202.5,
+NW: 315,
+NNW: 337.5,
+WNW: 292.5,
     NORTE: 0,
-    NORDESTE: 45,
-    LESTE: 90,
-    SUDESTE: 135,
-    SUL: 180,
-    SUDOESTE: 225,
+NORDESTE: 45,
+LESTE: 90,
+SUDESTE: 135,
+SUL: 180,
+SUDOESTE: 225,
     OESTE: 270,
-    NOROESTE: 315,
-    NORTH: 0,
-    NORTHEAST: 45,
-    EAST: 90,
-    SOUTHEAST: 135,
+NOROESTE: 315,
+NORTH: 0,
+NORTHEAST: 45,
+EAST: 90,
+SOUTHEAST: 135,
     SOUTH: 180,
-    SOUTHWEST: 225,
-    WEST: 270,
-    NORTHWEST: 315,
+SOUTHWEST: 225,
+WEST: 270,
+NORTHWEST: 315,
   };
   if (map[c] !== undefined) return map[c];
   console.warn('SIGLA DE VENTO DESCONHECIDA:', cardinal);
@@ -273,9 +328,9 @@ const statusStyle = computed(() => {
   };
 });
 
-const correntezaDir = computed(() => parseFloat(weather.value?.direcao_3m ?? 0));
+const correntezaDir = computed(() => parseFloat(weatherLast.value?.direcao_3m ?? 0));
 const correntezakts = computed(() => {
-  const val = parseFloat(weather.value?.intensidade_3m ?? 0);
+  const val = parseFloat(weatherLast.value?.intensidade_3m ?? 0);
   // eslint-disable-next-line no-restricted-globals
   return isNaN(val) ? 0 : +val.toFixed(2);
 });
@@ -283,10 +338,6 @@ const ventokts = computed(() => {
   const val = parseFloat(weather.value?.ventointensidade ?? weather.value?.vento_int ?? 0);
   // eslint-disable-next-line no-restricted-globals
   return isNaN(val) ? 0 : +val.toFixed(2);
-});
-
-onMounted(() => {
-  loadConfig();
 });
 </script>
 
