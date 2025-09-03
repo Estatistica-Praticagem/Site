@@ -9,12 +9,10 @@
       @click="showConfig = true"
     >
       <defs>
-        <!-- Gradiente dinâmico (tintado quando colorScope === 'both') -->
         <radialGradient :id="gradId" cx="50%" cy="50%" r="60%">
           <stop offset="0%" :stop-color="gradStop1" />
           <stop offset="98%" :stop-color="gradStop2" />
         </radialGradient>
-
         <filter :id="shadowId" x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#90caf9" flood-opacity="0.11" />
         </filter>
@@ -32,7 +30,7 @@
         />
       </g>
 
-      <!-- Círculo/anel externo + linhas de referência (opcional / sólido ou transparente) -->
+      <!-- Círculo/anel externo + linhas de referência -->
       <template v-if="showBackground">
         <circle
           :cx="center"
@@ -59,46 +57,39 @@
           :fill="lettersFill" font-weight="bold"
           :opacity="lettersOpacity"
         >{{ labels.N }}</text>
-
         <text
           :x="center" :y="center+(center*0.87)"
           text-anchor="middle" :font-size="size*0.094"
           :fill="lettersFill" font-weight="bold"
           :opacity="lettersOpacity"
         >{{ labels.S }}</text>
-
         <text
           :x="center-(center*0.75)" :y="center+7"
           text-anchor="middle" :font-size="size*0.094"
           :fill="lettersFill" font-weight="bold"
           :opacity="lettersOpacity"
         >{{ labels.W }}</text>
-
         <text
           :x="center+(center*0.75)" :y="center+7"
           text-anchor="middle" :font-size="size*0.094"
           :fill="lettersFill" font-weight="bold"
           :opacity="lettersOpacity"
         >{{ labels.E }}</text>
-
         <text
           :x="center-(center*0.52)" :y="center-(center*0.55)"
           text-anchor="middle" :font-size="size*0.07"
           :fill="lettersSubFill" :opacity="lettersOpacity"
         >{{ labels.NW }}</text>
-
         <text
           :x="center+(center*0.52)" :y="center-(center*0.55)"
           text-anchor="middle" :font-size="size*0.07"
           :fill="lettersSubFill" :opacity="lettersOpacity"
         >{{ labels.NE }}</text>
-
         <text
           :x="center-(center*0.52)" :y="center+(center*0.63)"
           text-anchor="middle" :font-size="size*0.07"
           :fill="lettersSubFill" :opacity="lettersOpacity"
         >{{ labels.SW }}</text>
-
         <text
           :x="center+(center*0.52)" :y="center+(center*0.63)"
           text-anchor="middle" :font-size="size*0.07"
@@ -106,7 +97,7 @@
         >{{ labels.SE }}</text>
       </g>
 
-      <!-- PONTEIRO (estilo selecionado) -->
+      <!-- PONTEIRO -->
       <!-- a) Polígono/haste -->
       <g v-if="arrowStyle === 'poly'" :style="pointerStyle">
         <polygon
@@ -131,10 +122,9 @@
           opacity="0.6"
         />
       </g>
-
-      <!-- b) Setas via caractere (↑ ▲ ⇧) -->
+      <!-- b) Setas via caractere -->
       <text
-        v-else
+        v-else-if="['glyph1','glyph2','glyph3'].includes(arrowStyle)"
         :x="center"
         :y="center - (size * 0.38)"
         text-anchor="middle"
@@ -148,9 +138,22 @@
       >
         {{ glyphChar }}
       </text>
+      <!-- c) Bolinha (agora rotacionada corretamente) -->
+      <g v-else-if="arrowStyle === 'circle'" :transform="`rotate(${pointerAngle} ${center} ${center})`">
+        <circle
+          :cx="center"
+          :cy="center - len"
+          :r="size * 0.11 * arrowScale"
+          :fill="pointerColor"
+          :stroke="showBorder ? borderColor : 'none'"
+          :stroke-width="showBorder ? 2 : 0"
+          :filter="`url(#${shadowId})`"
+          style="transition: fill .3s;"
+        />
+      </g>
 
       <!-- Centro / Valor -->
-      <circle :cx="center" :cy="center" :r="size*0.17" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
+      <circle v-if="showCenterCircle" :cx="center" :cy="center" :r="size*0.17" fill="#fff" stroke="#b3e5fc" stroke-width="2" />
       <text
         :x="center"
         :y="center+(size*0.075)"
@@ -188,7 +191,6 @@
             />
             <q-toggle v-if="bgMode==='solid'" v-model="showGuides" label="Mostrar linhas/diagonais" color="primary"/>
           </div>
-
           <!-- Onde aplicar a cor -->
           <div>
             <div class="text-bold q-mb-xs">Aplicar cor do status</div>
@@ -202,7 +204,6 @@
               ]"
             />
           </div>
-
           <!-- Modo de cor -->
           <div>
             <div class="text-bold q-mb-xs">Modo de cor</div>
@@ -228,7 +229,6 @@
               label="Cor fixa"
               filled dense class="q-mt-xs" />
           </div>
-
           <!-- Seta -->
           <div>
             <div class="text-bold q-mb-xs">Tipo de seta</div>
@@ -240,7 +240,8 @@
                 { label: 'Polígono/haste', value: 'poly' },
                 { label: '↑ (clássica)', value: 'glyph1' },
                 { label: '▲ (sólida)', value: 'glyph2' },
-                { label: '⇧ (teclado)', value: 'glyph3' }
+                { label: '⇧ (teclado)', value: 'glyph3' },
+                { label: 'Bolinha', value: 'circle' }
               ]"
             />
             <div class="q-mt-xs">
@@ -249,8 +250,22 @@
             </div>
             <q-toggle v-model="showBorder" label="Mostrar borda da seta" color="primary" class="q-mt-xs"/>
             <q-input v-if="showBorder" v-model="borderColor" type="color" label="Cor da borda" filled dense />
+            <!-- NOVA OPÇÃO: ponta da seta -->
+            <q-option-group
+              v-model="arrowTip"
+              type="radio"
+              color="primary"
+              class="q-mt-xs"
+              :options="[
+                { label: 'Ponta para dentro (padrão)', value: 'in' },
+                { label: 'Ponta para fora', value: 'out' }
+              ]"
+            />
+            <!-- NOVA OPÇÃO: rotacionar seta 180° -->
+            <q-toggle v-model="rotatePointer180" label="Rotacionar seta 180° (padrão ativado)" color="primary" class="q-mt-xs"/>
+            <!-- NOVA OPÇÃO: círculo central -->
+            <q-toggle v-model="showCenterCircle" label="Exibir círculo central do relógio" color="primary" class="q-mt-xs"/>
           </div>
-
           <!-- Letras -->
           <div>
             <div class="text-bold q-mb-xs">Letras (rosa dos ventos)</div>
@@ -278,13 +293,11 @@
               />
             </div>
           </div>
-
           <!-- Outros -->
           <div>
             <q-toggle v-model="showArc" label="Mostrar arco de intensidade externo" color="primary"/>
           </div>
         </q-card-section>
-
         <q-separator />
         <q-card-actions align="right">
           <q-btn flat label="Fechar" color="primary" v-close-popup />
@@ -306,41 +319,37 @@ const props = defineProps({
   size:        { type: Number, default: 110 },
 });
 
-/* -------------------- Rotulagem por idioma -------------------- */
 const dirMap = {
   pt: { N: 'N', S: 'S', E: 'L', W: 'O', NE: 'NE', NW: 'NO', SE: 'SE', SW: 'SO' },
   en: { N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', NW: 'NW', SE: 'SE', SW: 'SW' },
 };
 const center = computed(() => props.size / 2);
 
-/* -------------------- Config persistente -------------------- */
 const cfgKey = 'windRoseConfig_v2';
 const showConfig   = ref(false);
 
-/* Fundo / estrutura */
-const bgMode     = ref('solid');     // 'solid' | 'transparent'
+const bgMode     = ref('solid');
 const showGuides = ref(true);
 const showArc    = ref(true);
+const showCenterCircle = ref(true);
 
-/* Cor */
-const colorScope  = ref('arrow');    // 'arrow' | 'both'
-const colorMode   = ref('auto');     // 'auto' | 'custom' | 'manual'
+const colorScope  = ref('arrow');
+const colorMode   = ref('auto');
 const manualColor = ref('#1976d2');
 const customLow   = ref('#43a047');
 const customMid   = ref('#fbc02d');
 const customHigh  = ref('#e53935');
 
-/* Seta */
-const arrowStyle  = ref('glyph3');   // 'poly' | 'glyph1' | 'glyph2' | 'glyph3'
+const arrowStyle  = ref('glyph3');
 const arrowScale  = ref(1.1);
 const showBorder  = ref(false);
 const borderColor = ref('#0d47a1');
+const arrowTip    = ref('in');
+const rotatePointer180 = ref(true); // default: ativado
 
-/* Letras */
-const lettersMode = ref('faint');    // 'show' | 'faint' | 'hide'
-const langChoice  = ref('auto');     // 'auto' | 'pt' | 'en'
+const lettersMode = ref('faint');
+const langChoice  = ref('auto');
 
-/* Salvar/carregar */
 onMounted(() => {
   const saved = localStorage.getItem(cfgKey);
   if (!saved) return;
@@ -349,49 +358,51 @@ onMounted(() => {
     bgMode.value     = o.bgMode ?? bgMode.value;
     showGuides.value = o.showGuides ?? showGuides.value;
     showArc.value    = o.showArc ?? showArc.value;
-
+    showCenterCircle.value = o.showCenterCircle ?? showCenterCircle.value;
     colorScope.value  = o.colorScope ?? colorScope.value;
     colorMode.value   = o.colorMode ?? colorMode.value;
     manualColor.value = o.manualColor ?? manualColor.value;
     customLow.value   = o.customLow ?? customLow.value;
     customMid.value   = o.customMid ?? customMid.value;
     customHigh.value  = o.customHigh ?? customHigh.value;
-
     arrowStyle.value  = o.arrowStyle ?? arrowStyle.value;
     arrowScale.value  = o.arrowScale ?? arrowScale.value;
     showBorder.value  = o.showBorder ?? showBorder.value;
     borderColor.value = o.borderColor ?? borderColor.value;
-
+    arrowTip.value    = o.arrowTip ?? arrowTip.value;
+    rotatePointer180.value = o.rotatePointer180 ?? rotatePointer180.value;
     lettersMode.value = o.lettersMode ?? lettersMode.value;
     langChoice.value  = o.langChoice ?? langChoice.value;
   } catch {}
 });
 watch(
-  [bgMode, showGuides, showArc, colorScope, colorMode, manualColor, customLow, customMid, customHigh, arrowStyle, arrowScale, showBorder, borderColor, lettersMode, langChoice],
+  [bgMode, showGuides, showArc, showCenterCircle, colorScope, colorMode, manualColor, customLow, customMid, customHigh, arrowStyle, arrowScale, showBorder, borderColor, arrowTip, rotatePointer180, lettersMode, langChoice],
   () => {
     const o = {
       bgMode: bgMode.value,
-showGuides: showGuides.value,
-showArc: showArc.value,
+      showGuides: showGuides.value,
+      showArc: showArc.value,
+      showCenterCircle: showCenterCircle.value,
       colorScope: colorScope.value,
-colorMode: colorMode.value,
-manualColor: manualColor.value,
+      colorMode: colorMode.value,
+      manualColor: manualColor.value,
       customLow: customLow.value,
-customMid: customMid.value,
-customHigh: customHigh.value,
+      customMid: customMid.value,
+      customHigh: customHigh.value,
       arrowStyle: arrowStyle.value,
-arrowScale: arrowScale.value,
-showBorder: showBorder.value,
+      arrowScale: arrowScale.value,
+      showBorder: showBorder.value,
       borderColor: borderColor.value,
-lettersMode: lettersMode.value,
-langChoice: langChoice.value,
+      arrowTip: arrowTip.value,
+      rotatePointer180: rotatePointer180.value,
+      lettersMode: lettersMode.value,
+      langChoice: langChoice.value,
     };
     localStorage.setItem(cfgKey, JSON.stringify(o));
   },
   { deep: true }
 );
 
-/* -------------------- Letras/idioma -------------------- */
 const langEffective = computed(() => {
   if (langChoice.value === 'pt' || langChoice.value === 'en') return langChoice.value;
   return props.lang === 'en' ? 'en' : 'pt';
@@ -402,7 +413,6 @@ const lettersSubFill = computed(() => '#64b5f6');
 const lettersOpacity = computed(() => (lettersMode.value === 'faint' ? 0.45 : 0.95));
 const showBackground = computed(() => bgMode.value === 'solid');
 
-/* -------------------- Cores e gradiente -------------------- */
 function colorFromKts(kts) {
   // eslint-disable-next-line no-restricted-globals
   if (kts == null || !isFinite(kts)) return manualColor.value;
@@ -412,7 +422,6 @@ function colorFromKts(kts) {
     if (kts >= 15) return customMid.value;
     return customLow.value;
   }
-  // auto
   if (kts > 35) return '#e53935';
   if (kts >= 15) return '#fbc02d';
   return '#43a047';
@@ -422,20 +431,19 @@ const pointerColorFill = computed(() => withAlpha(pointerColor.value, 0.28));
 
 const gradBase1 = '#fafdff';
 const gradBase2 = '#90caf9';
-const gradTint1 = computed(() => mix(pointerColor.value, '#ffffff', 0.8)); // bem claro
-const gradTint2 = computed(() => mix(pointerColor.value, '#ffffff', 0.25)); // mais saturado
+const gradTint1 = computed(() => mix(pointerColor.value, '#ffffff', 0.8));
+const gradTint2 = computed(() => mix(pointerColor.value, '#ffffff', 0.25));
 const gradStop1 = computed(() => (colorScope.value === 'both' ? gradTint1.value : gradBase1));
 const gradStop2 = computed(() => (colorScope.value === 'both' ? gradTint2.value : gradBase2));
 
-/* -------------------- Geometria e ponteiro -------------------- */
-// Inverte direção (+180°) e mapeia para rotação SVG
+// AQUI: +180° só se toggle ativado!
 const pointerAngle = computed(() => {
   const dir = Number.isFinite(props.direction) ? props.direction : 0;
-  const angle = 90 - ((dir + 180) % 360); // 0° (N) aponta para cima
+  const add180 = rotatePointer180.value ? 180 : 0;
+  const angle = 90 - ((dir + add180) % 360);
   return ((angle % 360) + 360) % 360;
 });
 const len = computed(() => center.value * (0.55 + 0.35 * Math.min((props.intensidade || 0) / Math.max(props.max, 1), 1)));
-
 // eslint-disable-next-line no-restricted-globals
 const intVal = computed(() => (isNaN(props.intensidade) ? '--' : Number(props.intensidade).toFixed(2)));
 
@@ -448,23 +456,31 @@ const polygonPoints = computed(() => {
   const l = len.value;
   const c = center.value;
   const w = props.size * 0.045 * arrowScale.value;
-  return `
-    ${c},${c - l}
-    ${c + w},${c - l + props.size * 0.12 * arrowScale.value}
-    ${c},${c - l + props.size * 0.07 * arrowScale.value}
-    ${c - w},${c - l + props.size * 0.12 * arrowScale.value}
-  `;
+  if (arrowTip.value === 'in') {
+    // Ponta para fora
+    return `
+      ${c},${c - l + props.size * 0.12 * arrowScale.value}
+      ${c + w},${c - l}
+      ${c},${c - l - props.size * 0.07 * arrowScale.value}
+      ${c - w},${c - l}
+    `;
+  } else {
+    // Ponta para dentro (padrão)
+    return `
+      ${c},${c - l}
+      ${c + w},${c - l + props.size * 0.12 * arrowScale.value}
+      ${c},${c - l + props.size * 0.07 * arrowScale.value}
+      ${c - w},${c - l + props.size * 0.12 * arrowScale.value}
+    `;
+  }
 });
-
-/* Setas via caractere */
 const glyphChar = computed(() => {
-  if (arrowStyle.value === 'glyph2') return '▲';
-  if (arrowStyle.value === 'glyph3') return '⇧';
-  return '↑';
+  if (arrowStyle.value === 'glyph2') return arrowTip.value === 'in' ? '▼' : '▲';
+  if (arrowStyle.value === 'glyph3') return arrowTip.value === 'in' ? '⇩' : '⇧';
+  return arrowTip.value === 'in' ? '↓' : '↑';
 });
 const glyphFontSize = computed(() => (props.size * 0.36) * arrowScale.value);
 
-/* -------------------- Arco externo -------------------- */
 function polarToCartesian(cx, cy, r, angleInDegrees) {
   const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
   return { x: cx + (r * Math.cos(angleInRadians)), y: cy + (r * Math.sin(angleInRadians)) };
@@ -478,7 +494,6 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 const arco = computed(() => (Math.min(props.intensidade ?? 0, props.max) / Math.max(props.max, 1)) * 270);
 const arcPath = computed(() => describeArc(center.value, center.value, center.value - 1, 0, arco.value));
 
-/* -------------------- Utils de cor -------------------- */
 function withAlpha(hex, a = 1) {
   const { r, g, b } = hexToRgb(hex);
   return `rgba(${r},${g},${b},${a})`;
@@ -499,29 +514,27 @@ function mix(hexA, hexB, t) {
   return `rgb(${r},${g},${b2})`;
 }
 
-/* -------------------- Gradiente/IDs únicos -------------------- */
 const uid = Math.random().toString(36).slice(2, 8);
 const gradId = `grad2_${uid}`;
 const shadowId = `shadow_${uid}`;
 
-/* -------------------- Reset -------------------- */
 function resetToDefault() {
   bgMode.value = 'solid';
   showGuides.value = true;
   showArc.value = true;
-
+  showCenterCircle.value = true;
   colorScope.value = 'arrow';
   colorMode.value = 'auto';
   manualColor.value = '#1976d2';
   customLow.value = '#43a047';
   customMid.value = '#fbc02d';
   customHigh.value = '#e53935';
-
   arrowStyle.value = 'glyph3';
   arrowScale.value = 1.1;
   showBorder.value = false;
   borderColor.value = '#0d47a1';
-
+  arrowTip.value = 'in';
+  rotatePointer180.value = true;
   lettersMode.value = 'faint';
   langChoice.value = 'auto';
 }

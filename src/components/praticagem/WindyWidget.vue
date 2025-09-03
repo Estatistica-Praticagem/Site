@@ -43,7 +43,6 @@
     >
       <div class="text-sm text-gray-700 font-bold px-2 pt-2 pb-1">Mapa Windy</div>
 
-      <!-- Painel de Configuração -->
       <transition name="fade">
         <div
           v-if="card1.openConfig"
@@ -154,72 +153,31 @@
       ></div>
     </div>
 
-    <!-- Estação Meteorológica -->
-    <div
-      v-if="selected === 'station'"
-      :key="widgetKey"
-      class="relative bg-white isolate overflow-visible"
-      :class="cardClass(card3)"
-      :style="cardStyle(card3)"
-    >
-      <div class="text-sm text-gray-700 font-bold px-2 pt-2 pb-1">Estação Meteorológica (SBPK)</div>
-
-      <transition name="fade">
-        <div
-          v-if="card3.openConfig"
-          class="absolute rounded-xl shadow-lg border"
-          :style="configPanelStyle(card3)"
-        >
-          <div class="mb-2 font-bold text-sm text-gray-700">Configurações da Estação</div>
-
-          <ConfigInputs
-            v-model:fullWidth="card3.fullWidth"
-            v-model:maxWidth="card3.maxWidth"
-            v-model:width="card3.width"
-            v-model:height="card3.height"
-            v-model:paddingSide="card3.paddingSide"
-            v-model:paddingTop="card3.paddingTop"
-            v-model:paddingBottom="card3.paddingBottom"
-            v-model:marginSide="card3.marginSide"
-            v-model:marginTop="card3.marginTop"
-            v-model:marginBottom="card3.marginBottom"
-            v-model:shape="card3.shape"
-            v-model:shadow="card3.shadow"
-            v-model:border="card3.border"
-            v-model:configPadding="card3.configPadding"
-            v-model:configOffsetX="card3.configOffsetX"
-            v-model:configOffsetY="card3.configOffsetY"
-          />
-          <div class="flex justify-end">
-            <button class="bg-blue-600 hover:bg-blue-700 text-white rounded mt-3 px-3 py-1" @click="card3.openConfig = false">
-              OK
-            </button>
-          </div>
-        </div>
-      </transition>
-
-      <div
-        ref="windyChart"
-        data-windywidget="windychart"
-        data-meteostationid="SBPK"
-        class="w-full h-full"
-        style="min-height:150px"
-      ></div>
+    <!-- Freamer (Pena): Botão flutuante webview -->
+    <div v-if="selected === 'freamer'">
+      <WindyWidget />
+    </div>
+        <!-- Freamer (Pena): Botão flutuante webview -->
+    <div v-if="selected === 'Windguru'" style="margin-top: 30px;">
+      <WindguruWidget />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from "vue";
+import { ref, onMounted, nextTick, watch } from "vue"
+import WindyWidget from 'src/components/MuitosBonsVentosWidget.vue'
+import WindguruWidget from 'components/WindguruWidget.vue'
 
 const btns = [
   { value: "map", label: "Mapa Windy" },
   { value: "forecast", label: "Previsão Windy" },
-  { value: "station", label: "Estação SBPK" },
-];
+  { value: "freamer", label: "Bons Ventos" },
+  { value: "Windguru", label: "Windguru" },
+]
 
-const selected = ref("map");
-const widgetKey = ref(Date.now());
+const selected = ref("map")
+const widgetKey = ref(Date.now())
 
 // ======= Tailwind helpers =======
 const SHAPES = { sm: "rounded-md", md: "rounded-xl", lg: "rounded-2xl", xl: "rounded-3xl" };
@@ -251,7 +209,8 @@ function makeCardDefaults() {
 
 const card1 = ref(makeCardDefaults());
 const card2 = ref({ ...makeCardDefaults(), height: 700, theme: "white" });
-const card3 = ref(makeCardDefaults());
+const cardFreamer = ref({ ...makeCardDefaults(), height: 600 });
+const freamerUrl = "https://app.freamer.com.br/EXEMPLO"; // Troque para o link correto!
 
 // ======= Componente de Inputs =======
 const ConfigInputs = {
@@ -370,7 +329,7 @@ function cardStyle(card) {
   return base;
 }
 function configPanelStyle(card) {
-  // Sobrepõe o iframe do Windy
+  // Sobrepõe o iframe do Windy ou Freamer
   return {
     top: `${card.configOffsetY}px`,
     right: `${card.configOffsetX}px`,
@@ -386,12 +345,10 @@ function configPanelStyle(card) {
 // ======= Script de reload dos widgets =======
 const windyMap = ref(null);
 const windyForecast = ref(null);
-const windyChart = ref(null);
 
 const scriptMap = {
   map: "https://windy.app/widget3/windy_map_async.js",
   forecast: "https://windy.app/widgets-code/forecast/windy_forecast_async.js?v168",
-  station: "https://windy.app/meteostation-widget/dist/windy-chart.js?v19",
 };
 
 function forceScriptReload(type) {
@@ -418,36 +375,36 @@ async function reloadWindyWidget() {
   }
 }
 
-// Abre/fecha o painel correto sem tocar nos outros
 function toggleTopConfig() {
-  if (selected.value === "map") {
-    card1.value.openConfig = !card1.value.openConfig;
-    card2.value.openConfig = false;
-    card3.value.openConfig = false;
-  } else if (selected.value === "forecast") {
-    card2.value.openConfig = !card2.value.openConfig;
-    card1.value.openConfig = false;
-    card3.value.openConfig = false;
-  } else {
-    card3.value.openConfig = !card3.value.openConfig;
-    card1.value.openConfig = false;
-    card2.value.openConfig = false;
-  }
+  // fecha todos e abre o certo
+  card1.value.openConfig = false;
+  card2.value.openConfig = false;
+  cardFreamer.value.openConfig = false;
+
+  if (selected.value === "map") card1.value.openConfig = !card1.value.openConfig;
+  else if (selected.value === "forecast") card2.value.openConfig = !card2.value.openConfig;
+  else if (selected.value === "freamer") cardFreamer.value.openConfig = !cardFreamer.value.openConfig;
 }
 
 function selectWidget(val) {
-  // fecha todos, troca e recarrega
   card1.value.openConfig = false;
   card2.value.openConfig = false;
-  card3.value.openConfig = false;
+  cardFreamer.value.openConfig = false;
 
   selected.value = val;
-  widgetKey.value = Date.now(); // remount
+  widgetKey.value = Date.now();
   nextTick(() => {
-    forceScriptReload(val);
-    setTimeout(reloadWindyWidget, 50);
+    if (val === "map" || val === "forecast") {
+      forceScriptReload(val);
+      setTimeout(reloadWindyWidget, 50);
+    }
   });
 }
+watch(selected, (val) => {
+  if (val !== 'Windguru' && showWidget.value) {
+    showWidget.value = false;
+  }
+})
 
 // Recarrega quando o tema da previsão muda
 watch(() => card2.value.theme, () => {
