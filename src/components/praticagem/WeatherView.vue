@@ -1,111 +1,133 @@
 <template>
-  <div style="margin-bottom:0;">
-    <div style="position: relative;">
-      <!-- Botão de três pontinhos no canto superior direito -->
-      <q-btn
-        dense flat round
-        icon="more_vert"
-        style="position: absolute; top: 6px; right: 6px; z-index:2;"
-        @click="showConfig = true"
+  <div>
+    <!-- Botão de seleção de painel -->
+    <div class="flex items-center gap-4 q-mb-lg">
+      <q-btn-toggle
+        v-model="panel"
+        spread
+        toggle-color="primary"
+        :options="[
+          { label: 'Padrão', value: 'default' },
+          { label: 'SiMCosta', value: 'simcosta' }
+        ]"
+        size="md"
+        class="bg-grey-1"
       />
-      <!-- Card principal do tempo -->
-      <q-card
-        class="weather-main-card q-pa-none shadow-2"
-        v-if="!!weather"
-        :class="statusClass"
-      >
-        <!-- Infos -->
-        <div class="weather-col-info">
-          <div class="text-h6 q-mb-xs flex items-center gap-1">
-            <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
-          </div>
-          <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
-          <div class="text-caption text-right q-mt-xs q-mr-sm">
-            {{ origemLabel }}
-          </div>
-          <div class="row q-gutter-md">
-            <div v-if="settings.showTemp">
-              <div class="text-caption">TEMPERATURA</div>
-              <div class="text-bold">{{ weather.temperatura ?? '--' }}°</div>
-            </div>
-            <div v-if="settings.showTemp">
-              <div class="text-caption">SENSAÇÃO TÉRMICA</div>
-              <div class="text-bold">{{ weather.sensacaotermica ?? weather.sensacao ?? '--' }}°</div>
-            </div>
-            <div v-if="settings.showPressao">
-              <div class="text-caption">PRESSÃO</div>
-              <div class="text-bold">{{ weather.pressao ?? '--' }} mb</div>
-            </div>
-            <div v-if="settings.showUmidade">
-              <div class="text-caption">UMIDADE</div>
-              <div class="text-bold">{{ weather.umidade ?? '--' }}%</div>
-            </div>
-            <div>
-              <div class="text-caption">VENTO</div>
-              <div class="text-bold">
-                {{ ventokts }}kts {{ windDirLabel }}
+    </div>
+
+    <!-- Painel padrão -->
+    <div v-if="panel === 'default'">
+      <div style="margin-bottom:0;">
+        <div style="position: relative;">
+          <q-btn
+            dense flat round
+            icon="more_vert"
+            style="position: absolute; top: 6px; right: 6px; z-index:2;"
+            @click="showConfig = true"
+          />
+          <q-card
+            class="weather-main-card q-pa-none shadow-2"
+            v-if="!!weather"
+            :class="statusClass"
+          >
+            <!-- Infos -->
+            <div class="weather-col-info">
+              <div class="text-h6 q-mb-xs flex items-center gap-1">
+                <q-icon name="cloud" class="q-mr-xs"/>Condições atuais:
+              </div>
+              <div class="text-caption q-mb-xs station-label">ESTAÇÃO METEOROLÓGICA</div>
+              <div class="text-caption text-right q-mt-xs q-mr-sm">
+                {{ origemLabel }}
+              </div>
+              <div class="row q-gutter-md">
+                <div v-if="settings.showTemp">
+                  <div class="text-caption">TEMPERATURA</div>
+                  <div class="text-bold">{{ weather.temperatura ?? '--' }}°</div>
+                </div>
+                <div v-if="settings.showTemp">
+                  <div class="text-caption">SENSAÇÃO TÉRMICA</div>
+                  <div class="text-bold">{{ weather.sensacaotermica ?? weather.sensacao ?? '--' }}°</div>
+                </div>
+                <div v-if="settings.showPressao">
+                  <div class="text-caption">PRESSÃO</div>
+                  <div class="text-bold">{{ weather.pressao ?? '--' }} mb</div>
+                </div>
+                <div v-if="settings.showUmidade">
+                  <div class="text-caption">UMIDADE</div>
+                  <div class="text-bold">{{ weather.umidade ?? '--' }}%</div>
+                </div>
+                <div>
+                  <div class="text-caption">VENTO</div>
+                  <div class="text-bold">
+                    {{ ventokts }}kts {{ windDirLabel }}
+                  </div>
+                </div>
+                <div v-if="settings.showMare">
+                  <div class="text-caption">ALTURA REAL DA MARÉ</div>
+                  <div class="text-bold text-primary">
+                    {{ weather.altura_real_getmare ?? '--' }} m
+                  </div>
+                </div>
+              </div>
+              <div class="row q-mt-xs">
+                <div class="q-mr-md">
+                  <div class="text-caption">LEITURA</div>
+                  <div class="text-bold">
+                    {{ leituraFormatada }}
+                  </div>
+                </div>
+                <div>
+                  <div class="text-caption">STATUS</div>
+                  <q-badge
+                    :color="statusStyle.badge"
+                    align="top"
+                    class="q-ml-xs q-mt-xs text-bold"
+                    style="font-size:1.1em;padding:3px 14px;border-radius:9px;"
+                  >
+                    {{ weather.status ?? '--' }}
+                  </q-badge>
+                </div>
               </div>
             </div>
-            <div v-if="settings.showMare">
-              <div class="text-caption">ALTURA REAL DA MARÉ</div>
-              <div class="text-bold text-primary">
-                {{ weather.altura_real_getmare ?? '--' }} m
+            <!-- Blocos: Gauge Correnteza 3m e Rosa do Vento -->
+            <div class="weather-col-gauges">
+              <div class="gauge-group" v-if="settings.showCorrenteza">
+                <div class="gauge-title">Correnteza 3m</div>
+                <GaugeRelogio
+                  :value="correntezaDir"
+                  :intensidade="correntezakts"
+                  :max="4"
+                  :unidade="'kts'"
+                  colorMain="#1976D2"
+                  colorSecondary="#43A047"
+                  colorBg="#E3F2FD"
+                  :size="settings.sizeCorrenteza"
+                />
+              </div>
+              <div class="gauge-group" v-if="settings.showVento">
+                <div class="gauge-title">Vento</div>
+                <WindRose
+                  :direction="ventoDir"
+                  :intensidade="ventokts"
+                  :max="40"
+                  :unidade="'kts'"
+                  :size="settings.sizeVento"
+                  :lang="settings.siglaEN ? 'en' : 'pt'"
+                />
               </div>
             </div>
-          </div>
-          <div class="row q-mt-xs">
-            <div class="q-mr-md">
-              <div class="text-caption">LEITURA</div>
-              <div class="text-bold">
-                {{ leituraFormatada }}
-              </div>
-            </div>
-            <div>
-              <div class="text-caption">STATUS</div>
-              <q-badge
-                :color="statusStyle.badge"
-                align="top"
-                class="q-ml-xs q-mt-xs text-bold"
-                style="font-size:1.1em;padding:3px 14px;border-radius:9px;"
-              >
-                {{ weather.status ?? '--' }}
-              </q-badge>
-            </div>
-          </div>
+          </q-card>
+          <WeatherViewConfig
+            v-model="showConfig"
+            @update:settings="onConfigUpdate"
+          />
         </div>
-        <!-- Blocos: Gauge Correnteza 3m e Rosa do Vento -->
-        <div class="weather-col-gauges">
-          <div class="gauge-group" v-if="settings.showCorrenteza">
-            <div class="gauge-title">Correnteza 3m</div>
-            <GaugeRelogio
-              :value="correntezaDir"
-              :intensidade="correntezakts"
-              :max="4"
-              :unidade="'kts'"
-              colorMain="#1976D2"
-              colorSecondary="#43A047"
-              colorBg="#E3F2FD"
-              :size="settings.sizeCorrenteza"
-            />
-          </div>
-          <div class="gauge-group" v-if="settings.showVento">
-            <div class="gauge-title">Vento</div>
-            <WindRose
-              :direction="ventoDir"
-              :intensidade="ventokts"
-              :max="40"
-              :unidade="'kts'"
-              :size="settings.sizeVento"
-              :lang="settings.siglaEN ? 'en' : 'pt'"
-            />
-          </div>
-        </div>
-      </q-card>
-      <!-- Painel de Configurações -->
-      <WeatherViewConfig
-        v-model="showConfig"
-        @update:settings="onConfigUpdate"
-      />
+      </div>
+    </div>
+
+    <!-- Painel SiMCosta -->
+    <div v-else>
+      <SmCosta />
     </div>
   </div>
 </template>
@@ -118,8 +140,11 @@ import { useTorreRealTimeStore } from 'stores/torreRealTime';
 import GaugeRelogio from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import WindRose from 'src/components/praticagem/watch/WindRose.vue';
 import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
+// Importa o seu componente SiMCosta
+import SmCosta from 'components/SimCosta.vue';
 
 const showConfig = ref(false);
+const panel = ref('default');
 
 const defaultSettings = {
   siglaEN: false,
@@ -147,7 +172,6 @@ function onConfigUpdate(newSettings) {
   Object.assign(settings.value, newSettings);
 }
 
-// Função robusta para interpretar datas BR 'DD/MM/YYYY HH:mm'
 function parseDateBR(str) {
   if (!str || typeof str !== 'string') return null;
   const m = str.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:[ T](\d{2}):(\d{2}))?/);
@@ -163,54 +187,41 @@ const { controls, mare, loading: torreLoading, error: torreError } = storeToRefs
 // Computed: monta objeto unificado com prioridade torre > backend
 const weather = computed(() => {
   if (controls.value && mare.value) {
-    // Pega temperatura, vento etc. da estação, altura_real_getmare da maré
     return {
       ...controls.value.stationDavis,
       ...controls.value,
       altura_real_getmare: mare.value.regs?.find(r => r.tipo === 'R')?.valor ?? null,
       leitura: controls.value.stationDavis?.timestamp || controls.value.timestamp,
-      status: controls.value.barraStatus?.status, // <-- Corrigido!
-      // outros campos que precisar
+      status: controls.value.barraStatus?.status,
     }
   }
-  // Fallback: backend
   return weatherLast.value;
 });
 
-// Label de origem dos dados
 const origemLabel = computed(() => {
   if (controls.value && mare.value) return '⏱️ Dados em tempo real (torre)';
   if (weatherLast.value) return '📦 Último registro (backend)';
   return '—';
 });
 
-// Leituras formatadas (datetime do dado)
 const leituraFormatada = computed(() => {
   const leitura = weather.value?.timestamp_br?.date || weather.value?.leitura;
   if (!leitura) return '--';
-
-  // 1. Tenta ISO (YYYY-MM-DDTHH:mm)
   if (typeof leitura === 'string' && !leitura.includes('/')) {
     const d = new Date(leitura);
     // eslint-disable-next-line no-restricted-globals
     if (!isNaN(d.getTime())) return d.toLocaleString('pt-BR');
   }
-
-  // 2. Tenta BR (DD/MM/YYYY HH:mm)
   const d = parseDateBR(leitura);
   // eslint-disable-next-line no-restricted-globals
   if (d && !isNaN(d.getTime())) {
     return d.toLocaleString('pt-BR');
   }
-
-  // 3. Se não deu, retorna original
   return leitura;
 });
 
-// Preferencialmente use sempre a sigla original (backend), ou grau se não houver.
 const ventoDirCardinal = computed(() => weather.value?.ventodirecao || weather.value?.vento_dir || null);
 
-// GRAU para a flecha SEMPRE: usa ventonum do backend se válido, senão tenta converter a sigla
 const ventoDir = computed(() => {
   const vnum = weather.value?.ventonum;
   // eslint-disable-next-line no-restricted-globals
@@ -218,7 +229,6 @@ const ventoDir = computed(() => {
   return cardinalToDegree(ventoDirCardinal.value);
 });
 
-// Mostra sempre a sigla do backend (exata), fallback para cardinal se só veio grau
 const windDirLabel = computed(() => (
   ventoDirCardinal.value
     ? ` ${ventoDirCardinal.value.toUpperCase()}`
@@ -227,7 +237,6 @@ const windDirLabel = computed(() => (
       : '')
 ));
 
-// Função universal para converter cardinal para graus meteorológicos
 function cardinalToDegree(cardinal) {
   if (!cardinal || typeof cardinal !== 'string') return 0;
   const c = cardinal.trim().toUpperCase().replace(/[^A-Z]/g, '');
@@ -277,7 +286,6 @@ NORTHWEST: 315,
   return 0;
 }
 
-// Fallback: grau para cardinal
 function degreeToCardinal(deg) {
   if (deg == null || deg === '--') return '--';
   const ptDirs = ['N', 'NL', 'L', 'SL', 'S', 'SO', 'O', 'NO', 'N'];
@@ -286,7 +294,6 @@ function degreeToCardinal(deg) {
   return dirs[Math.round((deg % 360) / 45)];
 }
 
-// Status e computadas
 const statusText = computed(() => String(weather.value?.status || '')
   .toUpperCase()
   .normalize('NFD')
