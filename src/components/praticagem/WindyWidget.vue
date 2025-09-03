@@ -157,17 +157,23 @@
     <div v-if="selected === 'freamer'">
       <WindyWidget />
     </div>
+        <!-- Freamer (Pena): Botão flutuante webview -->
+    <div v-if="selected === 'Windguru'">
+      <WindguruWidget />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick, watch } from "vue"
-import WindyWidget from 'components/WebviewButton.vue'
+import WindyWidget from 'src/components/MuitosBonsVentosWidget.vue'
+import WindguruWidget from 'components/WindguruWidget.vue'
 
 const btns = [
   { value: "map", label: "Mapa Windy" },
   { value: "forecast", label: "Previsão Windy" },
-  { value: "freamer", label: "Freamer (Pena)" },
+  { value: "freamer", label: "Bons Ventos" },
+  { value: "Windguru", label: "Windguru" },
 ]
 
 const selected = ref("map")
@@ -394,6 +400,11 @@ function selectWidget(val) {
     }
   });
 }
+watch(selected, (val) => {
+  if (val !== 'Windguru' && showWidget.value) {
+    showWidget.value = false;
+  }
+})
 
 // Recarrega quando o tema da previsão muda
 watch(() => card2.value.theme, () => {

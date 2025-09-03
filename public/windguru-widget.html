@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8">
+    <title>Windguru Widget – Previsão do Vento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body { margin:0; background:#fff; }
+    </style>
+  </head>
+  <body>
+    <!-- Widget container -->
+    <div id="wg_fwdg_2169_100"></div>
+    <!-- Script do Windguru -->
+    <script>
+      var arg = ["s=2169","m=100","uid=wg_fwdg_2169_100_001","wj=kmh","tj=c","waj=m"];
+      var script = document.createElement("script");
+      script.src = "https://www.windguru.cz/js/widget.php?" + arg.join("&");
+      document.getElementsByTagName("body")[0].appendChild(script);
+    </script>
+  </body>
+</html>

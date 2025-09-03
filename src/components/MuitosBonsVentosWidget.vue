@@ -1,10 +1,9 @@
 <template>
   <div>
-    <!-- Botão flutuante para abrir a webview -->
+    <!-- Botão centralizado dentro do card -->
     <q-btn
       v-if="!showIframe"
-      class="q-pa-sm"
-      style="position:fixed;top:30px;right:30px;z-index:9999"
+      class="q-pa-sm q-mt-xl q-mb-md"
       color="primary"
       rounded
       label="Ver Previsão dos Ventos 🌬️"
