@@ -8,7 +8,8 @@
         toggle-color="primary"
         :options="[
           { label: 'Padrão', value: 'default' },
-          { label: 'SiMCosta', value: 'simcosta' }
+          { label: 'SiMCosta', value: 'simcosta' },
+          { label: 'OpenWeather', value: 'openweather' }
         ]"
         size="md"
         class="bg-grey-1"
@@ -126,8 +127,13 @@
     </div>
 
     <!-- Painel SiMCosta -->
-    <div v-else>
-      <SmCosta />
+    <div v-else-if="panel === 'simcosta'">
+      <SimCosta />
+    </div>
+
+    <!-- Painel OpenWeather -->
+    <div v-else-if="panel === 'openweather'">
+      <OpenWeatherPainel />
     </div>
   </div>
 </template>
@@ -141,7 +147,8 @@ import GaugeRelogio from 'src/components/praticagem/watch/GaugeRelogio.vue';
 import WindRose from 'src/components/praticagem/watch/WindRose.vue';
 import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
 // Importa o seu componente SiMCosta
-import SmCosta from 'components/SimCosta.vue';
+import SimCosta from 'components/SimCosta.vue';
+import OpenWeatherPainel from 'src/components/OpenWeatherPainel.vue';
 
 const showConfig = ref(false);
 const panel = ref('default');
