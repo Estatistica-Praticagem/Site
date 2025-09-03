@@ -158,7 +158,7 @@
       <WindyWidget />
     </div>
         <!-- Freamer (Pena): Botão flutuante webview -->
-    <div v-if="selected === 'Windguru'">
+    <div v-if="selected === 'Windguru'" style="margin-top: 30px;">
       <WindguruWidget />
     </div>
   </div>
