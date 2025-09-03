@@ -8,7 +8,7 @@
         toggle-color="primary"
         :options="[
           { label: 'Padrão', value: 'default' },
-          { label: 'SiMCosta', value: 'simcosta' },
+          // { label: 'SiMCosta', value: 'simcosta' },
           { label: 'OpenWeather', value: 'openweather' }
         ]"
         size="md"
@@ -139,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useWeatherStore } from 'src/stores/weather';
 import { useTorreRealTimeStore } from 'stores/torreRealTime';
@@ -150,8 +150,21 @@ import WeatherViewConfig from 'src/components/praticagem/WeatherViewConfig.vue';
 import SimCosta from 'components/SimCosta.vue';
 import OpenWeatherPainel from 'src/components/OpenWeatherPainel.vue';
 
+// === Ajuste: painel salvo/restaurado no localStorage ===
+const PANEL_KEY = 'weatherPanelType'
+const panel = ref('default')
+onMounted(() => {
+  const saved = localStorage.getItem(PANEL_KEY)
+  if (saved && ['default', 'simcosta', 'openweather'].includes(saved)) {
+    panel.value = saved
+  }
+})
+watch(panel, (val) => {
+  localStorage.setItem(PANEL_KEY, val)
+})
+// === /Ajuste painel salvo ===
+
 const showConfig = ref(false);
-const panel = ref('default');
 
 const defaultSettings = {
   siglaEN: false,

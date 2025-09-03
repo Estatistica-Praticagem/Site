@@ -26,6 +26,19 @@
           </div>
         </template>
       </div>
+
+      <!-- ROSA DOS VENTOS (usa as configs globais salvas no localStorage) -->
+      <!-- <div v-if="showWindRose" class="q-mb-md flex flex-center">
+        <WindRose
+          :direction="current.wind_deg"
+          :intensidade="msToKts(current.wind_speed)"
+          :max="40"
+          :unidade="'kts'"
+          :size="settings.sizeVento"
+          :lang="settings.siglaEN ? 'en' : 'pt'"
+        />
+      </div> -->
+
       <div class="text-caption q-mb-sm">
         Fonte: OpenWeather 3.0 (atualização: {{ timeBR(current.dt) }})
       </div>
@@ -76,6 +89,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import WindRose from 'src/components/praticagem/watch/WindRose.vue' // Certifique-se do caminho!
 
 const LAT = -32.188
 const LON = -52.082
@@ -90,24 +104,35 @@ const selectedCols = ref([])
 
 const STORAGE_KEY = 'openweather_panel_cols'
 
-function msToKts(ms) {
-  if (ms == null) return 0
-  return +(ms * 1.943844).toFixed(2)
+// Config global do painel principal
+const settings = ref({
+  showVento: true,
+  sizeVento: 90,
+  siglaEN: false,
+  // Você pode adicionar outros padrões
+})
+
+// Carrega as configs globais do painel principal
+onMounted(() => {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
+    selectedCols.value = JSON.parse(saved)
+  } else {
+    selectedCols.value = ['temp', 'feels_like', 'pressure', 'humidity', 'dew_point', 'wind_speed', 'wind_deg', 'wind_gust', 'uvi', 'clouds', 'visibility', 'rain_1h', 'weather', 'dt', 'sunrise', 'sunset']
+  }
+  // Carrega config global
+  try {
+    const data = JSON.parse(localStorage.getItem('weatherPanelConfig'))
+    if (data) Object.assign(settings.value, data)
+  } catch {}
+  fetchData()
+})
+
+function saveConfig() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedCols.value))
+  showConfig.value = false
 }
 
-// Helpers de formatação de data/hora para Brasília
-function timeBR(epoch) {
-  if (!epoch) return '--'
-  return new Date(epoch * 1000).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-}
-function timeBRshort(epoch) {
-  if (!epoch) return '--'
-  const d = new Date(epoch * 1000)
-  return `${d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}, ${ 
-    d.toLocaleTimeString('pt-BR', { hour12: false, timeZone: 'America/Sao_Paulo' })}`
-}
-
-// Todas as opções possíveis (adicione mais se quiser)
 const columns = [
   { name: 'temp', label: 'Temperatura', class: 'text-primary', format: c => (c.temp !== undefined ? `${c.temp}°C` : '--') },
   { name: 'feels_like', label: 'Sensação Térmica', class: '', format: c => (c.feels_like !== undefined ? `${c.feels_like}°C` : '--') },
@@ -127,21 +152,7 @@ const columns = [
   { name: 'sunset', label: 'Pôr do Sol', class: '', format: c => timeBRshort(c.sunset) },
 ]
 
-onMounted(() => {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    selectedCols.value = JSON.parse(saved)
-  } else {
-    selectedCols.value = ['temp', 'feels_like', 'pressure', 'humidity', 'dew_point', 'wind_speed', 'wind_deg', 'wind_gust', 'uvi', 'clouds', 'visibility', 'rain_1h', 'weather', 'dt', 'sunrise', 'sunset']
-  }
-  fetchData()
-})
-
-function saveConfig() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedCols.value))
-  showConfig.value = false
-}
-
+// Mostra só as colunas selecionadas
 const visibleColumns = computed(() => {
   return columns.filter(col => selectedCols.value.includes(col.name))
 })
@@ -169,7 +180,26 @@ async function fetchData() {
   }
 }
 
-// Classe de cor de fundo baseada no vento
+// Helpers de formatação de data/hora para Brasília
+function timeBR(epoch) {
+  if (!epoch) return '--'
+  return new Date(epoch * 1000).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+}
+function timeBRshort(epoch) {
+  if (!epoch) return '--'
+  const d = new Date(epoch * 1000)
+  return `${d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}, ${
+    d.toLocaleTimeString('pt-BR', { hour12: false, timeZone: 'America/Sao_Paulo' })}`
+}
+function msToKts(ms) {
+  if (ms == null) return 0
+  return +(ms * 1.943844).toFixed(2)
+}
+
+// Exibe a rosa dos ventos só se for habilitada
+const showWindRose = computed(() => !!settings.value.showVento && !!current.value && current.value.wind_deg !== undefined)
+
+// Classe de cor de fundo baseada na força do vento (em kts)
 const windBgClass = computed(() => {
   if (!current.value || current.value.wind_speed == null) return 'wind-bg-calm'
   const knots = msToKts(current.value.wind_speed)
@@ -179,6 +209,7 @@ const windBgClass = computed(() => {
   return 'wind-bg-extreme'
 })
 
+// Para mostrar todos os dados "raw" na modal
 const rawAll = computed(() => JSON.stringify(allData.value, null, 2))
 </script>
 
